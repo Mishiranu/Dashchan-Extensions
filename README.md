@@ -4,4 +4,4 @@ Extension for allchan.su.
 
 # License
 
-* [MIT License](LICENSE)
+[MIT License](LICENSE)
