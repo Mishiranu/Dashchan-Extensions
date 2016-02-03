@@ -1,0 +1,36 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.mishiranu.dashchan.chan.chuckdfwk"
+	android:versionCode="1"
+	android:versionName="1.0">
+	
+	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
+	
+	<uses-feature android:name="chan.extension" />
+	
+	<application android:icon="@drawable/ic_launcher" android:allowBackup="false" android:label="@string/text_app_name">
+		
+		<meta-data android:name="chan.extension.name" android:value="chuckdfwk" />
+		<meta-data android:name="chan.extension.version" android:value="1" />
+		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_chuckdfwk_white" />
+		<meta-data android:name="chan.extension.source" android:value="https://raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".ChuckDfwkChanConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".ChuckDfwkChanPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".ChuckDfwkChanLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".ChuckDfwkChanMarkup" />
+		
+		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
+		    android:theme="@android:style/Theme.NoDisplay">
+			
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" />
+				<data android:host="chuck.dfwk.ru" />
+			</intent-filter>
+			
+		</activity>
+		
+	</application>
+	
+</manifest>
