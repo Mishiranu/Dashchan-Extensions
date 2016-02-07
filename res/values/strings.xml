@@ -1,0 +1,11 @@
+<resources>
+	
+	<string name="text_app_name">Dashchan for ponyach.ru</string>
+	<string name="text_activity_name">Dashchan</string>
+	
+	<string name="text_rating_none">Not rated</string>
+	<string name="text_rating_nsfw">[S] — NSFW</string>
+	<string name="text_rating_spoiler">[C] — Spoiler/furry</string>
+	<string name="text_rating_unrelated">[A] — Unrelated</string>
+	
+</resources>

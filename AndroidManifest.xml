@@ -1,0 +1,42 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.mishiranu.dashchan.chan.ponyach"
+	android:versionCode="1"
+	android:versionName="1.1">
+	
+	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
+	
+	<uses-feature android:name="chan.extension" />
+	
+	<application android:icon="@drawable/ic_launcher" android:allowBackup="false" android:label="@string/text_app_name">
+		
+		<meta-data android:name="chan.extension.name" android:value="ponyach" />
+		<meta-data android:name="chan.extension.version" android:value="1" />
+		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_ponyach_white" />
+		<meta-data android:name="chan.extension.source" android:value="https://raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".PonyachChanConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".PonyachChanPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".PonyachChanLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".PonyachChanMarkup" />
+		
+		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
+		    android:theme="@android:style/Theme.NoDisplay">
+			
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" />
+				<data android:scheme="https" />
+				<data android:host="ponyach.ru" />
+				<data android:host="ponychan.ru" />
+				<data android:host="ponya.ch" />
+				<data android:host="ponyach.cf" />
+				<data android:host="ponyach.ga" />
+				<data android:host="ponyach.ml" />
+			</intent-filter>
+			
+		</activity>
+		
+	</application>
+	
+</manifest>
