@@ -82,7 +82,7 @@ public class PonychanChanLocator extends ChanLocator
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment(postNumber).build();
 	}
 	
-	public Uri createPostUri()
+	public Uri createSendPostUri()
 	{
 		return buildPathWithSchemeHost(true, HOST, "post.php");
 	}

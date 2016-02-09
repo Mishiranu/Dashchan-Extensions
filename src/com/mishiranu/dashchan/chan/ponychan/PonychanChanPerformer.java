@@ -139,7 +139,7 @@ public class PonychanChanPerformer extends ChanPerformer
 		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
 
 		PonychanChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createPostUri();
+		Uri uri = locator.createSendPostUri();
 		String responseText;
 		try
 		{
@@ -230,7 +230,7 @@ public class PonychanChanPerformer extends ChanPerformer
 				"password", data.password);
 		for (String postNumber : data.postNumbers) entity.add("delete_" + postNumber, "on");
 		if (data.optionFilesOnly) entity.add("file", "on");
-		Uri uri = locator.createPostUri();
+		Uri uri = locator.createSendPostUri();
 		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getString();
 		if (responseText != null)
 		{

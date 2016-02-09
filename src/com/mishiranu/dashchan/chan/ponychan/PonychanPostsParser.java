@@ -169,30 +169,33 @@ public class PonychanPostsParser implements GroupParser.Callback
 		}
 		else if ("span".equals(tagName))
 		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("morefileinfo".equals(cssClass))
+			if (mPost != null)
 			{
-				mExpect = EXPECT_FILE_SIZE;
-			}
-			else if ("postfilename".equals(cssClass))
-			{
-				String originalName = parser.getAttr(attrs, "title");
-				if (originalName != null) mAttachment.setOriginalName(StringUtils.clearHtml(originalName));
-			}
-			else if ("subject".equals(cssClass))
-			{
-				mExpect = EXPECT_SUBJECT;
-				return true;
-			}
-			else if ("name".equals(cssClass))
-			{
-				mExpect = EXPECT_NAME;
-				return true;
-			}
-			else if ("trip".equals(cssClass))
-			{
-				mExpect = EXPECT_TRIPCODE;
-				return true;
+				String cssClass = parser.getAttr(attrs, "class");
+				if ("morefileinfo".equals(cssClass))
+				{
+					mExpect = EXPECT_FILE_SIZE;
+				}
+				else if ("postfilename".equals(cssClass))
+				{
+					String originalName = parser.getAttr(attrs, "title");
+					if (originalName != null) mAttachment.setOriginalName(StringUtils.clearHtml(originalName));
+				}
+				else if ("subject".equals(cssClass))
+				{
+					mExpect = EXPECT_SUBJECT;
+					return true;
+				}
+				else if ("name".equals(cssClass))
+				{
+					mExpect = EXPECT_NAME;
+					return true;
+				}
+				else if ("trip".equals(cssClass))
+				{
+					mExpect = EXPECT_TRIPCODE;
+					return true;
+				}
 			}
 		}
 		else if ("time".equals(tagName))
