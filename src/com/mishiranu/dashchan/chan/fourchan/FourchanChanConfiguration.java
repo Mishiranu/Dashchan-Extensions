@@ -19,6 +19,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 	{
 		request(OPTION_READ_POSTS_COUNT);
 		request(OPTION_READ_POPULAR_THREADS);
+		request(OPTION_ALLOW_CAPTCHA_PASS);
 		setDefaultName("Anonymous");
 		setBumpLimit(300);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
@@ -61,6 +62,15 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		deleting.multiplePosts = true;
 		deleting.optionFilesOnly = true;
 		return deleting;
+	}
+	
+	@Override
+	public Authorization obtainCaptchaPassConfiguration()
+	{
+		Authorization authorization = new Authorization();
+		authorization.fieldsCount = 2;
+		authorization.hints = new String[] {"Token", "PIN"};
+		return authorization;
 	}
 	
 	public boolean isTagSupported(String boardName, int tag)

@@ -3,6 +3,7 @@ package com.mishiranu.dashchan.chan.fourchan;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,9 @@ import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.content.model.ThreadSummary;
+import chan.http.CookieBuilder;
 import chan.http.HttpException;
+import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
@@ -260,9 +263,104 @@ public class FourchanChanPerformer extends ChanPerformer
 		throw new InvalidResponseException();
 	}
 	
-	@Override
-	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException
+	private CookieBuilder buildCookies(String captchaPassData)
 	{
+		if (captchaPassData != null)
+		{
+			CookieBuilder builder = new CookieBuilder();
+			builder.append("pass_enabled", "1");
+			builder.append("pass_id", captchaPassData);
+			return builder;
+		}
+		return null;
+	}
+	
+	private static final Pattern PATTERN_AUTH_MESSAGE = Pattern.compile("<span.*?>(.*?)<(?:br|/span)>");
+	
+	@Override
+	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
+			InvalidResponseException
+	{
+		return new CheckAuthorizationResult(readCaptchaPassData(data.holder, data,
+				data.authorizationData[0], data.authorizationData[1]) != null);
+	}
+	
+	private String mLastCaptchaPass;
+	private String mLastCaptchaPassData;
+	
+	private String getCaptchaPass(String token, String pin)
+	{
+		return token + '|' + pin;
+	}
+	
+	private String readCaptchaPassData(HttpHolder holder, HttpRequest.Preset preset, String token, String pin)
+			throws HttpException, InvalidResponseException
+	{
+		mLastCaptchaPass = null;
+		mLastCaptchaPassData = null;
+		FourchanChanLocator locator = ChanLocator.get(this);
+		Uri uri = locator.createSysUri("auth");
+		UrlEncodedEntity entity = new UrlEncodedEntity("act", "do_login", "id", token, "pin", pin, "long_login", "yes");
+		String responseText = new HttpRequest(uri, holder, preset).setPostMethod(entity)
+				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
+		Matcher matcher = PATTERN_AUTH_MESSAGE.matcher(responseText);
+		if (matcher.find())
+		{
+			String message = StringUtils.clearHtml(matcher.group(1));
+			if (message.startsWith("Error: ")) message = message.substring(7);
+			if (message.endsWith(".")) message = message.substring(0, message.length() - 1);
+			if (message.contains("Your device is now authorized"))
+			{
+				String captchaPassData = null;
+				List<String> cookies = holder.getHeaderFields().get("Set-Cookie");
+				if (cookies != null)
+				{
+					for (String cookie : cookies)
+					{
+						if (cookie.startsWith("pass_id=") && !cookie.startsWith("pass_id=0;"))
+						{
+							int index = cookie.indexOf(';');
+							captchaPassData = cookie.substring(8, index >= 0 ? index : cookie.length());
+							break;
+						}
+					}
+				}
+				if (captchaPassData == null) throw new InvalidResponseException();
+				mLastCaptchaPass = getCaptchaPass(token, pin);
+				mLastCaptchaPassData = captchaPassData;
+				return captchaPassData;
+			}
+			if (message.contains("Incorrect Token or PIN") || message.contains("Your Token must be exactly") ||
+					message.contains("You have left one or more fields blank"))
+			{
+				return null;
+			}
+			throw new HttpException(0, message);
+		}
+		else throw new InvalidResponseException();
+	}
+	
+	private static final String CAPTCHA_PASS_DATA = "captchaPass";
+	
+	@Override
+	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
+	{
+		String token = data.captchaPass != null ? data.captchaPass[0] : null;
+		String pin = data.captchaPass != null ? data.captchaPass[1] : null;
+		String captchaPassData = null;
+		if (token != null || pin != null)
+		{
+			if (getCaptchaPass(token, pin).equals(mLastCaptchaPass)) captchaPassData = mLastCaptchaPassData;
+			else captchaPassData = readCaptchaPassData(data.holder, data, token, pin);
+		}
+		if (captchaPassData != null)
+		{
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CAPTCHA_PASS_DATA, captchaPassData);
+			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.PASS, captchaData);
+			result.validity = ChanConfiguration.Captcha.Validity.LONG_LIFETIME;
+			return result;
+		}
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
@@ -288,6 +386,7 @@ public class FourchanChanPerformer extends ChanPerformer
 			attachment.addToEntity(entity, "upfile");
 			if (attachment.optionSpoiler) entity.add("spoiler", "on");
 		}
+		String captchaPassData = null;
 		if (data.captchaData != null)
 		{
 			if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(data.captchaType))
@@ -299,12 +398,13 @@ public class FourchanChanPerformer extends ChanPerformer
 			{
 				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
 			}
+			captchaPassData = data.captchaData.get(CAPTCHA_PASS_DATA);
 		}
 
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "post");
-		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
+		String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassData))
+				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 		
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
 		if (matcher.find())
@@ -423,6 +523,11 @@ public class FourchanChanPerformer extends ChanPerformer
 				else if (errorMessage.contains("You cannot delete posts this often"))
 				{
 					errorType = ApiException.DELETE_ERROR_TOO_OFTEN;
+				}
+				if (errorType == ApiException.SEND_ERROR_CAPTCHA)
+				{
+					mLastCaptchaPass = null;
+					mLastCaptchaPassData = null;
 				}
 				if (errorType != 0) throw new ApiException(errorType);
 			}
