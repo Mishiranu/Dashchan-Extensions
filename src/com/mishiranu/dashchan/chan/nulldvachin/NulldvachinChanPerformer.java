@@ -16,7 +16,6 @@ import android.net.Uri;
 
 import chan.content.ApiException;
 import chan.content.ChanConfiguration;
-import chan.content.ChanConfiguration.Captcha.Validity;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
@@ -223,7 +222,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		else
 		{
 			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.SKIP, null);
-			result.validity = Validity.IN_BOARD;
+			result.validity = ChanConfiguration.Captcha.Validity.IN_BOARD;
 			return result;
 		}
 	}
