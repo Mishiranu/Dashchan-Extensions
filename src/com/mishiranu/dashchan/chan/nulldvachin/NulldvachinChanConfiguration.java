@@ -11,6 +11,11 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 {
 	public static final String CAPTCHA_TYPE_PHUTABA = "phutaba";
 	
+	private static final String KEY_NAMES_ENABLED = "names_enabled";
+	private static final String KEY_THREAD_IMAGES_ENABLED = "thread_images_enabled";
+	private static final String KEY_REPLY_IMAGES_ENABLED = "reply_images_enabled";
+	private static final String KEY_ATTACHMENT_COUNT = "attachment_count";
+	
 	public NulldvachinChanConfiguration()
 	{
 		request(OPTION_READ_THREAD_PARTIALLY);
@@ -47,10 +52,11 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
 		Posting posting = new Posting();
-		posting.allowName = posting.allowTripcode = !"b".equals(boardName) && !"d".equals(boardName);
+		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
 		posting.optionSage = true;
-		posting.attachmentCount = "d".equals(boardName) ? 0 : 4;
+		posting.attachmentCount = get(boardName, newThread ? KEY_THREAD_IMAGES_ENABLED : KEY_REPLY_IMAGES_ENABLED, true)
+				? get(boardName, KEY_ATTACHMENT_COUNT, 4) : 0;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("audio/*");
 		posting.attachmentMimeTypes.add("video/*");
@@ -83,6 +89,20 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 			String description = CommonUtils.optJsonString(infoObject, "board_desc");
 			if (!StringUtils.isEmpty(title)) storeBoardTitle(boardName, title);
 			if (!StringUtils.isEmpty(description)) storeBoardDescription(boardName, description);
+			JSONObject configObject = infoObject.optJSONObject("config");
+			if (configObject != null)
+			{
+				int bumpLimit = configObject.optInt("max_res");
+				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
+				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
+				boolean replyImagesEnabled = configObject.optInt("image_replies", 1) != 0;
+				int attachmentCount = configObject.optInt("max_res", 4);
+				if (bumpLimit > 0) storeBumpLimit(boardName, bumpLimit);
+				set(boardName, KEY_NAMES_ENABLED, namesEnabled);
+				set(boardName, KEY_THREAD_IMAGES_ENABLED, threadImagesEnabled);
+				set(boardName, KEY_REPLY_IMAGES_ENABLED, replyImagesEnabled);
+				set(boardName, KEY_ATTACHMENT_COUNT, attachmentCount);
+			}
 		}
 	}
 }

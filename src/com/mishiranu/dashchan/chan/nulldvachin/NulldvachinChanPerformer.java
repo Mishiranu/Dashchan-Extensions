@@ -1,6 +1,7 @@
 package com.mishiranu.dashchan.chan.nulldvachin;
 
 import java.net.HttpURLConnection;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,6 +16,7 @@ import android.net.Uri;
 
 import chan.content.ApiException;
 import chan.content.ChanConfiguration;
+import chan.content.ChanConfiguration.Captcha.Validity;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
@@ -23,7 +25,6 @@ import chan.content.model.Posts;
 import chan.http.HttpException;
 import chan.http.HttpHolder;
 import chan.http.HttpRequest;
-import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
 import chan.text.ParseException;
@@ -112,19 +113,8 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildQuery(boardName + "/api/post", "id", postNumber);
-		HttpResponse response = new HttpRequest(uri, holder, preset).read();
-		String responseText = response.getString();
-		int index = responseText.indexOf("\n}");
-		if (index >= 0) responseText = responseText.substring(0, index + 2);
-		JSONObject jsonObject;
-		try
-		{
-			jsonObject = new JSONObject(responseText);
-		}
-		catch (JSONException e)
-		{
-			throw new InvalidResponseException(e);
-		}
+		JSONObject jsonObject = new HttpRequest(uri, holder, preset).read().getJsonObject();
+		if (jsonObject == null) throw new InvalidResponseException();
 		handleStatus(jsonObject);
 		try
 		{
@@ -200,9 +190,19 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createBoardUri(data.boardName, 0);
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
-		if (responseText.contains("<input type=\"text\" name=\"captcha\""))
+		Uri uri = locator.buildQuery(data.boardName + "/api/checkconfig", "captcha", "");
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		if (jsonObject == null) throw new InvalidResponseException();
+		boolean needCaptcha;
+		try
+		{
+			needCaptcha = jsonObject.getInt("captcha") != 0;
+		}
+		catch (JSONException e)
+		{
+			throw new InvalidResponseException(e);
+		}
+		if (needCaptcha)
 		{
 			uri = locator.buildQuery("captcha.pl", "board", data.boardName, "key",
 					data.threadNumber == null ? "mainpage" : "res" + data.threadNumber);
@@ -220,7 +220,12 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			}
 			throw new InvalidResponseException();
 		}
-		else return new ReadCaptchaResult(CaptchaState.SKIP, null);
+		else
+		{
+			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.SKIP, null);
+			result.validity = Validity.IN_BOARD;
+			return result;
+		}
 	}
 	
 	@Override
@@ -328,6 +333,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	};
 	
 	private static final Pattern PATTERN_DELETE_ERROR = Pattern.compile("(?s)<span class=\"prewrap\">(.*?)</span>");
+	private static final Pattern PATTERN_DELETE_MESSAGE = Pattern.compile("Post (\\d+): (.*)");
 	
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
@@ -353,21 +359,39 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		Matcher matcher = PATTERN_DELETE_ERROR.matcher(responseText);
 		if (matcher.find())
 		{
-			String message = matcher.group(1);
-			String[] messages = message.split("\r?\n");
-			if (messages.length < data.postNumbers.size()) return null; // At least 1 post was deleted
+			String fullMessage = matcher.group(1);
+			String[] messages = fullMessage.split("\r?\n");
+			HashSet<String> postNumbers = null;
 			int errorType = 0;
-			if (message.contains("Период ожидания перед удалением"))
+			String firstMessage = null;
+			for (String message : messages)
+			{
+				matcher = PATTERN_DELETE_MESSAGE.matcher(message);
+				if (matcher.matches())
+				{
+					String postNumber = matcher.group(1);
+					message = matcher.group(2);
+					if (!message.contains("Post not found"))
+					{
+						if (postNumbers == null) postNumbers = new HashSet<>();
+						postNumbers.add(postNumber);
+						firstMessage = message;
+					}
+				}
+			}
+			// At least 1 post was deleted
+			if (postNumbers == null || postNumbers.size() < data.postNumbers.size()) return null;
+			if (fullMessage.contains("Период ожидания перед удалением"))
 			{
 				errorType = ApiException.DELETE_ERROR_TOO_NEW;
 			}
-			else if (message.contains("Неверный пароль"))
+			else if (fullMessage.contains("Неверный пароль"))
 			{
 				errorType = ApiException.DELETE_ERROR_PASSWORD;
 			}
 			if (errorType != 0) throw new ApiException(errorType);
-			CommonUtils.writeLog("Nulldvachin delete message", message);
-			throw new ApiException(messages[0]);
+			CommonUtils.writeLog("Nulldvachin delete message", fullMessage);
+			throw new ApiException(firstMessage);
 		}
 		throw new InvalidResponseException();
 	}

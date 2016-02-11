@@ -65,7 +65,7 @@ public class NulldvachinModelMapper
 			id = StringUtils.nullIfEmpty(StringUtils.clearHtml(id).trim());
 			post.setIdentifier(id);
 		}
-		if (jsonObject.optInt("adminpost") != 0) post.setCapcode("team");
+		if (jsonObject.optInt("adminpost") != 0) post.setCapcode("Team");
 		String email = CommonUtils.optJsonString(jsonObject, "email");
 		if (!StringUtils.isEmpty(email) && email.equalsIgnoreCase("mailto:sage")) post.setSage(true);
 		String subject = CommonUtils.optJsonString(jsonObject, "subject");
