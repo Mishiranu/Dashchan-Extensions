@@ -4,6 +4,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.res.Resources;
+import android.util.Pair;
+
 import chan.content.ChanConfiguration;
 import chan.content.ChanMarkup;
 import chan.util.CommonUtils;
@@ -35,6 +38,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		board.allowArchive = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;
+		board.allowReporting = true;
 		return board;
 	}
 	
@@ -62,6 +66,16 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		deleting.multiplePosts = true;
 		deleting.optionFilesOnly = true;
 		return deleting;
+	}
+	
+	@Override
+	public Reporting obtainReportingConfiguration(String boardName)
+	{
+		Resources resources = getResources();
+		Reporting reporting = new Reporting();
+		reporting.types.add(new Pair<>("vio", resources.getString(R.string.text_violation)));
+		reporting.types.add(new Pair<>("illegal", resources.getString(R.string.text_illegal)));
+		return reporting;
 	}
 	
 	@Override

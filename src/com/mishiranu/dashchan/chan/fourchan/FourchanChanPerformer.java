@@ -275,6 +275,12 @@ public class FourchanChanPerformer extends ChanPerformer
 		return null;
 	}
 	
+	private static String removeErrorFromMessage(String message)
+	{
+		if (message.startsWith("Error: ")) message = message.substring(7);
+		return message;
+	}
+	
 	private static final Pattern PATTERN_AUTH_MESSAGE = Pattern.compile("<span.*?>(.*?)<(?:br|/span)>");
 	
 	@Override
@@ -308,7 +314,6 @@ public class FourchanChanPerformer extends ChanPerformer
 		{
 			String message = StringUtils.clearHtml(matcher.group(1));
 			if (message.startsWith("Error: ")) message = message.substring(7);
-			if (message.endsWith(".")) message = message.substring(0, message.length() - 1);
 			if (message.contains("Your device is now authorized"))
 			{
 				String captchaPassData = null;
@@ -335,12 +340,14 @@ public class FourchanChanPerformer extends ChanPerformer
 			{
 				return null;
 			}
+			message = removeErrorFromMessage(message);
 			throw new HttpException(0, message);
 		}
 		else throw new InvalidResponseException();
 	}
 	
-	private static final String CAPTCHA_PASS_DATA = "captchaPass";
+	private static final String CAPTCHA_TYPE = "captchaType";
+	private static final String CAPTCHA_PASS_DATA = "captchaPassData";
 	
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
@@ -363,6 +370,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
+		if ("report".equals(data.requirement)) captchaData.put(CAPTCHA_TYPE, data.captchaType);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 	}
 	
@@ -531,9 +539,68 @@ public class FourchanChanPerformer extends ChanPerformer
 				}
 				if (errorType != 0) throw new ApiException(errorType);
 			}
+			errorMessage = removeErrorFromMessage(errorMessage);
 			CommonUtils.writeLog("4chan delete message", errorMessage);
 			throw new ApiException(errorMessage);
 		}
 		return null;
+	}
+	
+	private static final Pattern PATTERN_REPORT_MESSAGE = Pattern.compile("<font.*?>(.*?)<(?:br|/font)>");
+	
+	@Override
+	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
+			InvalidResponseException
+	{
+		FourchanChanLocator locator = ChanLocator.get(this);
+		Uri uri = locator.createSysUri(data.boardName, "imgboard.php");
+		boolean retry = false;
+		String message = null;
+		while (true)
+		{
+			CaptchaData captchaData = requireUserCaptcha("report", data.boardName, data.threadNumber, retry);
+			if (captchaData == null) throw new ApiException(ApiException.REPORT_ERROR_NO_ACCESS);
+			UrlEncodedEntity entity = new UrlEncodedEntity("mode", "report", "cat",
+					data.type, "board", data.boardName, "no", data.postNumbers.get(0));
+			String captchaType = captchaData.get(CAPTCHA_TYPE);
+			if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(captchaType))
+			{
+				entity.add("recaptcha_challenge_field", captchaData.get(CaptchaData.CHALLENGE));
+				entity.add("recaptcha_response_field", captchaData.get(CaptchaData.INPUT));
+			}
+			else if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType))
+			{
+				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
+			}
+			String captchaPassData = captchaData.get(CAPTCHA_PASS_DATA);
+			String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassData))
+					.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
+			Matcher matcher = PATTERN_REPORT_MESSAGE.matcher(responseText);
+			if (matcher.find())
+			{
+				message = matcher.group(1);
+				if (message.contains("CAPTCHA"))
+				{
+					retry = true;
+					continue;
+				}
+				else break;
+			}
+			else throw new InvalidResponseException();
+		}
+		message = StringUtils.clearHtml(message).trim();
+		int errorType = 0;
+		if (message.contains("Report submitted") || message.contains("You have already reported this post"))
+		{
+			return null;
+		}
+		else if (message.contains("You cannot report a sticky"))
+		{
+			errorType = ApiException.REPORT_ERROR_NO_ACCESS;
+		}
+		if (errorType != 0) throw new ApiException(errorType);
+		message = removeErrorFromMessage(message);
+		CommonUtils.writeLog("4chan report message", message);
+		throw new ApiException(message);
 	}
 }
