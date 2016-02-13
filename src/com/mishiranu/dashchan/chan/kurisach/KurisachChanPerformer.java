@@ -22,6 +22,7 @@ import chan.content.ChanLocator;
 import chan.content.InvalidResponseException;
 import chan.content.ThreadRedirectException;
 import chan.content.model.Post;
+import chan.http.CookieBuilder;
 import chan.http.HttpException;
 import chan.http.HttpHolder;
 import chan.http.HttpRequest;
@@ -43,6 +44,9 @@ public class KurisachChanPerformer extends ChanPerformer
 			return responseCode == HttpURLConnection.HTTP_MOVED_PERM ? Action.RETRANSMIT : Action.CANCEL;
 		}
 	};
+	
+	// Server sends obsolete static data in response to request without any cookies
+	private static CookieBuilder FAKE_COOKIE = new CookieBuilder().append("kustyle", "Photon");
 	
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
@@ -89,7 +93,7 @@ public class KurisachChanPerformer extends ChanPerformer
 			{
 				// Will throw exception if thread doesn't exist
 				uri = locator.createThreadUri(data.boardName, data.threadNumber);
-				new HttpRequest(uri, data.holder, data).setHeadMethod().read();
+				new HttpRequest(uri, data.holder, data).setHeadMethod().addCookie(FAKE_COOKIE).read();
 			}
 			return new ReadPostsResult(posts);
 		}
@@ -97,7 +101,7 @@ public class KurisachChanPerformer extends ChanPerformer
 		{
 			Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
 			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.read().getString();
+					.addCookie(FAKE_COOKIE).read().getString();
 			try
 			{
 				return new ReadPostsResult(new KurisachPostsParser(responseText, this, data.boardName).convertPosts());
@@ -150,7 +154,7 @@ public class KurisachChanPerformer extends ChanPerformer
 	{
 		KurisachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("menu.php");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		String responseText = new HttpRequest(uri, data.holder, data).addCookie(FAKE_COOKIE).read().getString();
 		try
 		{
 			return new ReadBoardsResult(new KurisachBoardsParser(responseText).convert());
@@ -167,13 +171,14 @@ public class KurisachChanPerformer extends ChanPerformer
 		KurisachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
 		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.setSuccessOnly(false).read().getString();
+				.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
 		boolean notFound = data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND;
 		int count = 0;
 		if (notFound)
 		{
 			uri = locator.createThreadUri(data.boardName, data.threadNumber);
-			responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+			responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+					.addCookie(FAKE_COOKIE).read().getString();
 		}
 		else data.holder.checkResponseCode();
 		int index = 0;
@@ -223,19 +228,19 @@ public class KurisachChanPerformer extends ChanPerformer
 			{
 				Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
 				responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-						.setSuccessOnly(false).read().getString();
+						.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
 				if (data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)
 				{
 					uri = locator.createThreadUri(data.boardName, data.threadNumber);
 					responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-							.setSuccessOnly(false).read().getString();
+							.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
 				}
 			}
 			else
 			{
 				Uri uri = locator.createBoardUri(data.boardName, 0);
 				responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-						.setSuccessOnly(false).read().getString();
+						.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
 			}
 			needCaptcha = responseText.contains("<span class=\"captcha_status\">");
 			policy = new CapcthaPolicy(data.holder.getValidator(), needCaptcha, data.threadNumber);
