@@ -21,6 +21,7 @@ public class KurisachChanMarkup extends ChanMarkup
 		addTag("pre", TAG_CODE);
 		addTag("span", "unkfunc", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);
+		addTag("span", "cut", TAG_SPOILER);
 		addTag("span", "style", "border-bottom: 1px solid", TAG_UNDERLINE);
 		addTag("span", "style", "font-family: Mona,'MS PGothic' !important;", TAG_CODE);
 		addTag("inlinepre", TAG_CODE);

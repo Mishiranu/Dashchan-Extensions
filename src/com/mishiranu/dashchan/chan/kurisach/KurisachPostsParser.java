@@ -183,7 +183,7 @@ public class KurisachPostsParser implements GroupParser.Callback
 				mExpect = EXPECT_SUBJECT;
 				return true;
 			}
-			else if ("postername".equals(cssClass))
+			else if ("postername".equals(cssClass) && mPost.getTimestamp() <= 0)
 			{
 				mExpect = EXPECT_NAME;
 				return true;
@@ -438,6 +438,7 @@ public class KurisachPostsParser implements GroupParser.Callback
 				text = text.replaceAll("<pre class=\"inline-pp.*?>(.*?)</pre>", "<inlinepre>$1</inlinepre>");
 				text = CommonUtils.restoreCloudFlareProtectedEmails(text);
 				text = removePrettyprintBreaks(text);
+				text = text.replace("<span class=\"cut\">Развернуть</span>", "");
 				mPost.setComment(text);
 				mPosts.add(mPost);
 				mPost = null;
