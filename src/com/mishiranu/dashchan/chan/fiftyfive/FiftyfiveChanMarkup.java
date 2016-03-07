@@ -10,19 +10,24 @@ import chan.text.CommentEditor;
 
 public class FiftyfiveChanMarkup extends ChanMarkup
 {
-	private static final int SUPPORTED_TAGS = TAG_CODE;
+	private static final int SUPPORTED_TAGS = TAG_SPOILER | TAG_CODE | TAG_HEADING;
 	
 	public FiftyfiveChanMarkup()
 	{
 		addTag("pre", TAG_CODE);
 		addTag("span", "quote", TAG_QUOTE);
+		addTag("span", "spoiler", TAG_SPOILER);
+		addTag("span", "heading", TAG_HEADING);
 		addColorable("span");
 	}
 	
 	@Override
 	public CommentEditor obtainCommentEditor(String boardName)
 	{
-		return new CommentEditor.BulletinBoardCodeCommentEditor();
+		CommentEditor commentEditor = new CommentEditor.BulletinBoardCodeCommentEditor();
+		commentEditor.addTag(TAG_SPOILER, "**", "**", CommentEditor.FLAG_ONE_LINE);
+		commentEditor.addTag(TAG_HEADING, "==", "==", CommentEditor.FLAG_ONE_LINE);
+		return commentEditor;
 	}
 	
 	@Override
