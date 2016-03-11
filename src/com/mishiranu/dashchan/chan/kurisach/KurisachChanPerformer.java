@@ -53,7 +53,8 @@ public class KurisachChanPerformer extends ChanPerformer
 	{
 		KurisachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+				.addCookie(FAKE_COOKIE).read().getString();
 		try
 		{
 			return new ReadThreadsResult(new KurisachPostsParser(responseText, this, data.boardName).convertThreads());
