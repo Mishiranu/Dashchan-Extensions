@@ -439,6 +439,8 @@ public class KurisachPostsParser implements GroupParser.Callback
 				text = CommonUtils.restoreCloudFlareProtectedEmails(text);
 				text = removePrettyprintBreaks(text);
 				text = text.replace("<span class=\"cut\">Развернуть</span>", "");
+				// Fix "posts edited" message
+				text = text.replaceAll("<br.*?/>", "<br />").replaceAll(" *\r(?!\n)", "\n").replaceAll(" {2,}", " ");
 				mPost.setComment(text);
 				mPosts.add(mPost);
 				mPost = null;
