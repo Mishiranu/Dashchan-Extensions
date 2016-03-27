@@ -364,9 +364,8 @@ public class FourchanChanPerformer extends ChanPerformer
 		{
 			CaptchaData captchaData = new CaptchaData();
 			captchaData.put(CAPTCHA_PASS_DATA, captchaPassData);
-			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.PASS, captchaData);
-			result.validity = ChanConfiguration.Captcha.Validity.LONG_LIFETIME;
-			return result;
+			return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
+					.setValidity(ChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 		}
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
