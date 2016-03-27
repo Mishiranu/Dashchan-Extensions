@@ -35,7 +35,6 @@ import chan.util.StringUtils;
 
 public class FourchanChanPerformer extends ChanPerformer
 {
-	private static final int DELAY = 1000;
 	private static final String RECAPTCHA_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
 	
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Misc", "Interests", "Creative", "Other",
@@ -53,8 +52,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri(data.boardName, (data.isCatalog() ? "catalog"
 				: Integer.toString(data.pageNumber + 1)) + ".json");
-		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.setDelay(DELAY).read();
+		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read();
 		JSONObject jsonObject = response.getJsonObject();
 		JSONArray jsonArray = response.getJsonArray();
 		if (jsonObject != null && !data.isCatalog())
@@ -105,7 +103,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + ".json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.setDelay(DELAY).read().getJsonObject();
+				.read().getJsonObject();
 		if (jsonObject != null)
 		{
 			try
@@ -151,7 +149,7 @@ public class FourchanChanPerformer extends ChanPerformer
 	{
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri("boards.json");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setDelay(DELAY).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 		if (jsonObject != null)
 		{
 			FourchanChanConfiguration configuration = ChanConfiguration.get(this);
@@ -248,7 +246,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + ".json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.setDelay(DELAY).read().getJsonObject();
+				.read().getJsonObject();
 		if (jsonObject != null)
 		{
 			try
