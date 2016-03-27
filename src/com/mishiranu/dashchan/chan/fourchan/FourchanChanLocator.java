@@ -25,7 +25,7 @@ public class FourchanChanLocator extends ChanLocator
 	public FourchanChanLocator()
 	{
 		addChanHost("4chan.org");
-		addSpecialChanHost(HOST_WWW);
+		addConvertableChanHost(HOST_WWW);
 		addSpecialChanHost(HOST_BOARDS);
 		addSpecialChanHost(HOST_POST);
 		addSpecialChanHost(HOST_API);
@@ -100,7 +100,7 @@ public class FourchanChanLocator extends ChanLocator
 	
 	public Uri buildAttachmentPath(String... segments)
 	{
-		return buildPathWithHost(HOST_IMAGES, segments);
+		return buildPathWithSchemeHost(true, HOST_IMAGES, segments);
 	}
 	
 	public Uri buildBasePath(String... segments)
@@ -115,7 +115,7 @@ public class FourchanChanLocator extends ChanLocator
 	
 	public Uri createIconUri(String country)
 	{
-		return buildPathWithHost(HOST_STATIC, "image", "country", country.toLowerCase(Locale.US) + ".gif");
+		return buildPathWithSchemeHost(true, HOST_STATIC, "image", "country", country.toLowerCase(Locale.US) + ".gif");
 	}
 	
 	public Uri createSysUri(String... segments)
