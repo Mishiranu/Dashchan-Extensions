@@ -198,6 +198,10 @@ public class TiretirechChanPerformer extends ChanPerformer
 			{
 				errorType = ApiException.SEND_ERROR_CAPTCHA;
 			}
+			else if (message.contains("Вы уже постили в этом разделе недавно"))
+			{
+				errorType = ApiException.SEND_ERROR_TOO_FAST;
+			}
 			if (errorType != 0) throw new ApiException(errorType, flags);
 		}
 		CommonUtils.writeLog("Tiretirech send message", message);
