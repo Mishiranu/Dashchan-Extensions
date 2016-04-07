@@ -202,14 +202,14 @@ public class PonyachPostsParser implements GroupParser.Callback
 					int index = onclick.indexOf("/src/");
 					if (index > 0)
 					{
-						String path = onclick.substring(index, onclick.indexOf('\'', index));
-						attachment.setFileUri(mLocator, mLocator.buildPath(mBoardName, path));
+						String path = onclick.substring(index + 5, onclick.indexOf('\'', index));
+						attachment.setFileUri(mLocator, mLocator.buildPath(mBoardName, "src", path));
 					}
 					index = onclick.indexOf("/thumb/");
 					if (index > 0)
 					{
 						String path = onclick.substring(index + 7, onclick.indexOf('\'', index));
-						attachment.setThumbnailUri(mLocator, mLocator.buildPath(mBoardName, path));
+						attachment.setThumbnailUri(mLocator, mLocator.buildPath(mBoardName, "thumb", path));
 					}
 				}
 			}
