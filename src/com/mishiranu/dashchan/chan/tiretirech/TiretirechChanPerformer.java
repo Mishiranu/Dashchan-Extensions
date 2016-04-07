@@ -128,7 +128,7 @@ public class TiretirechChanPerformer extends ChanPerformer
 		}
 		Bitmap image = response.getBitmap();
 		if (image == null) throw new InvalidResponseException();
-		return new ReadCaptchaResult(CaptchaState.CAPTCHA, new CaptchaData(), image);
+		return new ReadCaptchaResult(CaptchaState.CAPTCHA, new CaptchaData()).setImage(image);
 	}
 	
 	@Override
