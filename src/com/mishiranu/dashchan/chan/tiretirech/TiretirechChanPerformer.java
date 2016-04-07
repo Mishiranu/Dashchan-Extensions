@@ -145,8 +145,7 @@ public class TiretirechChanPerformer extends ChanPerformer
 		if (data.captchaData != null) entity.add("captcha", data.captchaData.get(CaptchaData.INPUT));
 		if (data.attachments != null)
 		{
-			SendPostData.Attachment attachment = data.attachments[0];
-			attachment.addToEntity(entity, "file");
+			for (SendPostData.Attachment attachment : data.attachments) attachment.addToEntity(entity, "file");
 		}
 		
 		TiretirechChanLocator locator = ChanLocator.get(this);
