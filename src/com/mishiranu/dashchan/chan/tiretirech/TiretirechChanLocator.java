@@ -16,7 +16,7 @@ public class TiretirechChanLocator extends ChanLocator
 	public TiretirechChanLocator()
 	{
 		addChanHost("2--ch.ru");
-		addSpecialChanHost("www.2--ch.ru");
+		addConvertableChanHost("www.2--ch.ru");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 	
