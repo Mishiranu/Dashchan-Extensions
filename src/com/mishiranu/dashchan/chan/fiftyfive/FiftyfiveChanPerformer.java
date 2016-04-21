@@ -249,6 +249,10 @@ public class FiftyfiveChanPerformer extends ChanPerformer
 			{
 				errorType = ApiException.SEND_ERROR_TOO_FAST;
 			}
+			else if (jsonObject.optBoolean("banned"))
+			{
+				errorType = ApiException.SEND_ERROR_BANNED;
+			}
 			if (errorType != 0) throw new ApiException(errorType);
 			CommonUtils.writeLog("Fiftyfive send message", errorMessage);
 			throw new ApiException(errorMessage);
