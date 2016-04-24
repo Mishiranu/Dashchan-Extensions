@@ -157,8 +157,11 @@ public class PonychanChanPerformer extends ChanPerformer
 				String threadNumber = locator.getThreadNumber(uri);
 				return new SendPostResult(threadNumber, null);
 			}
-			// Posting errors has 500 error code
-			if (responseCode != HttpURLConnection.HTTP_INTERNAL_ERROR) data.holder.checkResponseCode();
+			if (responseCode != HttpURLConnection.HTTP_INTERNAL_ERROR &&
+					responseCode != HttpURLConnection.HTTP_CONFLICT)
+			{
+				data.holder.checkResponseCode();
+			}
 			responseText = data.holder.read().getString();
 		}
 		finally
@@ -231,7 +234,9 @@ public class PonychanChanPerformer extends ChanPerformer
 		for (String postNumber : data.postNumbers) entity.add("delete_" + postNumber, "on");
 		if (data.optionFilesOnly) entity.add("file", "on");
 		Uri uri = locator.createSendPostUri();
-		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getString();
+		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity).setSuccessOnly(false)
+				.read().getString();
+		if (data.holder.getResponseCode() != HttpURLConnection.HTTP_CONFLICT) data.holder.checkResponseCode();
 		if (responseText != null)
 		{
 			Matcher matcher = PATTERN_ERROR.matcher(responseText);
