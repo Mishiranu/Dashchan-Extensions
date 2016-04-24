@@ -28,7 +28,7 @@ public class PonychanChanPerformer extends ChanPerformer
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
 		PonychanChanLocator locator = ChanLocator.get(this);
-		Uri uri = data.isCatalog() ? locator.buildSpecificPath(data.boardName, "catalog.html")
+		Uri uri = data.isCatalog() ? locator.buildPath(data.boardName, "catalog.html")
 				: locator.createBoardUri(data.boardName, data.pageNumber);
 		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
 		try
@@ -64,7 +64,7 @@ public class PonychanChanPerformer extends ChanPerformer
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
 		PonychanChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildSpecificPath();
+		Uri uri = locator.buildPath();
 		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
 		try
 		{

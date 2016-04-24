@@ -227,7 +227,6 @@ public class PonychanPostsParser implements GroupParser.Callback
 				if (src != null && !"/static/deleted.png".equals(src))
 				{
 					Uri uri = Uri.parse(src);
-					if (uri.isRelative()) uri = mLocator.buildSpecificPath(uri.getPath());
 					mAttachment.setThumbnailUri(mLocator, uri);
 				}
 			}
@@ -243,7 +242,6 @@ public class PonychanPostsParser implements GroupParser.Callback
 			if (mExpect == EXPECT_FILE_LINK)
 			{
 				Uri uri = Uri.parse(parser.getAttr(attrs, "href"));
-				if (uri.isRelative()) uri = mLocator.buildSpecificPath(uri.getPath());
 				mAttachment.setFileUri(mLocator, uri);
 				mExpect = EXPECT_NONE;
 			}

@@ -67,11 +67,6 @@ public class PonychanCatalogParser implements GroupParser.Callback
 				{
 					Uri fileUri = Uri.parse(src.replace("/thumb/", "/src/"));
 					Uri thumbnailUri = Uri.parse(src);
-					if (fileUri.isRelative())
-					{
-						fileUri = mLocator.buildSpecificPath(fileUri.getPath());
-						thumbnailUri = mLocator.buildSpecificPath(thumbnailUri.getPath());
-					}
 					FileAttachment attachment = new FileAttachment();
 					attachment.setFileUri(mLocator, fileUri);
 					attachment.setThumbnailUri(mLocator, thumbnailUri);
