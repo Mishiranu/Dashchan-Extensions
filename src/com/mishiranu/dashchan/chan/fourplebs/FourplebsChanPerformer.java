@@ -72,7 +72,7 @@ public class FourplebsChanPerformer extends ChanPerformer
 		FourplebsChanLocator locator = ChanLocator.get(this);
 		for (int i = 0; i < 5; i++)
 		{
-			Uri uri = locator.buildArchivePath(data.boardName, "search", "text").buildUpon()
+			Uri uri = locator.buildPath(data.boardName, "search", "text").buildUpon()
 					.appendPath(data.searchQuery).appendEncodedPath("page/" + (i + 1) + "/").build();
 			String responseText = new HttpRequest(uri, data.holder, data).read().getString();
 			try
@@ -93,7 +93,7 @@ public class FourplebsChanPerformer extends ChanPerformer
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
 		FourplebsChanLocator locator = ChanLocator.get(this);
-		String responseText = new HttpRequest(locator.buildArchivePath(), data.holder, data).read().getString();
+		String responseText = new HttpRequest(locator.buildPath(), data.holder, data).read().getString();
 		try
 		{
 			return new ReadBoardsResult(new FourplebsBoardsParser(responseText).convert());

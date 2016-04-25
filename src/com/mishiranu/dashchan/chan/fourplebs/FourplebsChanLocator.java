@@ -9,7 +9,6 @@ import chan.content.ChanLocator;
 
 public class FourplebsChanLocator extends ChanLocator
 {
-	private static final String HOST_ARCHIVE = "archive.4plebs.org";
 	private static final String HOST_IMAGES = "img.4plebs.org";
 	
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:page/\\d+/?)?)?");
@@ -18,9 +17,9 @@ public class FourplebsChanLocator extends ChanLocator
 	
 	public FourplebsChanLocator()
 	{
-		addChanHost("4plebs.org");
-		addSpecialChanHost("www.4plebs.org");
-		addSpecialChanHost(HOST_ARCHIVE);
+		addConvertableChanHost("4plebs.org");
+		addConvertableChanHost("www.4plebs.org");
+		addChanHost("archive.4plebs.org");
 		addSpecialChanHost(HOST_IMAGES);
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
@@ -71,14 +70,14 @@ public class FourplebsChanLocator extends ChanLocator
 	@Override
 	public Uri createBoardUri(String boardName, int pageNumber)
 	{
-		return pageNumber > 0 ? buildPathWithHost(HOST_ARCHIVE, boardName, "page", Integer.toString(pageNumber + 1), "")
-				: buildPathWithHost(HOST_ARCHIVE, boardName, "");
+		return pageNumber > 0 ? buildPath(boardName, "page", Integer.toString(pageNumber + 1), "")
+				: buildPath(boardName, "");
 	}
 	
 	@Override
 	public Uri createThreadUri(String boardName, String threadNumber)
 	{
-		return buildPathWithHost(HOST_ARCHIVE, boardName, "thread", threadNumber, "");
+		return buildPath(boardName, "thread", threadNumber, "");
 	}
 	
 	@Override
@@ -90,10 +89,5 @@ public class FourplebsChanLocator extends ChanLocator
 	public Uri createAttachmentUri(String path)
 	{
 		return buildPathWithHost(HOST_IMAGES, path);
-	}
-	
-	public Uri buildArchivePath(String... segments)
-	{
-		return buildPathWithHost(HOST_ARCHIVE, segments);
 	}
 }
