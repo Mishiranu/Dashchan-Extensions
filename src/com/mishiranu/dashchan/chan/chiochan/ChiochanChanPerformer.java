@@ -230,7 +230,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		{
 			CaptchaData captchaData = new CaptchaData();
 			captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
-			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData, image);
+			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image);
 		}
 		throw new InvalidResponseException();
 	}
