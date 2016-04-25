@@ -16,6 +16,7 @@ public class ChiochanChanLocator extends ChanLocator
 	public ChiochanChanLocator()
 	{
 		addChanHost("410chan.org");
+		addConvertableChanHost("www.410chan.org");
 	}
 	
 	@Override
