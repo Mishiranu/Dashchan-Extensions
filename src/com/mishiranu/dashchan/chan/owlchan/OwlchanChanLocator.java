@@ -16,7 +16,7 @@ public class OwlchanChanLocator extends ChanLocator
 	public OwlchanChanLocator()
 	{
 		addChanHost("owlchan.ru");
-		addSpecialChanHost("www.owlchan.ru");
+		addConvertableChanHost("www.owlchan.ru");
 	}
 	
 	@Override
