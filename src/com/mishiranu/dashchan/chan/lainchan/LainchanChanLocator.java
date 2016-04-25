@@ -16,7 +16,7 @@ public class LainchanChanLocator extends ChanLocator
 	public LainchanChanLocator()
 	{
 		addChanHost("lainchan.org");
-		addSpecialChanHost("www.lainchan.org");
+		addConvertableChanHost("www.lainchan.org");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 	
