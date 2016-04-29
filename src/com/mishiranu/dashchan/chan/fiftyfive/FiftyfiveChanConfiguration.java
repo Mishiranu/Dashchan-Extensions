@@ -8,6 +8,7 @@ public class FiftyfiveChanConfiguration extends ChanConfiguration
 	{
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anônimo");
+		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 	}
 	
 	@Override

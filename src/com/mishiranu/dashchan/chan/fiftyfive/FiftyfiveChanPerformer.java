@@ -1,6 +1,10 @@
 package com.mishiranu.dashchan.chan.fiftyfive;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +23,7 @@ import chan.http.HttpException;
 import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
+import chan.http.HttpValidator;
 import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
 import chan.text.ParseException;
@@ -156,6 +161,46 @@ public class FiftyfiveChanPerformer extends ChanPerformer
 		throw new InvalidResponseException();
 	}
 	
+	private static final Pattern PATTERN_CAPTCHA_API_KEY = Pattern.compile("<div class=\"g-recaptcha\" "
+			+ "data-sitekey=\"(.*?)\">");
+	
+	private final HashMap<String, Pair<HttpValidator, Boolean>> mReadCaptchaValidators = new HashMap<>();
+	private String mCaptchaApiKey;
+	
+	@Override
+	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
+	{
+		FiftyfiveChanLocator locator = ChanLocator.get(this);
+		String captchaApiKey = null;
+		Pair<HttpValidator, Boolean> pair = mReadCaptchaValidators.get(data.boardName);
+		try
+		{
+			Uri uri = locator.createBoardUri(data.boardName, 0);
+			String responseText = new HttpRequest(uri, data.holder, data).setValidator(pair != null ? pair.first : null)
+					.setSuccessOnly(false).read().getString();
+			Matcher matcher = PATTERN_CAPTCHA_API_KEY.matcher(responseText);
+			if (matcher.find())
+			{
+				captchaApiKey = matcher.group(1);
+				mCaptchaApiKey = captchaApiKey;
+			}
+			pair = new Pair<>(data.holder.getValidator(), captchaApiKey != null);
+			mReadCaptchaValidators.put(data.boardName, pair);
+		}
+		catch (HttpException e)
+		{
+			if (e.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED)
+			{
+				captchaApiKey = pair.second ? mCaptchaApiKey : null;
+			}
+			else throw e;
+		}
+		if (captchaApiKey == null) return new ReadCaptchaResult(CaptchaState.SKIP, null);
+		CaptchaData captchaData = new CaptchaData();
+		captchaData.put(CaptchaData.API_KEY, captchaApiKey);
+		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
+	}
+	
 	private void readAndApplyTinyboardAntispamFields(HttpHolder holder, HttpRequest.Preset preset,
 			MultipartEntity entity, String boardName, String threadNumber) throws HttpException,
 			InvalidResponseException
@@ -202,6 +247,8 @@ public class FiftyfiveChanPerformer extends ChanPerformer
 			}
 		}
 		if (hasSpoilers) entity.add("spoiler", "on");
+		entity.add("g-recaptcha-response", StringUtils.emptyIfNull(data.captchaData != null
+				? data.captchaData.get(CaptchaData.INPUT) : null));
 		entity.add("json_response", "1");
 		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
 
@@ -225,7 +272,11 @@ public class FiftyfiveChanPerformer extends ChanPerformer
 		if (errorMessage != null)
 		{
 			int errorType = 0;
-			if (errorMessage.contains("O corpo do texto"))
+			if (errorMessage.contains("Você errou o codigo de verificação"))
+			{
+				errorType = ApiException.SEND_ERROR_CAPTCHA;
+			}
+			else if (errorMessage.contains("O corpo do texto"))
 			{
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
 			}
