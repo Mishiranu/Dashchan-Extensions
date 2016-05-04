@@ -185,6 +185,11 @@ public class TaimaPostsParser implements GroupParser.Callback
 				mAttachment = new FileAttachment();
 				mPost.setAttachments(mAttachment);
 			}
+			else if ("board_title".equals(cssClass))
+			{
+				mExpect = EXPECT_BOARD_TITLE;
+				return true;
+			}
 			else if ("omittedposts".equals(cssClass))
 			{
 				mExpect = EXPECT_OMITTED;
@@ -352,8 +357,6 @@ public class TaimaPostsParser implements GroupParser.Callback
 			case EXPECT_BOARD_TITLE:
 			{
 				text = StringUtils.clearHtml(text).trim();
-				String start = "Ычан — ";
-				if (text.startsWith(start)) text = text.substring(start.length());
 				if (!StringUtils.isEmpty(text)) mConfiguration.storeBoardTitle(mBoardName, text);
 				break;
 			}
