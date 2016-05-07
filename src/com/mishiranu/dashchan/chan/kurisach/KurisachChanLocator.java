@@ -17,6 +17,7 @@ public class KurisachChanLocator extends ChanLocator
 	{
 		addChanHost("kurisa.ch");
 		addConvertableChanHost("www.kurisa.ch");
+		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 	
 	@Override
