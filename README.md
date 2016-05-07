@@ -1,4 +1,4 @@
-# Dashchan Extension: Allchan
+# Dashchan Extension: allchan
 
 Extension for allchan.su.
 

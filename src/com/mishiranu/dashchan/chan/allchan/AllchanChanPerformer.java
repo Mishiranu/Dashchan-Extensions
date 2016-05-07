@@ -232,9 +232,8 @@ public class AllchanChanPerformer extends ChanPerformer
 			int qouta = jsonObject.optInt("quota");
 			if (qouta > 0)
 			{
-				ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.SKIP, null);
-				result.validity = ChanConfiguration.Captcha.Validity.IN_BOARD;
-				return result;
+				return new ReadCaptchaResult(CaptchaState.SKIP, null)
+						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
 			}
 		}
 		String captchaType = data.captchaType;
@@ -264,9 +263,8 @@ public class AllchanChanPerformer extends ChanPerformer
 				if (apiKey == null) throw new InvalidResponseException();
 				CaptchaData captchaData = new CaptchaData();
 				captchaData.put(CaptchaData.API_KEY, apiKey);
-				ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
-				result.validity = ChanConfiguration.Captcha.Validity.IN_BOARD;
-				return result;
+				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
+						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
 			}
 			catch (JSONException e)
 			{
@@ -284,9 +282,8 @@ public class AllchanChanPerformer extends ChanPerformer
 				String challenge = CommonUtils.getJsonString(jsonObject, "challenge");
 				CaptchaData captchaData = new CaptchaData();
 				captchaData.put(CaptchaData.CHALLENGE, challenge);
-				ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
-				result.validity = ChanConfiguration.Captcha.Validity.IN_BOARD;
-				return result;
+				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
+						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
 			}
 			catch (JSONException e)
 			{
