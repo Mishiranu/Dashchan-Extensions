@@ -17,7 +17,7 @@ public class AllchanChanLocator extends ChanLocator
 	public AllchanChanLocator()
 	{
 		addChanHost("allchan.su");
-		addSpecialChanHost("www.allchan.su");
+		addConvertableChanHost("www.allchan.su");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 	
