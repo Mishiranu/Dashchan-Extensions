@@ -16,7 +16,7 @@ public class KurisachChanLocator extends ChanLocator
 	public KurisachChanLocator()
 	{
 		addChanHost("kurisa.ch");
-		addSpecialChanHost("www.kurisa.ch");
+		addConvertableChanHost("www.kurisa.ch");
 	}
 	
 	@Override
