@@ -261,13 +261,13 @@ public class FourchanChanPerformer extends ChanPerformer
 		throw new InvalidResponseException();
 	}
 	
-	private CookieBuilder buildCookies(String captchaPassData)
+	private CookieBuilder buildCookies(String captchaPassCookie)
 	{
-		if (captchaPassData != null)
+		if (captchaPassCookie != null)
 		{
 			CookieBuilder builder = new CookieBuilder();
 			builder.append("pass_enabled", "1");
-			builder.append("pass_id", captchaPassData);
+			builder.append("pass_id", captchaPassCookie);
 			return builder;
 		}
 		return null;
@@ -285,23 +285,23 @@ public class FourchanChanPerformer extends ChanPerformer
 	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
 			InvalidResponseException
 	{
-		return new CheckAuthorizationResult(readCaptchaPassData(data.holder, data,
+		return new CheckAuthorizationResult(readCaptchaPass(data.holder, data,
 				data.authorizationData[0], data.authorizationData[1]) != null);
 	}
 	
-	private String mLastCaptchaPass;
 	private String mLastCaptchaPassData;
+	private String mLastCaptchaPassCookie;
 	
-	private String getCaptchaPass(String token, String pin)
+	private String getCaptchaPassData(String token, String pin)
 	{
 		return token + '|' + pin;
 	}
 	
-	private String readCaptchaPassData(HttpHolder holder, HttpRequest.Preset preset, String token, String pin)
+	private String readCaptchaPass(HttpHolder holder, HttpRequest.Preset preset, String token, String pin)
 			throws HttpException, InvalidResponseException
 	{
-		mLastCaptchaPass = null;
 		mLastCaptchaPassData = null;
+		mLastCaptchaPassCookie = null;
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createSysUri("auth");
 		UrlEncodedEntity entity = new UrlEncodedEntity("act", "do_login", "id", token, "pin", pin, "long_login", "yes");
@@ -314,7 +314,7 @@ public class FourchanChanPerformer extends ChanPerformer
 			if (message.startsWith("Error: ")) message = message.substring(7);
 			if (message.contains("Your device is now authorized"))
 			{
-				String captchaPassData = null;
+				String captchaPassCookie = null;
 				List<String> cookies = holder.getHeaderFields().get("Set-Cookie");
 				if (cookies != null)
 				{
@@ -323,15 +323,15 @@ public class FourchanChanPerformer extends ChanPerformer
 						if (cookie.startsWith("pass_id=") && !cookie.startsWith("pass_id=0;"))
 						{
 							int index = cookie.indexOf(';');
-							captchaPassData = cookie.substring(8, index >= 0 ? index : cookie.length());
+							captchaPassCookie = cookie.substring(8, index >= 0 ? index : cookie.length());
 							break;
 						}
 					}
 				}
-				if (captchaPassData == null) throw new InvalidResponseException();
-				mLastCaptchaPass = getCaptchaPass(token, pin);
-				mLastCaptchaPassData = captchaPassData;
-				return captchaPassData;
+				if (captchaPassCookie == null) throw new InvalidResponseException();
+				mLastCaptchaPassData = getCaptchaPassData(token, pin);
+				mLastCaptchaPassCookie = captchaPassCookie;
+				return captchaPassCookie;
 			}
 			if (message.contains("Incorrect Token or PIN") || message.contains("Your Token must be exactly") ||
 					message.contains("You have left one or more fields blank"))
@@ -345,23 +345,23 @@ public class FourchanChanPerformer extends ChanPerformer
 	}
 	
 	private static final String CAPTCHA_TYPE = "captchaType";
-	private static final String CAPTCHA_PASS_DATA = "captchaPassData";
+	private static final String CAPTCHA_PASS_COOKIE = "captchaPassCookie";
 	
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
 		String token = data.captchaPass != null ? data.captchaPass[0] : null;
 		String pin = data.captchaPass != null ? data.captchaPass[1] : null;
-		String captchaPassData = null;
+		String captchaPassCookie = null;
 		if (token != null || pin != null)
 		{
-			if (getCaptchaPass(token, pin).equals(mLastCaptchaPass)) captchaPassData = mLastCaptchaPassData;
-			else captchaPassData = readCaptchaPassData(data.holder, data, token, pin);
+			if (getCaptchaPassData(token, pin).equals(mLastCaptchaPassData)) captchaPassCookie = mLastCaptchaPassCookie;
+			else captchaPassCookie = readCaptchaPass(data.holder, data, token, pin);
 		}
-		if (captchaPassData != null)
+		if (captchaPassCookie != null)
 		{
 			CaptchaData captchaData = new CaptchaData();
-			captchaData.put(CAPTCHA_PASS_DATA, captchaPassData);
+			captchaData.put(CAPTCHA_PASS_COOKIE, captchaPassCookie);
 			return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
 					.setValidity(ChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 		}
@@ -391,7 +391,7 @@ public class FourchanChanPerformer extends ChanPerformer
 			attachment.addToEntity(entity, "upfile");
 			if (attachment.optionSpoiler) entity.add("spoiler", "on");
 		}
-		String captchaPassData = null;
+		String captchaPassCookie = null;
 		if (data.captchaData != null)
 		{
 			if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(data.captchaType))
@@ -403,12 +403,12 @@ public class FourchanChanPerformer extends ChanPerformer
 			{
 				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
 			}
-			captchaPassData = data.captchaData.get(CAPTCHA_PASS_DATA);
+			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
 		}
 
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "post");
-		String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassData))
+		String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassCookie))
 				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 		
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
@@ -531,8 +531,8 @@ public class FourchanChanPerformer extends ChanPerformer
 				}
 				if (errorType == ApiException.SEND_ERROR_CAPTCHA)
 				{
-					mLastCaptchaPass = null;
 					mLastCaptchaPassData = null;
+					mLastCaptchaPassCookie = null;
 				}
 				if (errorType != 0) throw new ApiException(errorType);
 			}
@@ -569,8 +569,8 @@ public class FourchanChanPerformer extends ChanPerformer
 			{
 				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			}
-			String captchaPassData = captchaData.get(CAPTCHA_PASS_DATA);
-			String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassData))
+			String captchaPassCookie = captchaData.get(CAPTCHA_PASS_COOKIE);
+			String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassCookie))
 					.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 			Matcher matcher = PATTERN_REPORT_MESSAGE.matcher(responseText);
 			if (matcher.find())
