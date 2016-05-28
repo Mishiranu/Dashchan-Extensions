@@ -22,7 +22,7 @@ public class FourchanModelMapper
 	{
 		Post post = new Post();
 		if (jsonObject.optInt("sticky") != 0) post.setSticky(true);
-		if (jsonObject.optInt("locked") != 0) post.setClosed(true);
+		if (jsonObject.optInt("closed") != 0) post.setClosed(true);
 		if (jsonObject.optInt("archived") != 0) post.setArchived(true);
 		String no = CommonUtils.getJsonString(jsonObject, "no");
 		String resto = CommonUtils.getJsonString(jsonObject, "resto");
