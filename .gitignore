@@ -1,0 +1,12 @@
+*
+!/res
+!/res/**
+!/src
+!/src/**
+!/.classpath
+!/.gitignore
+!/.project
+!/AndroidManifest.xml
+!/LICENSE
+!/project.properties
+!/README.md
