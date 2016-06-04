@@ -191,7 +191,7 @@ public class ChuckDfwkChanPerformer extends ChanPerformer
 			String sessionCookie = data.holder.getCookieValue("PHPSESSID");
 			CaptchaData captchaData = new CaptchaData();
 			captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
-			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData, newImage);
+			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage);
 		}
 		throw new InvalidResponseException();
 	}
