@@ -122,8 +122,7 @@ public class SevenchanChanPerformer extends ChanPerformer
 			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 		}
 		else result = new ReadCaptchaResult(CaptchaState.SKIP, null);
-		result.validity = ChanConfiguration.Captcha.Validity.IN_THREAD;
-		return result;
+		return result.setValidity(ChanConfiguration.Captcha.Validity.IN_THREAD);
 	}
 	
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<h2.*?>(.*?)</h2>");
