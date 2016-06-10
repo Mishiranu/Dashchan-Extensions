@@ -1,6 +1,6 @@
-# Dashchan Extension: twowatch
+# Dashchan Extension: wizardchan
 
-Extension for 2watch.su.
+Extension for wizchan.org.
 
 # License
 
