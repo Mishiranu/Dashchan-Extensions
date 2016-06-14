@@ -35,7 +35,7 @@ public class DiochanChanConfiguration extends ChanConfiguration
 		posting.allowEmail = true;
 		posting.allowSubject = true;
 		posting.optionSage = true;
-		posting.attachmentCount = !"scr".equals(boardName) ? 3 : 0;
+		posting.attachmentCount = !"scr".equals(boardName) ? newThread ? 1 : 3 : 0;
 		if (!"mu".equals(boardName)) posting.attachmentMimeTypes.add("image/*");
 		if ("b".equals(boardName)) posting.attachmentMimeTypes.add("video/webm");
 		posting.attachmentMimeTypes.add("audio/mp3");
