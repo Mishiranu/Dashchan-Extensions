@@ -13,6 +13,7 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
+import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.GroupParser;
@@ -286,23 +287,27 @@ public class DiochanPostsParser implements GroupParser.Callback
 				{
 					if (src.endsWith("/css/sticky.gif")) mPost.setSticky(true);
 					else if (src.endsWith("/css/locked.gif")) mPost.setClosed(true);
+					else if (src.contains("/images/flags/"))
+					{
+						String path = convertUriString(src);
+						String countryCode = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'))
+								.toUpperCase(Locale.US);
+						mPost.setIcons(new Icon(mLocator, mLocator.buildPath(path), countryCode));
+					}
 					else if (mAttachments.size() > 0 && src.contains("/thumb/"))
 					{
-						String path = convertUriString(parser.getAttr(attrs, "src"));
-						if (path != null)
+						String path = convertUriString(src);
+						FileAttachment attachment = mAttachments.get(mAttachments.size() - 1);
+						String width = parser.getAttr(attrs, "width");
+						String height = parser.getAttr(attrs, "height");
+						String originalName = attachment.getOriginalName();
+						if ("100".equals(width) && "100".equals(height) && originalName != null &&
+								originalName.startsWith("Immagine Spoi"))
 						{
-							FileAttachment attachment = mAttachments.get(mAttachments.size() - 1);
-							String width = parser.getAttr(attrs, "width");
-							String height = parser.getAttr(attrs, "height");
-							String originalName = attachment.getOriginalName();
-							if ("100".equals(width) && "100".equals(height) && originalName != null &&
-									originalName.startsWith("Immagine Spoi"))
-							{
-								attachment.setSpoiler(true);
-								attachment.setOriginalName(null);
-							}
-							else attachment.setThumbnailUri(mLocator, mLocator.buildPath(path));
+							attachment.setSpoiler(true);
+							attachment.setOriginalName(null);
 						}
+						else attachment.setThumbnailUri(mLocator, mLocator.buildPath(path));
 					}
 				}
 			}
