@@ -1,0 +1,77 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+
+	dependencies {
+		classpath 'com.android.tools.build:gradle:2.1.0'
+	}
+}
+
+allprojects {
+	repositories {
+		jcenter()
+	}
+}
+
+apply plugin: 'com.android.application'
+
+dependencies {
+	provided 'com.github.mishiranu:dashchan.library:+'
+	compile 'com.github.mishiranu:dashchan.static:+'
+}
+
+android {
+	compileSdkVersion 23
+	buildToolsVersion '23.0.3'
+
+	sourceSets.main {
+		manifest.srcFile 'AndroidManifest.xml'
+		java.srcDirs = ['src']
+		resources.srcDirs = ['src']
+		aidl.srcDirs = ['src']
+		renderscript.srcDirs = ['src']
+		res.srcDirs = ['res']
+		assets.srcDirs = ['assets']
+	}
+
+	if (new File('keystore.properties').exists()) {
+		def Properties keystoreProperties = new Properties()
+		keystoreProperties.load(new FileInputStream(file('keystore.properties')))
+
+		signingConfigs {
+			debug {
+				storeFile file(keystoreProperties['debug.storeFile'])
+				storePassword keystoreProperties['debug.storePassword']
+				keyAlias keystoreProperties['debug.keyAlias']
+				keyPassword keystoreProperties['debug.keyPassword']
+			}
+
+			release {
+				storeFile file(keystoreProperties['release.storeFile'])
+				storePassword keystoreProperties['release.storePassword']
+				keyAlias keystoreProperties['release.keyAlias']
+				keyPassword keystoreProperties['release.keyPassword']
+			}
+		}
+
+		buildTypes.debug.signingConfig signingConfigs.debug
+		buildTypes.release.signingConfig signingConfigs.release
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+		}
+	}
+
+	lintOptions {
+		abortOnError false
+		disable 'MissingTranslation'
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+}
