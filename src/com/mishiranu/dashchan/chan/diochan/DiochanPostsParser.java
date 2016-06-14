@@ -76,6 +76,7 @@ public class DiochanPostsParser implements GroupParser.Callback
 	
 	public DiochanPostsParser(String source, Object linked, String boardName)
 	{
+		source = source.replace("alt=\"Espandi Thread\" \" />", "alt=\"Espandi Thread\" />"); // Parser fix
 		mSource = source;
 		mConfiguration = ChanConfiguration.get(linked);
 		mLocator = ChanLocator.get(linked);
