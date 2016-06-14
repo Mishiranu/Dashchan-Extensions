@@ -26,8 +26,8 @@ import chan.util.StringUtils;
 
 public class DiochanChanPerformer extends ChanPerformer
 {
-	private static final Pattern PATTERN_CATALOG = Pattern.compile("(?s)<a href=\"/.*?/res/(\\d+).html\">.*?</a>"
-			+ "<br />.*?<small>(\\d+)</small>");
+	private static final Pattern PATTERN_CATALOG = Pattern.compile("(?s)<a href=\"/.*?/res/(\\d+).html\".*?</a><br />"
+			+ ".*?<small>(\\d+)</small>");
 	
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
