@@ -222,6 +222,10 @@ public class DiochanChanPerformer extends ChanPerformer
 			{
 				errorType = ApiException.SEND_ERROR_EMPTY_FILE;
 			}
+			else if (errorMessage.contains("Prego attendere un momento"))
+			{
+				errorType = ApiException.SEND_ERROR_TOO_FAST;
+			}
 			else if (errorMessage.contains("Invalid thread ID"))
 			{
 				errorType = ApiException.SEND_ERROR_NO_THREAD;
