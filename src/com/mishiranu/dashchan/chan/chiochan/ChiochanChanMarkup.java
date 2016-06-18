@@ -17,10 +17,9 @@ public class ChiochanChanMarkup extends ChanMarkup
 		addTag("b", TAG_BOLD);
 		addTag("i", TAG_ITALIC);
 		addTag("strike", TAG_STRIKE);
-		addTag("tt", TAG_CODE);
+		addTag("pre", TAG_CODE);
 		addTag("span", "unkfunc", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);
-		addColorable("span");
 	}
 	
 	@Override
