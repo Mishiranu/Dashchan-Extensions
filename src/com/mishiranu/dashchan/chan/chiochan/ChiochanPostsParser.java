@@ -362,7 +362,7 @@ public class ChiochanPostsParser implements GroupParser.Callback
 					text = StringUtils.nullIfEmpty(text.substring(0, text.length() - 1));
 					mPost.setSage(true);
 				}
-				mPost.setSubject(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_NAME:
@@ -379,12 +379,12 @@ public class ChiochanPostsParser implements GroupParser.Callback
 					}
 					text = matcher.group(2);
 				}
-				mPost.setName(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_TRIP:
 			{
-				mPost.setTripcode(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_COMMENT:
