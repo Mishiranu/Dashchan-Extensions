@@ -195,6 +195,35 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		}
 	}
 	
+	@Override
+	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
+			InvalidResponseException
+	{
+		boolean success = false;
+		try
+		{
+			NulldvachinChanLocator locator = ChanLocator.get(this);
+			Uri uri = locator.buildPath("wakaba.pl");
+			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new UrlEncodedEntity("json",
+					"authorize", "auth", data.authorizationData[0])).read().getJsonObject();
+			if (jsonObject == null) throw new InvalidResponseException();
+			try
+			{
+				success = jsonObject.getInt("success") != 0;
+			}
+			catch (JSONException e)
+			{
+				throw new InvalidResponseException(e);
+			}
+			return new CheckAuthorizationResult(success);
+		}
+		finally
+		{
+			NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+			configuration.storeAuthorizedTripcode(success ? data.authorizationData[0] : null);
+		}
+	}
+	
 	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
 			{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 0f});
 	
@@ -202,8 +231,11 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/checkconfig", "captcha", "");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		boolean needCaptcha;
 		try
@@ -260,9 +292,11 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		if (data.captchaData != null) entity.add("captcha", data.captchaData.get(CaptchaData.INPUT));
 
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildPath("wakaba.pl");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).addCookie("auth",
+				authorizedTripcode).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		String parent = CommonUtils.optJsonString(jsonObject, "parent");
 		String num = CommonUtils.optJsonString(jsonObject, "num");
@@ -336,11 +370,14 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildPath("wakaba.pl");
 		UrlEncodedEntity entity = new UrlEncodedEntity("task", "delete", "section", data.boardName,
 				"parent", data.threadNumber, "password", data.password, "ajax", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete", postNumber);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+				.addCookie("auth", authorizedTripcode).read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		String path = CommonUtils.optJsonString(jsonObject, "redir");
 		if (!StringUtils.isEmpty(path)) return null;

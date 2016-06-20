@@ -16,11 +16,14 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	private static final String KEY_REPLY_IMAGES_ENABLED = "reply_images_enabled";
 	private static final String KEY_ATTACHMENT_COUNT = "attachment_count";
 	
+	private static final String KEY_AUTHORIZED_TRIPCODE = "authorized_tripcode";
+	
 	public NulldvachinChanConfiguration()
 	{
 		request(OPTION_READ_THREAD_PARTIALLY);
 		request(OPTION_READ_SINGLE_POST);
 		request(OPTION_READ_POSTS_COUNT);
+		request(OPTION_ALLOW_USER_AUTHORIZATION);
 		setDefaultName("Аноним");
 		addCaptchaType("wakaba");
 	}
@@ -52,7 +55,9 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
 		Posting posting = new Posting();
-		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
+		String authorizedTripcode = getAuthorizedTripcode();
+		posting.allowName = posting.allowTripcode = authorizedTripcode != null ||
+				get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
 		posting.optionSage = true;
 		posting.attachmentCount = get(boardName, newThread ? KEY_THREAD_IMAGES_ENABLED : KEY_REPLY_IMAGES_ENABLED, true)
@@ -76,6 +81,19 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 		deleting.password = true;
 		deleting.multiplePosts = true;
 		return deleting;
+	}
+	
+	public void storeAuthorizedTripcode(String tripcode)
+	{
+		set(null, KEY_AUTHORIZED_TRIPCODE, tripcode);
+	}
+	
+	public String getAuthorizedTripcode()
+	{
+		String[] data = getUserAuthorizationData();
+		String clientTripcode = data != null ? data[0] : null;
+		String storedTripcode = get(null, KEY_AUTHORIZED_TRIPCODE, null);
+		return StringUtils.equals(clientTripcode, storedTripcode) ? clientTripcode : null;
 	}
 	
 	public void updateFromThreadsPostsJson(String boardName, JSONObject jsonObject)
