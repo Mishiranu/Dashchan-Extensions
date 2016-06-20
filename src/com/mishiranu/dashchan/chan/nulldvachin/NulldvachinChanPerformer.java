@@ -1,9 +1,6 @@
 package com.mishiranu.dashchan.chan.nulldvachin;
 
 import java.net.HttpURLConnection;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +25,7 @@ import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
 import chan.text.ParseException;
 import chan.util.CommonUtils;
+import chan.util.StringUtils;
 
 public class NulldvachinChanPerformer extends ChanPerformer
 {
@@ -318,21 +316,6 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		throw new ApiException(error);
 	}
 	
-	private static HttpRequest.RedirectHandler DELETE_REDIRECT_HANDLER = new HttpRequest.RedirectHandler()
-	{
-		@Override
-		public Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
-				throws HttpException
-		{
-			if (responseCode == HttpURLConnection.HTTP_SEE_OTHER) return Action.CANCEL;
-			return HttpRequest.RedirectHandler.STRICT.onRedirectReached(responseCode,
-					requestedUri, redirectedUri, holder);
-		}
-	};
-	
-	private static final Pattern PATTERN_DELETE_ERROR = Pattern.compile("(?s)<span class=\"prewrap\">(.*?)</span>");
-	private static final Pattern PATTERN_DELETE_MESSAGE = Pattern.compile("Post (\\d+): (.*)");
-	
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -340,57 +323,42 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		NulldvachinChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("wakaba.pl");
 		UrlEncodedEntity entity = new UrlEncodedEntity("task", "delete", "section", data.boardName,
-				"password", data.password);
+				"parent", data.threadNumber, "password", data.password, "ajax", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete", postNumber);
-		String responseText;
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getJsonObject();
+		if (jsonObject == null) throw new InvalidResponseException();
+		String path = CommonUtils.optJsonString(jsonObject, "redir");
+		if (!StringUtils.isEmpty(path)) return null;
 		try
 		{
-			new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-					.setRedirectHandler(DELETE_REDIRECT_HANDLER).execute();
-			if (data.holder.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) return null;
-			responseText = data.holder.read().getString();
+			jsonObject = jsonObject.getJSONObject("error");
 		}
-		finally
+		catch (JSONException e)
 		{
-			data.holder.disconnect();
+			throw new InvalidResponseException(e);
 		}
-		Matcher matcher = PATTERN_DELETE_ERROR.matcher(responseText);
-		if (matcher.find())
+		int errorType = 0;
+		String jsonAsString = jsonObject.toString();
+		if (jsonAsString.contains("Период ожидания перед удалением"))
 		{
-			String fullMessage = matcher.group(1);
-			String[] messages = fullMessage.split("\r?\n");
-			HashSet<String> postNumbers = null;
-			int errorType = 0;
-			String firstMessage = null;
-			for (String message : messages)
-			{
-				matcher = PATTERN_DELETE_MESSAGE.matcher(message);
-				if (matcher.matches())
-				{
-					String postNumber = matcher.group(1);
-					message = matcher.group(2);
-					if (!message.contains("Post not found"))
-					{
-						if (postNumbers == null) postNumbers = new HashSet<>();
-						postNumbers.add(postNumber);
-						firstMessage = message;
-					}
-				}
-			}
-			// At least 1 post was deleted
-			if (postNumbers == null || postNumbers.size() < data.postNumbers.size()) return null;
-			if (fullMessage.contains("Период ожидания перед удалением"))
-			{
-				errorType = ApiException.DELETE_ERROR_TOO_NEW;
-			}
-			else if (fullMessage.contains("Неверный пароль"))
-			{
-				errorType = ApiException.DELETE_ERROR_PASSWORD;
-			}
-			if (errorType != 0) throw new ApiException(errorType);
-			CommonUtils.writeLog("Nulldvachin delete message", fullMessage);
-			throw new ApiException(firstMessage);
+			errorType = ApiException.DELETE_ERROR_TOO_NEW;
 		}
-		throw new InvalidResponseException();
+		else if (jsonAsString.contains("Неверный пароль"))
+		{
+			errorType = ApiException.DELETE_ERROR_PASSWORD;
+		}
+		String firstMessage = null;
+		try
+		{
+			if (jsonObject.length() < data.postNumbers.size()) return null; // At least 1 post was deleted
+			firstMessage = CommonUtils.getJsonString(jsonObject, jsonObject.keys().next());
+		}
+		catch (JSONException e)
+		{
+			throw new InvalidResponseException(e);
+		}
+		if (errorType != 0) throw new ApiException(errorType);
+		CommonUtils.writeLog("Nulldvachin delete message", jsonAsString, firstMessage);
+		throw new ApiException(firstMessage);
 	}
 }
