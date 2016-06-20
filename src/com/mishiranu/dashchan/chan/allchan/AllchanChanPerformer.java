@@ -22,7 +22,6 @@ import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
-import chan.http.UrlEncodedEntity;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
@@ -136,7 +135,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	{
 		AllchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("action", "search");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new UrlEncodedEntity("boardName",
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new MultipartEntity("boardName",
 				data.boardName, "query", data.searchQuery)).read().getJsonObject();
 		if (jsonObject != null)
 		{
@@ -433,7 +432,7 @@ public class AllchanChanPerformer extends ChanPerformer
 			for (String fileName : fileNames)
 			{
 				uri = locator.buildPath("action", "deleteFile");
-				jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new UrlEncodedEntity("fileName",
+				jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new MultipartEntity("fileName",
 						fileName, "password", data.password)).read().getJsonObject();
 				if (jsonObject == null) throw new InvalidResponseException();
 				String currentErrorDescription = CommonUtils.optJsonString(jsonObject, "errorDescription");
@@ -444,7 +443,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		else
 		{
 			Uri uri = locator.buildPath("action", "deletePost");
-			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new UrlEncodedEntity
+			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new MultipartEntity
 					("boardName", data.boardName, "postNumber", data.postNumbers.get(0), "password", data.password))
 					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 			if (jsonObject == null) throw new InvalidResponseException();
