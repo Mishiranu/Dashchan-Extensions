@@ -11,12 +11,14 @@ import chan.text.CommentEditor;
 public class NulldvachinChanMarkup extends ChanMarkup
 {
 	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_UNDERLINE | TAG_STRIKE
-			| TAG_SPOILER | TAG_CODE;
+			| TAG_SUBSCRIPT | TAG_SUPERSCRIPT | TAG_SPOILER | TAG_CODE;
 	
 	public NulldvachinChanMarkup()
 	{
 		addTag("strong", TAG_BOLD);
 		addTag("em", TAG_ITALIC);
+		addTag("sub", TAG_SUBSCRIPT);
+		addTag("sup", TAG_SUPERSCRIPT);
 		addTag("code", TAG_CODE);
 		addTag("span", "underline", TAG_UNDERLINE);
 		addTag("span", "strike", TAG_STRIKE);
