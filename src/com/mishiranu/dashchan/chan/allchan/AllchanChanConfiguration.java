@@ -11,6 +11,8 @@ import chan.util.CommonUtils;
 
 public class AllchanChanConfiguration extends ChanConfiguration
 {
+	public static final String CAPTCHA_TYPE_NODE_CAPTCHA = "node_captcha";
+	
 	private static final String KEY_ATTACHMENTS_COUNT = "attachments_count";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
 	
@@ -21,10 +23,9 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		setBumpLimit(500);
+		addCaptchaType(CAPTCHA_TYPE_NODE_CAPTCHA);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
-		addCaptchaType(CAPTCHA_TYPE_YANDEX_NUMERIC);
-		addCaptchaType(CAPTCHA_TYPE_YANDEX_TEXTUAL);
 	}
 	
 	@Override
@@ -36,6 +37,20 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
+	}
+	
+	@Override
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
+	{
+		if (CAPTCHA_TYPE_NODE_CAPTCHA.equals(captchaType))
+		{
+			Captcha captcha = new Captcha();
+			captcha.title = "Node Captcha";
+			captcha.input = Captcha.Input.NUMERIC;
+			captcha.validity = Captcha.Validity.IN_BOARD;
+			return captcha;
+		}
+		return null;
 	}
 	
 	@Override

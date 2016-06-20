@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 
 import chan.content.ApiException;
@@ -237,10 +238,9 @@ public class AllchanChanPerformer extends ChanPerformer
 			}
 		}
 		String captchaType = data.captchaType;
+		boolean nodeCaptcha = AllchanChanConfiguration.CAPTCHA_TYPE_NODE_CAPTCHA.equals(captchaType);
 		boolean recaptcha2 = AllchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType);
 		boolean recaptcha1 = AllchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(captchaType);
-		boolean yandexNumeric = AllchanChanConfiguration.CAPTCHA_TYPE_YANDEX_NUMERIC.equals(captchaType);
-		boolean yandexTextual = AllchanChanConfiguration.CAPTCHA_TYPE_YANDEX_TEXTUAL.equals(captchaType);
 		if (recaptcha2 || recaptcha1)
 		{
 			uri = locator.buildPath("misc", "board", data.boardName + ".json");
@@ -271,24 +271,28 @@ public class AllchanChanPerformer extends ChanPerformer
 				throw new InvalidResponseException(e);
 			}
 		}
-		else if (yandexNumeric || yandexTextual)
+		else if (nodeCaptcha)
 		{
-			uri = locator.buildQuery("api/yandexCaptchaImage.json", "type", yandexTextual ? "elatm" : "estd");
-			jsonObject = new HttpRequest(uri, data.holder, data).addCookie("captchaEngine", yandexTextual
-					? "yandex-captcha-elatm" : "yandex-captcha-estd").read().getJsonObject();
+			uri = locator.buildQuery("api/nodeCaptchaImage.json");
+			jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 			if (jsonObject == null) throw new InvalidResponseException();
+			String challenge;
+			String fileName;
 			try
 			{
-				String challenge = CommonUtils.getJsonString(jsonObject, "challenge");
-				CaptchaData captchaData = new CaptchaData();
-				captchaData.put(CaptchaData.CHALLENGE, challenge);
-				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
-						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
+				challenge = CommonUtils.getJsonString(jsonObject, "challenge");
+				fileName = CommonUtils.getJsonString(jsonObject, "fileName");
 			}
 			catch (JSONException e)
 			{
 				throw new InvalidResponseException(e);
 			}
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CaptchaData.CHALLENGE, challenge);
+			uri = locator.buildPath("node-captcha", fileName);
+			Bitmap image = new HttpRequest(uri, data.holder, data).read().getBitmap();
+			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image)
+					.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
 		}
 		else throw new InvalidResponseException();
 	}
@@ -317,7 +321,13 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		if (data.captchaData != null)
 		{
-			if (AllchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType))
+			if (AllchanChanConfiguration.CAPTCHA_TYPE_NODE_CAPTCHA.equals(data.captchaType))
+			{
+				entity.add("captchaEngine", "node-captcha");
+				entity.add("nodeCaptchaChallenge", data.captchaData.get(CaptchaData.CHALLENGE));
+				entity.add("nodeCaptchaResponse", data.captchaData.get(CaptchaData.INPUT));
+			}
+			else if (AllchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType))
 			{
 				entity.add("captchaEngine", "google-recaptcha");
 				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
@@ -327,18 +337,6 @@ public class AllchanChanPerformer extends ChanPerformer
 				entity.add("captchaEngine", "google-recaptcha-v1");
 				entity.add("recaptcha_challenge_field", data.captchaData.get(CaptchaData.CHALLENGE));
 				entity.add("recaptcha_response_field", data.captchaData.get(CaptchaData.INPUT));
-			}
-			else if (AllchanChanConfiguration.CAPTCHA_TYPE_YANDEX_NUMERIC.equals(data.captchaType))
-			{
-				entity.add("captchaEngine", "yandex-captcha-estd");
-				entity.add("yandexCaptchaChallenge", data.captchaData.get(CaptchaData.CHALLENGE));
-				entity.add("yandexCaptchaResponse", data.captchaData.get(CaptchaData.INPUT));
-			}
-			else if (AllchanChanConfiguration.CAPTCHA_TYPE_YANDEX_TEXTUAL.equals(data.captchaType))
-			{
-				entity.add("captchaEngine", "yandex-captcha-elatm");
-				entity.add("yandexCaptchaChallenge", data.captchaData.get(CaptchaData.CHALLENGE));
-				entity.add("yandexCaptchaResponse", data.captchaData.get(CaptchaData.INPUT));
 			}
 		}
 
