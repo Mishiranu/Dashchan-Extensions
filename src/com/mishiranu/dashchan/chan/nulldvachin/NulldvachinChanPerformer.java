@@ -344,36 +344,34 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		if (jsonObject == null) throw new InvalidResponseException();
 		String path = CommonUtils.optJsonString(jsonObject, "redir");
 		if (!StringUtils.isEmpty(path)) return null;
+		JSONArray jsonArray;
+		String firstMessage = null;
 		try
 		{
-			jsonObject = jsonObject.getJSONObject("error");
+			jsonArray = jsonObject.getJSONArray("error");
+			firstMessage = CommonUtils.getJsonString(jsonArray.getJSONObject(0), "reason");
 		}
 		catch (JSONException e)
 		{
 			throw new InvalidResponseException(e);
 		}
+		if (jsonArray.length() < data.postNumbers.size()) return null; // At least 1 post was deleted
 		int errorType = 0;
-		String jsonAsString = jsonObject.toString();
+		String jsonAsString = jsonArray.toString();
 		if (jsonAsString.contains("Период ожидания перед удалением"))
 		{
 			errorType = ApiException.DELETE_ERROR_TOO_NEW;
 		}
-		else if (jsonAsString.contains("Неверный пароль"))
+		else if (jsonAsString.contains("Неверный пароль") || jsonAsString.contains("Неправильный IP"))
 		{
 			errorType = ApiException.DELETE_ERROR_PASSWORD;
 		}
-		String firstMessage = null;
-		try
+		else if (jsonAsString.contains("Тред закрыт"))
 		{
-			if (jsonObject.length() < data.postNumbers.size()) return null; // At least 1 post was deleted
-			firstMessage = CommonUtils.getJsonString(jsonObject, jsonObject.keys().next());
-		}
-		catch (JSONException e)
-		{
-			throw new InvalidResponseException(e);
+			errorType = ApiException.DELETE_ERROR_NO_ACCESS;
 		}
 		if (errorType != 0) throw new ApiException(errorType);
-		CommonUtils.writeLog("Nulldvachin delete message", jsonAsString, firstMessage);
+		CommonUtils.writeLog("Nulldvachin delete message", jsonArray);
 		throw new ApiException(firstMessage);
 	}
 }
