@@ -1,7 +1,9 @@
 package com.mishiranu.dashchan.chan.nulldvachin;
 
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +18,8 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
+import chan.content.model.Board;
+import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
@@ -23,7 +27,6 @@ import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
-import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
@@ -128,13 +131,25 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildPath("b");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		Uri uri = locator.buildPath("b", "api", "getboards");
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		if (jsonObject == null) throw new InvalidResponseException();
+		handleStatus(jsonObject);
 		try
 		{
-			return new ReadBoardsResult(new NulldvachinBoardsParser(responseText).convert());
+			ArrayList<Board> boards = new ArrayList<>();
+			JSONArray jsonArray = jsonObject.getJSONArray("data");
+			for (int i = 0; i < jsonArray.length(); i++)
+			{
+				jsonObject = jsonArray.getJSONObject(i);
+				String boardName = CommonUtils.getJsonString(jsonObject, "board_key");
+				String title = CommonUtils.getJsonString(jsonObject, "board_name");
+				String description = StringUtils.emptyIfNull(CommonUtils.getJsonString(jsonObject, "board_desc"));
+				boards.add(new Board(boardName, title, description));
+			}
+			return new ReadBoardsResult(new BoardCategory(null, boards));
 		}
-		catch (ParseException e)
+		catch (JSONException e)
 		{
 			throw new InvalidResponseException(e);
 		}
