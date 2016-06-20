@@ -37,7 +37,7 @@ public class NulldvachinChanLocator extends ChanLocator
 	@Override
 	public boolean isAttachmentUri(Uri uri)
 	{
-		return isChanHostOrRelative(uri) && isPathMatches(uri, ATTACHMENT_PATH);
+		return isChanHostOrRelative(uri) && isPathMatches(uri, ATTACHMENT_PATH) || "a.pomf.cat".equals(uri.getHost());
 	}
 	
 	@Override

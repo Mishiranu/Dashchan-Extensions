@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.net.Uri;
+
 import chan.content.ChanLocator;
 import chan.content.model.Attachment;
 import chan.content.model.FileAttachment;
@@ -24,13 +26,14 @@ public class NulldvachinModelMapper
 			throws JSONException
 	{
 		FileAttachment attachment = new FileAttachment();
+		boolean external = jsonObject.optInt("external_upload") != 0;
 		String image = CommonUtils.getJsonString(jsonObject, "image");
 		String thumbnail = CommonUtils.getJsonString(jsonObject, "thumbnail");
 		String uploadname = CommonUtils.optJsonString(jsonObject, "uploadname");
 		attachment.setSize(jsonObject.optInt("size"));
 		attachment.setWidth(jsonObject.optInt("width"));
 		attachment.setHeight(jsonObject.optInt("height"));
-		attachment.setFileUri(locator, locator.buildPath(boardName, image));
+		attachment.setFileUri(locator, external ? Uri.parse("https:" + image) : locator.buildPath(boardName, image));
 		attachment.setThumbnailUri(locator, locator.buildPath(boardName, thumbnail));
 		attachment.setOriginalName(uploadname);
 		return attachment;
