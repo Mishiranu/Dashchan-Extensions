@@ -23,7 +23,7 @@ public class TaimaChanMarkup extends ChanMarkup
 		addTag("blockquote", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);
 		addTag("pre", TAG_CODE);
-		addBlock("blockquote", false);
+		addBlock("blockquote", true, false);
 	}
 	
 	@Override
