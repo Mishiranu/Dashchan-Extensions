@@ -14,7 +14,9 @@ public class AnonfmChanMarkup extends ChanMarkup
 	{
 		addTag("span", "unkfunc", TAG_QUOTE);
 		addTag("h3", TAG_HEADING);
+		addTag("strong", TAG_BOLD);
 		addTag("em", TAG_ITALIC);
+		addColorable("span");
 	}
 	
 	@Override

@@ -89,6 +89,15 @@ public class AnonfmChanPerformer extends ChanPerformer
 		JSONArray jsonArray = new HttpRequest(uri, holder, preset).read().getJsonArray();
 		if (jsonArray != null && jsonArray.length() > 0)
 		{
+			long now = 0L;
+			try
+			{
+				now = DATE_FORMAT_SERVER.parse(holder.getHeaderFields().get("Date").get(0)).getTime();
+			}
+			catch (java.text.ParseException e)
+			{
+				throw new InvalidResponseException(e);
+			}
 			SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
 			builder.append("<h3>Расписание</h3>");
 			for (int i = 0; i < jsonArray.length(); i++)
@@ -100,10 +109,15 @@ public class AnonfmChanPerformer extends ChanPerformer
 					long end = itemArray.getLong(1) * 1000L;
 					String name = itemArray.getString(2);
 					String title = itemArray.getString(3);
-					builder.append("<p>").append(escapeHtml(title)).append(" (")
-							.append(escapeHtml(name)).append(")<br />");
+					builder.append("<p>");
+					if (end < now) builder.append("<span style=\"color: grey;\">");
+					else if (now >= start) builder.append("<strong>");
 					builder.append("<em>").append(format.format(start)).append(" — ")
-							.append(format.format(end)).append("</em></p>");
+							.append(format.format(end)).append("</em><br />");
+					builder.append(escapeHtml(title)).append(" (").append(escapeHtml(name)).append(")");
+					if (end < now) builder.append("</span>");
+					else if (now >= start) builder.append("</strong>");
+					builder.append("</p>");
 				}
 				catch (JSONException e)
 				{
