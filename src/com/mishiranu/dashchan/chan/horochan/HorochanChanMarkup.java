@@ -23,8 +23,8 @@ public class HorochanChanMarkup extends ChanMarkup
 		addTag("span", "quote", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);
 		addTag("blockquote", TAG_QUOTE);
-		addBlock("blockquote", false);
-		addBlock("p", false);
+		addBlock("blockquote", true, false);
+		addBlock("p", true, false);
 	}
 	
 	@Override
