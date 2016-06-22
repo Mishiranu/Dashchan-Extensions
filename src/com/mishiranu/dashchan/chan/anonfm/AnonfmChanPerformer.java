@@ -127,9 +127,10 @@ public class AnonfmChanPerformer extends ChanPerformer
 		}
 		Post post = new Post();
 		post.setPostNumber("1");
-		post.setSubject("Кукареканье со стороны диджейки");
 		post.setTimestamp(AnonfmPostsParser.START_TIMESTAMP);
+		post.setSubject("Кукареканье со стороны диджейки");
 		post.setComment(builder.toString());
+		post.setCyclical(true);
 		return post;
 	}
 	
