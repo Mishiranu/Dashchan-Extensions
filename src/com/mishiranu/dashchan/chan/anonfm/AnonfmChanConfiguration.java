@@ -8,6 +8,7 @@ public class AnonfmChanConfiguration extends ChanConfiguration
 	
 	public AnonfmChanConfiguration()
 	{
+		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		addCaptchaType("anonfm");
 	}

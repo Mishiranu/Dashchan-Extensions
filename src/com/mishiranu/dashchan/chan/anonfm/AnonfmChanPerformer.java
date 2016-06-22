@@ -282,6 +282,31 @@ public class AnonfmChanPerformer extends ChanPerformer
 		return new ReadBoardsResult(new BoardCategory(null, boards));
 	}
 	
+	@Override
+	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
+	{
+		if (AnonfmChanLocator.BOARD_NAME_FM.equals(data.boardName))
+		{
+			throw HttpException.createNotFoundException();
+		}
+		else if (AnonfmChanLocator.BOARD_NAME_TEXTUAL.equals(data.boardName))
+		{
+			AnonfmChanLocator locator = ChanLocator.get(this);
+			Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
+			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+					.read().getString();
+			int count = 0;
+			int index = -1;
+			while ((index = responseText.indexOf("<div class=\"post\"><div class=\"time\">", index + 1)) != -1)
+			{
+				count++;
+			}
+			if (count == 0) throw new InvalidResponseException();
+			return new ReadPostsCountResult(count);
+		}
+		else throw HttpException.createNotFoundException();
+	}
+	
 	private static final Pattern PATTERN_CAPTCHA_IMAGE = Pattern.compile("<img src=\"(/feedback/(\\d+).gif)\">");
 	
 	@Override
