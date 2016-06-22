@@ -68,10 +68,11 @@ public class AnonfmChanPerformer extends ChanPerformer
 		}
 		String stateArtist = state.get("Artist");
 		String stateTitle = state.get("Title");
-		if (!StringUtils.isEmpty(stateArtist) && !StringUtils.isEmpty(stateTitle))
+		if (!StringUtils.isEmpty(stateTitle))
 		{
-			builder.append("<p>Сейчас играет: ").append(escapeHtml(stateArtist));
-			builder.append(" — ").append(escapeHtml(stateTitle));
+			builder.append("<p>Сейчас играет: ");
+			if (!StringUtils.isEmpty(stateArtist)) builder.append(escapeHtml(stateArtist)).append(" — ");
+			builder.append(escapeHtml(stateTitle)).append("</p>");
 		}
 		uri = locator.buildPath("info.js");
 		JSONObject jsonObject = new HttpRequest(uri, holder, preset).read().getJsonObject();
