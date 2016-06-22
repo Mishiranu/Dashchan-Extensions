@@ -12,7 +12,7 @@
 		<meta-data android:name="chan.extension.name" android:value="synch" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_synch_white" />
-		<meta-data android:name="chan.extension.source" android:value="https://raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
+		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
 		<meta-data android:name="chan.extension.class.configuration" android:value=".SynchChanConfiguration" />
 		<meta-data android:name="chan.extension.class.performer" android:value=".SynchChanPerformer" />
 		<meta-data android:name="chan.extension.class.locator" android:value=".SynchChanLocator" />
