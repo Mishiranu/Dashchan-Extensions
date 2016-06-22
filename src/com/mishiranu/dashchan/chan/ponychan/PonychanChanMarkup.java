@@ -25,7 +25,7 @@ public class PonychanChanMarkup extends ChanMarkup
 		addTag("span", "heading", TAG_HEADING);
 		addTag("span", "spoiler", TAG_SPOILER);
 		addTag("span", "style", "font-family: monospace", TAG_CODE);
-		addBlock("div", true); // Better look for expandable blocks
+		addBlock("div", true, true); // Better look for expandable blocks
 	}
 	
 	@Override
