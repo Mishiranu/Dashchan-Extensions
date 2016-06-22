@@ -23,7 +23,7 @@ public class NulltirechChanMarkup extends ChanMarkup
 		addTag("span", "style", "border-bottom: 1px solid", TAG_UNDERLINE);
 		addTag("span", "style", "font-family: Mona,'MS PGothic' !important;", TAG_CODE);
 		addTag("div", "codeblock", TAG_CODE);
-		addBlock("pre", false); // Remove spacing
+		addBlock("pre", true, false); // Remove spacing
 	}
 	
 	@Override
