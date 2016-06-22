@@ -12,7 +12,7 @@
 		<meta-data android:name="chan.extension.name" android:value="ponychan" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_ponychan_white" />
-		<meta-data android:name="chan.extension.source" android:value="https://raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
+		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
 		<meta-data android:name="chan.extension.class.configuration" android:value=".PonychanChanConfiguration" />
 		<meta-data android:name="chan.extension.class.performer" android:value=".PonychanChanPerformer" />
 		<meta-data android:name="chan.extension.class.locator" android:value=".PonychanChanLocator" />
