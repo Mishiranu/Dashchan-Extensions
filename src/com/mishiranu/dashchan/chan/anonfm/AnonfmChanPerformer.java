@@ -39,7 +39,7 @@ import chan.util.StringUtils;
 public class AnonfmChanPerformer extends ChanPerformer
 {
 	private static final SimpleDateFormat DATE_FORMAT_ANSWER = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
-	private static final SimpleDateFormat DATE_FORMAT_SERVER = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss",
+	private static final SimpleDateFormat DATE_FORMAT_SERVER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss",
 			Locale.US);
 	
 	static
@@ -173,8 +173,6 @@ public class AnonfmChanPerformer extends ChanPerformer
 			Uri uri = locator.buildPath("answers.js");
 			JSONArray jsonArray = new HttpRequest(uri, data.holder, data).read().getJsonArray();
 			if (jsonArray == null) throw new InvalidResponseException();
-			ArrayList<Post> posts = new ArrayList<>();
-			posts.add(createFmOriginalPost(data.holder, data));
 			Calendar serverDayStart;
 			try
 			{
@@ -193,6 +191,8 @@ public class AnonfmChanPerformer extends ChanPerformer
 			{
 				throw new InvalidResponseException(e);
 			}
+			ArrayList<Post> posts = new ArrayList<>();
+			posts.add(createFmOriginalPost(data.holder, data));
 			try
 			{
 				long lastTime = Long.MAX_VALUE;
