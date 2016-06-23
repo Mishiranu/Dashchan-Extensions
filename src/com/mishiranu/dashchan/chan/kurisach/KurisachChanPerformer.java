@@ -11,9 +11,8 @@ import java.util.regex.Pattern;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.net.Uri;
 
 import chan.content.ApiException;
@@ -212,6 +211,9 @@ public class KurisachChanPerformer extends ChanPerformer
 		}
 	}
 	
+	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
+			{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 0f});
+	
 	private final HashMap<String, CapcthaPolicy> mReadCaptchaPolicies = new HashMap<>();
 	
 	@Override
@@ -266,7 +268,7 @@ public class KurisachChanPerformer extends ChanPerformer
 			Canvas canvas = new Canvas(newImage);
 			canvas.drawColor(0xffffffff);
 			Paint paint = new Paint();
-			paint.setColorFilter(new PorterDuffColorFilter(0x00555555, PorterDuff.Mode.XOR));
+			paint.setColorFilter(CAPTCHA_FILTER);
 			canvas.drawBitmap(image, 0f, 0f, paint);
 			image.recycle();
 			Bitmap trimmedImage = CommonUtils.trimBitmap(newImage, 0xffffffff);
