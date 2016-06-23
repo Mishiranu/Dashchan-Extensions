@@ -244,10 +244,7 @@ public class NulltirechPostsParser implements GroupParser.Callback
 					.equals(parser.getAttr(attrs, "onclick")))
 			{
 				String href = parser.getAttr(attrs, "href");
-				if (href != null)
-				{
-					mPost.setParentPostNumber(ChanLocator.get(mConfiguration).getThreadNumber(Uri.parse(href)));
-				}
+				if (href != null) mPost.setParentPostNumber(mLocator.getThreadNumber(Uri.parse(href)));
 			}
 			else if (mAttachment != null)
 			{
