@@ -14,6 +14,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
 	private static final String KEY_THREAD_IMAGES_ENABLED = "thread_images_enabled";
 	private static final String KEY_REPLY_IMAGES_ENABLED = "reply_images_enabled";
+	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
 	private static final String KEY_ATTACHMENT_COUNT = "attachment_count";
 	
 	private static final String KEY_AUTHORIZED_TRIPCODE = "authorized_tripcode";
@@ -71,6 +72,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("application/rar");
 		posting.attachmentMimeTypes.add("application/x-bittorrent");
 		posting.attachmentMimeTypes.add("application/x-shockwave-flash");
+		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
 		return posting;
 	}
 	
@@ -114,11 +116,13 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
 				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
 				boolean replyImagesEnabled = configObject.optInt("image_replies", 1) != 0;
+				boolean flagsEnabled = configObject.optInt("geoip_enabled") != 0;
 				int attachmentCount = configObject.optInt("max_files", 4);
 				if (bumpLimit > 0) storeBumpLimit(boardName, bumpLimit);
 				set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 				set(boardName, KEY_THREAD_IMAGES_ENABLED, threadImagesEnabled);
 				set(boardName, KEY_REPLY_IMAGES_ENABLED, replyImagesEnabled);
+				set(boardName, KEY_FLAGS_ENABLED, flagsEnabled);
 				set(boardName, KEY_ATTACHMENT_COUNT, attachmentCount);
 			}
 		}

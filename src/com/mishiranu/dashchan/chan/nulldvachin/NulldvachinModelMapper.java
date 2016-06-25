@@ -13,6 +13,7 @@ import android.net.Uri;
 import chan.content.ChanLocator;
 import chan.content.model.Attachment;
 import chan.content.model.FileAttachment;
+import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.util.CommonUtils;
@@ -71,6 +72,13 @@ public class NulldvachinModelMapper
 		if (jsonObject.optInt("adminpost") != 0) post.setCapcode("Team");
 		String email = CommonUtils.optJsonString(jsonObject, "email");
 		if (!StringUtils.isEmpty(email) && email.equalsIgnoreCase("mailto:sage")) post.setSage(true);
+		String location = CommonUtils.optJsonString(jsonObject, "location");
+		String locationFull = CommonUtils.optJsonString(jsonObject, "location_full");
+		if (!StringUtils.isEmpty(location))
+		{
+			if (StringUtils.isEmpty(locationFull)) locationFull = location;
+			post.setIcons(new Icon(locator, locator.buildPath("img", "flags", location + ".PNG"), locationFull));
+		}
 		String subject = CommonUtils.optJsonString(jsonObject, "subject");
 		if (subject != null)
 		{
