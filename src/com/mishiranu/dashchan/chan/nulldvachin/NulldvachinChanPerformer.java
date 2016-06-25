@@ -201,9 +201,8 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		try
 		{
 			NulldvachinChanLocator locator = ChanLocator.get(this);
-			Uri uri = locator.buildPath("wakaba.pl");
-			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new UrlEncodedEntity("json",
-					"authorize", "auth", data.authorizationData[0])).read().getJsonObject();
+			Uri uri = locator.buildQuery("b/api/authorize", "auth", data.authorizationData[0]);
+			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 			if (jsonObject == null) throw new InvalidResponseException();
 			try
 			{
