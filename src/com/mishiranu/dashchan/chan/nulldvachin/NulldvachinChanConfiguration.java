@@ -56,9 +56,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
 		Posting posting = new Posting();
-		String authorizedTripcode = getAuthorizedTripcode();
-		posting.allowName = posting.allowTripcode = authorizedTripcode != null ||
-				get(boardName, KEY_NAMES_ENABLED, true);
+		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
 		posting.optionSage = true;
 		posting.attachmentCount = get(boardName, newThread ? KEY_THREAD_IMAGES_ENABLED : KEY_REPLY_IMAGES_ENABLED, true)

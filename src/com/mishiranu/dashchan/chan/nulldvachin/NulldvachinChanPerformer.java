@@ -36,8 +36,11 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/threads", "page", Integer.toString(data.pageNumber + 1));
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		handleStatus(jsonObject);
 		Posts[] threads;
@@ -49,11 +52,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		{
 			throw new InvalidResponseException(e);
 		}
-		if (threads != null)
-		{
-			NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
-			configuration.updateFromThreadsPostsJson(data.boardName, jsonObject);
-		}
+		if (threads != null) configuration.updateFromThreadsPostsJson(data.boardName, jsonObject);
 		return new ReadThreadsResult(threads);
 	}
 	
@@ -61,6 +60,8 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		String lastPostNumber = data.partialThreadLoading ? data.lastPostNumber : null;
 		Uri uri;
 		if (lastPostNumber != null)
@@ -69,7 +70,8 @@ public class NulldvachinChanPerformer extends ChanPerformer
 					"after", lastPostNumber);
 		}
 		else uri = locator.buildQuery(data.boardName + "/api/thread", "id", data.threadNumber);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		try
 		{
@@ -94,11 +96,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		{
 			throw new InvalidResponseException(e);
 		}
-		if (posts != null)
-		{
-			NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
-			configuration.updateFromThreadsPostsJson(data.boardName, jsonObject);
-		}
+		if (posts != null) configuration.updateFromThreadsPostsJson(data.boardName, jsonObject);
 		return new ReadPostsResult(posts);
 	}
 	
