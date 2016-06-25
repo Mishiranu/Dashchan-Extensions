@@ -114,7 +114,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
 				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
 				boolean replyImagesEnabled = configObject.optInt("image_replies", 1) != 0;
-				int attachmentCount = configObject.optInt("max_res", 4);
+				int attachmentCount = configObject.optInt("max_files", 4);
 				if (bumpLimit > 0) storeBumpLimit(boardName, bumpLimit);
 				set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 				set(boardName, KEY_THREAD_IMAGES_ENABLED, threadImagesEnabled);
