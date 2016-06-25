@@ -32,6 +32,8 @@ import chan.util.StringUtils;
 
 public class NulldvachinChanPerformer extends ChanPerformer
 {
+	private static final String COOKIE_AUTH = "auth";
+	
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
@@ -39,7 +41,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/threads", "page", Integer.toString(data.pageNumber + 1));
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		handleStatus(jsonObject);
@@ -70,7 +72,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 					"after", lastPostNumber);
 		}
 		else uri = locator.buildQuery(data.boardName + "/api/thread", "id", data.threadNumber);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		try
@@ -231,7 +233,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/checkconfig", "captcha", "");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie("auth", authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		boolean needCaptcha;
@@ -292,7 +294,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildPath("wakaba.pl");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).addCookie("auth",
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).addCookie(COOKIE_AUTH,
 				authorizedTripcode).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		String parent = CommonUtils.optJsonString(jsonObject, "parent");
@@ -374,7 +376,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 				"parent", data.threadNumber, "password", data.password, "ajax", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete", postNumber);
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-				.addCookie("auth", authorizedTripcode).read().getJsonObject();
+				.addCookie(COOKIE_AUTH, authorizedTripcode).read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		String path = CommonUtils.optJsonString(jsonObject, "redir");
 		if (!StringUtils.isEmpty(path)) return null;
