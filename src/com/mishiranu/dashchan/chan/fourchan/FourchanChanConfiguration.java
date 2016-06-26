@@ -21,7 +21,6 @@ public class FourchanChanConfiguration extends ChanConfiguration
 	public FourchanChanConfiguration()
 	{
 		request(OPTION_READ_POSTS_COUNT);
-		request(OPTION_READ_POPULAR_THREADS);
 		request(OPTION_ALLOW_CAPTCHA_PASS);
 		setDefaultName("Anonymous");
 		setBumpLimit(300);

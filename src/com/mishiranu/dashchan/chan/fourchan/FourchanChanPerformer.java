@@ -35,7 +35,7 @@ import chan.util.StringUtils;
 
 public class FourchanChanPerformer extends ChanPerformer
 {
-	private static final String RECAPTCHA_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
+	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
 	
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Misc", "Interests", "Creative", "Other",
 		"Japanese Culture", "Adult"};
@@ -191,8 +191,6 @@ public class FourchanChanPerformer extends ChanPerformer
 
 	private static final Pattern PATTERN_ARCHIVED_THREAD = Pattern.compile("<tr><td>(\\d+)</td>.*?" +
 			"<td class=\"teaser-col\">(.*?)</td>");
-	private static final Pattern PATTERN_POPULAR = Pattern.compile("<a href=\"(.*?)\" class=\"boardlink\">" +
-			"<img .*?class=\"c-thumb\" src=\"(.*?)\".*?></a><div class=\"c-teaser\">(.*?)</div>");
 	
 	@Override
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException,
@@ -210,31 +208,6 @@ public class FourchanChanPerformer extends ChanPerformer
 				threadSummaries.add(new ThreadSummary(data.boardName, matcher.group(1),
 						StringUtils.clearHtml(matcher.group(2))));
 			}
-			return new ReadThreadSummariesResult(threadSummaries);
-		}
-		else if (data.type == ReadThreadSummariesData.TYPE_POPULAR_THREADS)
-		{
-			FourchanChanLocator locator = ChanLocator.get(this);
-			Uri uri = locator.buildBasePath();
-			String responseText = new HttpRequest(uri, data.holder, data).read().getString();
-			ArrayList<ThreadSummary> threadSummaries = new ArrayList<>();
-			Matcher matcher = PATTERN_POPULAR.matcher(responseText);
-			while (matcher.find())
-			{
-				Uri threadUri = Uri.parse(matcher.group(1));
-				Uri thumbnailUri = Uri.parse(matcher.group(2));
-				if (thumbnailUri != null) thumbnailUri = locator.buildAttachmentPath(thumbnailUri.getPath());
-				String description = StringUtils.clearHtml(matcher.group(3).replace("\n", "<br>"))
-						.replaceAll("\n{2,}", "\n");
-				if (description.length() > 200) description = description.substring(0, 200) + '\u2026';
-				String boardName = locator.getBoardName(threadUri);
-				String threadNumber = locator.getThreadNumber(threadUri);
-				if (boardName == null || threadNumber == null) throw new InvalidResponseException();
-				ThreadSummary threadSummary = new ThreadSummary(boardName, threadNumber, description);
-				threadSummary.setThumbnailUri(locator, thumbnailUri);
-				threadSummaries.add(threadSummary);
-			}
-			if (threadSummaries.isEmpty()) throw new InvalidResponseException();
 			return new ReadThreadSummariesResult(threadSummaries);
 		}
 		else return super.onReadThreadSummaries(data);
@@ -366,7 +339,7 @@ public class FourchanChanPerformer extends ChanPerformer
 					.setValidity(ChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 		}
 		CaptchaData captchaData = new CaptchaData();
-		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
+		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
 		if ("report".equals(data.requirement)) captchaData.put(CAPTCHA_TYPE, data.captchaType);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 	}
