@@ -97,8 +97,11 @@ public class AllchanModelMapper
 		if (userObject != null)
 		{
 			String level = CommonUtils.optJsonString(userObject, "level");
-			if ("ADMIN".equals(level)) post.setCapcode("Admin");
-			else if ("MODER".equals(level)) post.setCapcode("Mod");
+			if (!StringUtils.isEmpty(level) && !"USER".equals(level))
+			{
+				post.setCapcode(level.substring(0, 1).toUpperCase(Locale.US) + level.substring(1, level.length())
+						.toLowerCase(Locale.US));
+			}
 		}
 		String subject = CommonUtils.optJsonString(jsonObject, "subject");
 		if (subject != null) post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
