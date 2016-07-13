@@ -2,6 +2,6 @@
 
 Extension for ponyach.ru.
 
-# License
+## License
 
-[MIT License](LICENSE)
+Extension is licensed under the [MIT License](LICENSE).
