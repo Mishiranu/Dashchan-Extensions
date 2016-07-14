@@ -315,6 +315,43 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			return new SendPostResult(parent, num);
 		}
 		
+		int banned = jsonObject.optInt("banned", 0);
+		if (banned != 0)
+		{
+			JSONArray jsonArray = jsonObject.optJSONArray("bans");
+			if (jsonArray != null)
+			{
+				try
+				{
+					long expires = 0;
+					JSONObject targetBanObject = null;
+					for (int i = 0; i < jsonArray.length(); i++)
+					{
+						JSONObject banObject = jsonArray.getJSONObject(i);
+						long itExpires = banObject.getLong("expires");
+						if (itExpires == 0) itExpires = Long.MAX_VALUE; else itExpires = itExpires * 1000L;
+						if (itExpires > expires)
+						{
+							expires = itExpires;
+							targetBanObject = banObject;
+						}
+					}
+					if (targetBanObject != null)
+					{
+						String ip = StringUtils.nullIfEmpty(CommonUtils.optJsonString(targetBanObject, "ip"));
+						String reason = CommonUtils.getJsonString(targetBanObject, "reason");
+						if (ip != null) reason = reason + " (" + ip + ")";
+						throw new ApiException(ApiException.SEND_ERROR_BANNED, new ApiException.BanExtra()
+								.setMessage(reason).setExpireDate(expires));
+					}
+				}
+				catch (JSONException e)
+				{
+					throw new InvalidResponseException(e);
+				}
+			}
+		}
+		
 		String error = CommonUtils.optJsonString(jsonObject, "error");
 		if (error == null) throw new InvalidResponseException();
 		int errorType = 0;
@@ -357,7 +394,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			errorType = ApiException.SEND_ERROR_FILE_EXISTS;
 			flags |= ApiException.FLAG_KEEP_CAPTCHA;
 		}
-		else if (error.contains("Бан"))
+		else if (error.contains("Бан") || error.contains("Найдена прокси"))
 		{
 			errorType = ApiException.SEND_ERROR_BANNED;
 		}
