@@ -112,8 +112,11 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(boardName + "/api/post", "id", postNumber);
-		JSONObject jsonObject = new HttpRequest(uri, holder, preset).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, holder, preset).addCookie(COOKIE_AUTH, authorizedTripcode)
+				.read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
 		handleStatus(jsonObject);
 		try
@@ -159,8 +162,11 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/postcount", "id", data.threadNumber);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+				.read().getJsonObject();
 		if (jsonObject != null)
 		{
 			handleStatus(jsonObject);
