@@ -340,7 +340,7 @@ public class NulldvachinChanPerformer extends ChanPerformer
 					{
 						String ip = StringUtils.nullIfEmpty(CommonUtils.optJsonString(targetBanObject, "ip"));
 						String reason = CommonUtils.getJsonString(targetBanObject, "reason");
-						if (ip != null) reason = reason + " (" + ip + ")";
+						if (!StringUtils.isEmpty(ip)) reason = reason + " (" + ip + ")";
 						throw new ApiException(ApiException.SEND_ERROR_BANNED, new ApiException.BanExtra()
 								.setMessage(reason).setExpireDate(expires));
 					}
