@@ -33,6 +33,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	public Board obtainBoardConfiguration(String boardName)
 	{
 		Board board = new Board();
+		board.allowSearch = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;

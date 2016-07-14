@@ -131,6 +131,41 @@ public class NulldvachinChanPerformer extends ChanPerformer
 	}
 	
 	@Override
+	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
+			InvalidResponseException
+	{
+		NulldvachinChanLocator locator = ChanLocator.get(this);
+		NulldvachinChanConfiguration configuration = ChanConfiguration.get(this);
+		String authorizedTripcode = configuration.getAuthorizedTripcode();
+		Uri uri = locator.buildQuery(data.boardName + "/api/search", "subject", "1", "comment", "1",
+				"find", data.searchQuery);
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+				.read().getJsonObject();
+		if (jsonObject == null) throw new InvalidResponseException();
+		JSONObject statusObject = jsonObject.optJSONObject("status");
+		if (statusObject != null)
+		{
+			String errorMessage = CommonUtils.optJsonString(statusObject, "error_msg");
+			if ("Request is too short".equals(errorMessage)) throw new HttpException(0, errorMessage);
+		}
+		handleStatus(jsonObject);
+		try
+		{
+			ArrayList<Post> posts = new ArrayList<>();
+			JSONArray jsonArray = jsonObject.getJSONArray("data");
+			for (int i = 0; i < jsonArray.length(); i++)
+			{
+				posts.add(NulldvachinModelMapper.createPost(jsonArray.getJSONObject(i), locator, data.boardName));
+			}
+			return new ReadSearchPostsResult(posts);
+		}
+		catch (JSONException e)
+		{
+			throw new InvalidResponseException(e);
+		}
+	}
+	
+	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
 		NulldvachinChanLocator locator = ChanLocator.get(this);
