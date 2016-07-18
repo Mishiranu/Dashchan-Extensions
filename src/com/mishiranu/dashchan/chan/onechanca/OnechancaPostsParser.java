@@ -50,9 +50,10 @@ public class OnechancaPostsParser implements GroupParser.Callback
 		DATE_FORMAT = new SimpleDateFormat("dd MMMM yyyy @ HH:mm", symbols);
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT+3"));
 	}
-	
+
 	private static final Pattern ATTACHMENT = Pattern.compile("(?s)<a class=\"b-image-link\".*?href=\"(.*?)\".*?"
 			+ "title=\"(.*?)\".*?src=\"(.*?)\".*?</a>");
+	private static final Pattern IMAGE = Pattern.compile("(?s)<a.*?<img.*?src=\"(.*?)\".*?/>.*?</a>");
 	private static final Pattern FILE_SIZE = Pattern.compile("(\\d+)x(\\d+), ([\\d\\.]+) (\\w+)");
 	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
 	
@@ -217,6 +218,7 @@ public class OnechancaPostsParser implements GroupParser.Callback
 					text = "<p><a href=\"" + mExternalLink + "\">" + mExternalLink + "</a></p>" + text;
 				}
 				text = text.replaceAll("(?s)<blockquote>.*?<p>", "$0&gt; ");
+				ArrayList<FileAttachment> attachments = null;
 				Matcher matcher = ATTACHMENT.matcher(text);
 				if (matcher.find())
 				{
@@ -242,15 +244,38 @@ public class OnechancaPostsParser implements GroupParser.Callback
 							attachment.setHeight(height);
 							attachment.setSize((int) size);
 						}
-						mPost.setAttachments(attachment);
+						attachments = new ArrayList<>();
+						attachments.add(attachment);
 					}
 				}
-				// Fix imgur URIs
-				text = text.replaceAll("(?s)<a.*?<img.*?src=\"(.*?)\".*?/>.*?</a>", "<a href=\"$1\">$1</a>");
 				// Display smilies as text
 				text = text.replaceAll("(?s)<img src=\".*?/img/(.*?).gif\".*?>", ":$1:");
+				StringBuffer buffer = null;
+				matcher = IMAGE.matcher(text);
+				while (matcher.find())
+				{
+					String uriString = matcher.group(1);
+					Uri uri = Uri.parse(uriString);
+					if ("i.imgur.com".equals(uri.getHost()))
+					{
+						FileAttachment attachment = new FileAttachment();
+						attachment.setFileUri(mLocator, uri);
+						attachment.setThumbnailUri(mLocator, uri.buildUpon()
+								.path(uri.getPath().replace(".", "m.")).build());
+						if (attachments == null) attachments = new ArrayList<>();
+						attachments.add(attachment);
+					}
+					if (buffer == null) buffer = new StringBuffer();
+					matcher.appendReplacement(buffer, "<a href=\"$1\">$1</a>");
+				}
+				if (buffer != null)
+				{
+					matcher.appendTail(buffer);
+					text = buffer.toString();
+				}
 				text = text.replaceAll("<p><a href=\".*?\">Читать дальше</a></p>", "");
 				mPost.setComment(text);
+				mPost.setAttachments(attachments);
 				mPosts.add(mPost);
 				if (mReplyParsing) mPost = null;
 				mExternalLink = null;

@@ -37,7 +37,7 @@ public class OnechancaChanLocator extends ChanLocator
 	@Override
 	public boolean isAttachmentUri(Uri uri)
 	{
-		return isChanHostOrRelative(uri) && isPathMatches(uri, ATTACHMENT_PATH);
+		return isChanHostOrRelative(uri) && isPathMatches(uri, ATTACHMENT_PATH) || "i.imgur.com".equals(uri.getHost());
 	}
 	
 	@Override
