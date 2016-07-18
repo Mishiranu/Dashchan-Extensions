@@ -20,7 +20,6 @@ public class OnechancaChanMarkup extends ChanMarkup
 		addTag("h1", TAG_HEADING);
 		addTag("span", "b-spoiler-text", TAG_SPOILER);
 		addTag("code", TAG_CODE);
-		addBlock("p", true, false);
 	}
 	
 	@Override

@@ -214,7 +214,7 @@ public class OnechancaPostsParser implements GroupParser.Callback
 				if (mExternalLink != null)
 				{
 					mExternalLink = mExternalLink.replace("\"", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-					text = "<a href=\"" + mExternalLink + "\">" + mExternalLink + "</a><br /><br />" + text;
+					text = "<p><a href=\"" + mExternalLink + "\">" + mExternalLink + "</a></p>" + text;
 				}
 				text = text.replaceAll("(?s)<blockquote>.*?<p>", "$0&gt; ");
 				Matcher matcher = ATTACHMENT.matcher(text);
