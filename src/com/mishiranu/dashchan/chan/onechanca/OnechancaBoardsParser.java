@@ -42,6 +42,7 @@ public class OnechancaBoardsParser implements GroupParser.Callback
 	{
 		mNewsBoards.add(new Board("news", "Одобренные"));
 		mNewsBoards.add(new Board("news-all", "Все"));
+		mNewsBoards.add(new Board("news-hidden", "Скрытые"));
 		try
 		{
 			GroupParser.parse(mSource, this);

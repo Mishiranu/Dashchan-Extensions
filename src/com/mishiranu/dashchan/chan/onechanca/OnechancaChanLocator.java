@@ -11,7 +11,7 @@ import chan.util.StringUtils;
 
 public class OnechancaChanLocator extends ChanLocator
 {
-	private static final Pattern BOARD_PATH = Pattern.compile("/(\\w+|news/all|news/cat/\\w+)(?:/(?:\\d+/?)?)?");
+	private static final Pattern BOARD_PATH = Pattern.compile("/(\\w+|news/(?:all|hidden|cat/\\w+))(?:/(?:\\d+/?)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/res/(\\d+)/?");
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/uploads/(\\w+)/\\d+\\.\\w+");
 	
@@ -48,6 +48,7 @@ public class OnechancaChanLocator extends ChanLocator
 		{
 			String boardName = matcher.group(1);
 			if ("news/all".equals(boardName)) return "news-all";
+			if ("news/hidden".equals(boardName)) return "news-hidden";
 			if (boardName.contains("/cat/")) return boardName.replace("/cat/", "-");
 			return boardName;
 		}
@@ -74,6 +75,7 @@ public class OnechancaChanLocator extends ChanLocator
 	private String transformBoardNameForBuild(String boardName)
 	{
 		if ("news-all".equals(boardName)) boardName = "news/all";
+		if ("news-hidden".equals(boardName)) boardName = "news/hidden";
 		else if (boardName != null) boardName = boardName.replace("-", "/cat/");
 		return boardName;
 	}

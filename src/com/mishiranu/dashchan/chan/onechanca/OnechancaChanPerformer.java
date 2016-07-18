@@ -222,8 +222,8 @@ public class OnechancaChanPerformer extends ChanPerformer
 		{
 			if (data.threadNumber == null)
 			{
-				String category = data.boardName.equals("news") || data.boardName.equals("news-all") ? null
-						: data.boardName.substring(5);
+				String category = data.boardName.equals("news") || data.boardName.equals("news-all")
+						|| data.boardName.equals("news-hidden") ? null : data.boardName.substring(5);
 				if (category != null)
 				{
 					Uri uri = locator.buildPath("news", "cat", "");
