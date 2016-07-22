@@ -23,6 +23,7 @@ import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
+import chan.content.model.Threads;
 import chan.http.HttpException;
 import chan.http.HttpHolder;
 import chan.http.HttpRequest;
@@ -56,7 +57,9 @@ public class NulldvachinChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 		if (threads != null) configuration.updateFromThreadsPostsJson(data.boardName, jsonObject);
-		return new ReadThreadsResult(threads);
+		jsonObject = jsonObject.optJSONObject("boardinfo");
+		int boardSpeed = jsonObject != null ? jsonObject.optInt("board_speed") : 0;
+		return new ReadThreadsResult(new Threads(threads).setBoardSpeed(boardSpeed));
 	}
 	
 	@Override
