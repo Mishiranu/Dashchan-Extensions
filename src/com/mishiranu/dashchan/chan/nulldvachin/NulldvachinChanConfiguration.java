@@ -14,8 +14,9 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
 	private static final String KEY_THREAD_IMAGES_ENABLED = "thread_images_enabled";
 	private static final String KEY_REPLY_IMAGES_ENABLED = "reply_images_enabled";
-	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
+	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
 	private static final String KEY_ATTACHMENT_COUNT = "attachment_count";
+	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
 	
 	private static final String KEY_AUTHORIZED_TRIPCODE = "authorized_tripcode";
 	
@@ -60,6 +61,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
 		posting.optionSage = true;
+		posting.maxCommentLength = get(boardName, KEY_MAX_COMMENT_LENGTH, 0);
 		posting.attachmentCount = get(boardName, newThread ? KEY_THREAD_IMAGES_ENABLED : KEY_REPLY_IMAGES_ENABLED, true)
 				? get(boardName, KEY_ATTACHMENT_COUNT, 4) : 0;
 		posting.attachmentMimeTypes.add("image/*");
@@ -116,15 +118,17 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
 				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
 				boolean replyImagesEnabled = configObject.optInt("image_replies", 1) != 0;
-				boolean flagsEnabled = configObject.optInt("geoip_enabled") != 0;
+				int maxCommentLength = configObject.optInt("max_comment_length", 0);
 				int attachmentCount = configObject.optInt("max_files", 4);
+				boolean flagsEnabled = configObject.optInt("geoip_enabled") != 0;
 				storeDefaultName(boardName, defaultName);
 				if (bumpLimit > 0) storeBumpLimit(boardName, bumpLimit);
 				set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 				set(boardName, KEY_THREAD_IMAGES_ENABLED, threadImagesEnabled);
 				set(boardName, KEY_REPLY_IMAGES_ENABLED, replyImagesEnabled);
-				set(boardName, KEY_FLAGS_ENABLED, flagsEnabled);
+				set(boardName, KEY_MAX_COMMENT_LENGTH, maxCommentLength);
 				set(boardName, KEY_ATTACHMENT_COUNT, attachmentCount);
+				set(boardName, KEY_FLAGS_ENABLED, flagsEnabled);
 			}
 		}
 	}
