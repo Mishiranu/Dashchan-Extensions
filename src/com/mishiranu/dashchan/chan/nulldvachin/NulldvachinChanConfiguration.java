@@ -111,12 +111,14 @@ public class NulldvachinChanConfiguration extends ChanConfiguration
 			JSONObject configObject = infoObject.optJSONObject("config");
 			if (configObject != null)
 			{
+				String defaultName = StringUtils.nullIfEmpty(CommonUtils.optJsonString(infoObject, "default_name"));
 				int bumpLimit = configObject.optInt("max_res");
 				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
 				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
 				boolean replyImagesEnabled = configObject.optInt("image_replies", 1) != 0;
 				boolean flagsEnabled = configObject.optInt("geoip_enabled") != 0;
 				int attachmentCount = configObject.optInt("max_files", 4);
+				storeDefaultName(boardName, defaultName);
 				if (bumpLimit > 0) storeBumpLimit(boardName, bumpLimit);
 				set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 				set(boardName, KEY_THREAD_IMAGES_ENABLED, threadImagesEnabled);
