@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.chan.nulldvachin;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -175,7 +176,20 @@ public class NulldvachinChanPerformer extends ChanPerformer
 		handleStatus(jsonObject);
 		try
 		{
-			ArrayList<Board> boards = new ArrayList<>();
+			LinkedHashMap<String, ArrayList<Board>> boardsMap = new LinkedHashMap<>();
+			JSONObject infoObject = jsonObject.optJSONObject("info");
+			if (infoObject != null)
+			{
+				JSONArray jsonArray = infoObject.optJSONArray("categories");
+				if (jsonArray != null)
+				{
+					for (int i = 0; i < jsonArray.length(); i++)
+					{
+						String title = jsonArray.getString(i);
+						boardsMap.put(title, new ArrayList<Board>());
+					}
+				}
+			}
 			JSONArray jsonArray = jsonObject.getJSONArray("data");
 			for (int i = 0; i < jsonArray.length(); i++)
 			{
@@ -183,9 +197,22 @@ public class NulldvachinChanPerformer extends ChanPerformer
 				String boardName = CommonUtils.getJsonString(jsonObject, "board_key");
 				String title = CommonUtils.getJsonString(jsonObject, "board_name");
 				String description = StringUtils.emptyIfNull(CommonUtils.getJsonString(jsonObject, "board_desc"));
+				String category = CommonUtils.getJsonString(jsonObject, "board_cat");
+				ArrayList<Board> boards = boardsMap.get(category);
+				if (boards == null)
+				{
+					boards = new ArrayList<>();
+					boardsMap.put(category, boards);
+				}
 				boards.add(new Board(boardName, title, description));
 			}
-			return new ReadBoardsResult(new BoardCategory(null, boards));
+			ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+			for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boardsMap.entrySet())
+			{
+				ArrayList<Board> boards = entry.getValue();
+				if (!boards.isEmpty()) boardCategories.add(new BoardCategory(entry.getKey(), boards));
+			}
+			return new ReadBoardsResult(boardCategories);
 		}
 		catch (JSONException e)
 		{
