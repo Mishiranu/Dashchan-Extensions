@@ -34,7 +34,7 @@ import chan.util.StringUtils;
 
 public class NulldvachinChanPerformer extends ChanPerformer
 {
-	private static final String COOKIE_AUTH = "auth";
+	private static final String COOKIE_AUTH = "wakaauth";
 	
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
