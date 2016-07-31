@@ -252,7 +252,7 @@ public class TaimaPostsParser implements GroupParser.Callback
 			String id = parser.getAttr(attrs, "id");
 			if ("postform".equals(id)) mHasPostBlock = true;
 		}
-		else if ("label".equals(tagName))
+		else if ("input".equals(tagName))
 		{
 			if (mHasPostBlock)
 			{
@@ -282,17 +282,17 @@ public class TaimaPostsParser implements GroupParser.Callback
 		{
 			case EXPECT_SUBJECT:
 			{
-				mPost.setSubject(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_NAME:
 			{
-				mPost.setName(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_TRIPCODE:
 			{
-				mPost.setTripcode(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_DATE_ID:
