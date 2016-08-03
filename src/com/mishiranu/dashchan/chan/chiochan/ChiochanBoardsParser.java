@@ -5,11 +5,11 @@ import java.util.Arrays;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class ChiochanBoardsParser implements GroupParser.Callback
+public class ChiochanBoardsParser
 {
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Общее", "Радио", "Аниме", "На пробу"};
 	
@@ -21,12 +21,6 @@ public class ChiochanBoardsParser implements GroupParser.Callback
 	private String mBoardCategoryTitle;
 	private String mBoardName;
 
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_CATEGORY = 1;
-	private static final int EXPECT_BOARD = 2;
-	
-	private int mExpect = EXPECT_NONE;
-	
 	public ChiochanBoardsParser(String source)
 	{
 		mSource = source;
@@ -34,7 +28,7 @@ public class ChiochanBoardsParser implements GroupParser.Callback
 	
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
-		GroupParser.parse(mSource, this);
+		PARSER.parse(mSource, this);
 		closeCategory();
 		ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 		for (String title : PREFERRED_BOARDS_ORDER)
@@ -62,61 +56,26 @@ public class ChiochanBoardsParser implements GroupParser.Callback
 		}
 	}
 	
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
+	private static final TemplateParser<ChiochanBoardsParser> PARSER = new TemplateParser<ChiochanBoardsParser>()
+			.name("h2").content((instance, holder, text) ->
 	{
-		if ("h2".equals(tagName))
+		holder.closeCategory();
+		holder.mBoardCategoryTitle = StringUtils.clearHtml(text).substring(2);
+		
+	}).equals("a", "class", "boardlink").open((instance, holder, tagName, attributes) ->
+	{
+		if (holder.mBoardCategoryTitle != null)
 		{
-			closeCategory();
-			mExpect = EXPECT_CATEGORY;
+			String href = attributes.get("href");
+			holder.mBoardName = href.substring(1, href.length() - 1);
 			return true;
 		}
-		else if (mBoardCategoryTitle != null)
-		{
-			if ("a".equals(tagName))
-			{
-				String cssClass = parser.getAttr(attrs, "class");
-				if ("boardlink".equals(cssClass))
-				{
-					String href = parser.getAttr(attrs, "href");
-					mBoardName = href.substring(1, href.length() - 1);
-					mExpect = EXPECT_BOARD;
-					return true;
-				}
-			}
-		}
 		return false;
-	}
-	
-	@Override
-	public void onEndElement(GroupParser parser, String tagName)
-	{
 		
-	}
-	
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
+	}).content((instance, holder, text) ->
 	{
+		text = StringUtils.clearHtml(text);
+		holder.mBoards.add(new Board(holder.mBoardName, text));
 		
-	}
-	
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		switch (mExpect)
-		{
-			case EXPECT_CATEGORY:
-			{
-				mBoardCategoryTitle = StringUtils.clearHtml(text).substring(2);
-				break;
-			}
-			case EXPECT_BOARD:
-			{
-				text = StringUtils.clearHtml(text);
-				mBoards.add(new Board(mBoardName, text));
-				break;
-			}
-		}
-		mExpect = EXPECT_NONE;
-	}
+	}).prepare();
 }
