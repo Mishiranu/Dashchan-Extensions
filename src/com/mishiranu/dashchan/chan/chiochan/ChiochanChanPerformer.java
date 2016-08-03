@@ -41,8 +41,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		if (data.isCatalog())
 		{
 			Uri uri = locator.buildPath(data.boardName, "catalog.html");
-			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.read().getString();
+			String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 			ArrayList<Pair<String, Integer>> threadInfos = new ArrayList<>();
 			Matcher matcher = PATTERN_CATALOG.matcher(responseText);
 			while (matcher.find())
@@ -53,7 +52,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			}
 			if (threadInfos.isEmpty()) return null;
 			uri = locator.buildQuery("expand.php", "board", data.boardName, "threadid", "0");
-			responseText = new HttpRequest(uri, data.holder, data).read().getString();
+			responseText = new HttpRequest(uri, data).read().getString();
 			ArrayList<Post> posts;
 			try
 			{
@@ -84,8 +83,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		else
 		{
 			Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.read().getString();
+			String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 			try
 			{
 				return new ReadThreadsResult(new ChiochanPostsParser(responseText, this, data.boardName)
@@ -107,14 +105,14 @@ public class ChiochanChanPerformer extends ChanPerformer
 		boolean archived = false;
 		try
 		{
-			responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+			responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		}
 		catch (HttpException e)
 		{
 			if (e.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)
 			{
 				uri = locator.createThreadArchiveUri(data.boardName, data.threadNumber);
-				responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+				responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 				archived = true;
 			}
 			else throw e;
@@ -136,7 +134,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	{
 		ChiochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("menu.php");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		String responseText = new HttpRequest(uri, data).read().getString();
 		try
 		{
 			return new ReadBoardsResult(new ChiochanBoardsParser(responseText).convert());
@@ -156,7 +154,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	{
 		ChiochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, 0).buildUpon().appendEncodedPath("arch/res").build();
-		String responseText = new HttpRequest(uri, data.holder, data).setSuccessOnly(false).read().getString();
+		String responseText = new HttpRequest(uri, data).setSuccessOnly(false).read().getString();
 		if (data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return null;
 		data.holder.checkResponseCode();
 		ArrayList<ThreadSummary> threadSummaries = new ArrayList<>();
@@ -174,21 +172,22 @@ public class ChiochanChanPerformer extends ChanPerformer
 	{
 		ChiochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator)
 				.setSuccessOnly(false).read().getString();
 		boolean notFound = data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND;
 		int count = 0;
 		if (notFound)
 		{
 			uri = locator.createThreadUri(data.boardName, data.threadNumber);
-			responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+			responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		}
 		else data.holder.checkResponseCode();
+		if (!responseText.contains("<form name=\"postform\"")) throw new InvalidResponseException();
 		int index = 0;
 		while (index != -1)
 		{
 			count++;
-			index = responseText.indexOf(" class=\"reply\"", index + 1);
+			index = StringUtils.nearestIndexOf(responseText, index + 1, "<div class=\"reply\"", "<td class=\"reply\"");
 		}
 		index = responseText.indexOf("<span class=\"omittedposts\">");
 		if (index >= 0)
@@ -211,7 +210,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			String faptcha = configuration.getCookie(PREFIX_FAPTCHA + data.boardName);
 			Uri uri = locator.buildPath("api_adaptive.php").buildUpon()
 					.appendQueryParameter("board", data.boardName).build();
-			String responseText = new HttpRequest(uri, data.holder, data).addCookie(data.boardName, faptcha)
+			String responseText = new HttpRequest(uri, data).addCookie(data.boardName, faptcha)
 					.addCookie("PHPSESSID", sessionCookie).read().getString();
 			if ("1".equals(responseText))
 			{
@@ -222,7 +221,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		Uri uri = locator.buildPath("faptcha.php").buildUpon().appendQueryParameter("board",
 				data.boardName).build();
-		Bitmap image = new HttpRequest(uri, data.holder, data).setRedirectHandler(HttpRequest.RedirectHandler.NONE)
+		Bitmap image = new HttpRequest(uri, data).setRedirectHandler(HttpRequest.RedirectHandler.NONE)
 				.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
 		String newSessionCookie = data.holder.getCookieValue("PHPSESSID");
 		if (newSessionCookie != null) sessionCookie = newSessionCookie;
@@ -270,7 +269,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		String responseText;
 		try
 		{
-			new HttpRequest(uri, data.holder, data).setPostMethod(entity).addCookie(data.boardName, faptcha)
+			new HttpRequest(uri, data).setPostMethod(entity).addCookie(data.boardName, faptcha)
 					.addCookie("PHPSESSID", session).setRedirectHandler(HttpRequest.RedirectHandler.NONE).execute();
 			faptcha = data.holder.getCookieValue(data.boardName);
 			if (faptcha != null)
@@ -350,7 +349,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		for (String postNumber : data.postNumbers) entity.add("delete[]", postNumber);
 		if (data.optionFilesOnly) entity.add("fileonly", "on");
 		Uri uri = locator.buildPath("board.php");
-		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getString();
+		String responseText = new HttpRequest(uri, data).setPostMethod(entity).read().getString();
 		if (responseText != null)
 		{
 			if (responseText.contains("Сообщение успешно удалено") ||
@@ -377,7 +376,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		UrlEncodedEntity entity = new UrlEncodedEntity("board", data.boardName, "reportpost", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete[]", postNumber);
 		Uri uri = locator.buildPath("board.php");
-		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getString();
+		String responseText = new HttpRequest(uri, data).setPostMethod(entity).read().getString();
 		if (responseText != null)
 		{
 			if (responseText.contains("Post successfully reported") ||
