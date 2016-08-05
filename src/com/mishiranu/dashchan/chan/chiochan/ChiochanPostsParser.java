@@ -7,8 +7,6 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import chan.content.ChanConfiguration;
-import chan.content.ChanLocator;
 import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
 import chan.content.model.Post;
@@ -53,8 +51,8 @@ public class ChiochanPostsParser
 	public ChiochanPostsParser(String source, Object linked, String boardName)
 	{
 		mSource = source;
-		mConfiguration = ChanConfiguration.get(linked);
-		mLocator = ChanLocator.get(linked);
+		mConfiguration = ChiochanChanConfiguration.get(linked);
+		mLocator = ChiochanChanLocator.get(linked);
 		mBoardName = boardName;
 	}
 	

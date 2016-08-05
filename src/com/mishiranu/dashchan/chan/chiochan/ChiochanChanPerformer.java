@@ -11,8 +11,6 @@ import android.net.Uri;
 import android.util.Pair;
 
 import chan.content.ApiException;
-import chan.content.ChanConfiguration;
-import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.model.Post;
@@ -37,7 +35,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		if (data.isCatalog())
 		{
 			Uri uri = locator.buildPath(data.boardName, "catalog.html");
@@ -48,7 +46,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			{
 				String threadNumber = matcher.group(1);
 				int replies = Integer.parseInt(matcher.group(2));
-				threadInfos.add(new Pair<String, Integer>(threadNumber, replies));
+				threadInfos.add(new Pair<>(threadNumber, replies));
 			}
 			if (threadInfos.isEmpty()) return null;
 			uri = locator.buildQuery("expand.php", "board", data.boardName, "threadid", "0");
@@ -99,7 +97,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
 		String responseText;
 		boolean archived = false;
@@ -132,7 +130,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		Uri uri = locator.buildPath("menu.php");
 		String responseText = new HttpRequest(uri, data).read().getString();
 		try
@@ -152,7 +150,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException,
 			InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, 0).buildUpon().appendEncodedPath("arch/res").build();
 		String responseText = new HttpRequest(uri, data).setSuccessOnly(false).read().getString();
 		if (data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return null;
@@ -170,7 +168,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
 		String responseText = new HttpRequest(uri, data).setValidator(data.validator)
 				.setSuccessOnly(false).read().getString();
@@ -202,8 +200,8 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
-		ChanConfiguration configuration = ChanConfiguration.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
+		ChiochanChanConfiguration configuration = ChiochanChanConfiguration.get(this);
 		String sessionCookie = configuration.getCookie(COOKIE_SESSION);
 		if (sessionCookie != null)
 		{
@@ -239,7 +237,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
-		ChanConfiguration configuration = ChanConfiguration.get(this);
+		ChiochanChanConfiguration configuration = ChiochanChanConfiguration.get(this);
 		MultipartEntity entity = new MultipartEntity();
 		entity.add("board", data.boardName);
 		entity.add("replythread", data.threadNumber == null ? "0" : data.threadNumber);
@@ -264,7 +262,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			faptcha = configuration.getCookie(PREFIX_FAPTCHA + data.boardName);
 			configuration.storeCookie(COOKIE_SESSION, session, "Session");
 		}
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		Uri uri = locator.buildPath("board.php");
 		String responseText;
 		try
@@ -343,7 +341,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("board", data.boardName, "deletepost", "1",
 				"postpassword", data.password);
 		for (String postNumber : data.postNumbers) entity.add("delete[]", postNumber);
@@ -372,7 +370,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException
 	{
-		ChiochanChanLocator locator = ChanLocator.get(this);
+		ChiochanChanLocator locator = ChiochanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("board", data.boardName, "reportpost", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete[]", postNumber);
 		Uri uri = locator.buildPath("board.php");
