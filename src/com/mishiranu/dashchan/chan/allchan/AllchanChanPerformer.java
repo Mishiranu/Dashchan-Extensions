@@ -10,8 +10,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 
 import chan.content.ApiException;
-import chan.content.ChanConfiguration;
-import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.model.Board;
@@ -29,13 +27,13 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, (data.isCatalog() ? "catalog" : data.pageNumber) + ".json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read()
 				.getJsonObject();
 		if (jsonObject != null)
 		{
-			AllchanChanConfiguration chanConfiguration = ChanConfiguration.get(this);
+			AllchanChanConfiguration chanConfiguration = AllchanChanConfiguration.get(this);
 			int pagesCount = jsonObject.optInt("pageCount");
 			if (pagesCount > 0) chanConfiguration.storePagesCount(data.boardName, pagesCount);
 			String boardSpeed = CommonUtils.optJsonString(jsonObject, "postingSpeed");
@@ -63,7 +61,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		if (data.partialThreadLoading && data.lastPostNumber != null)
 		{
 			Uri uri = locator.buildQuery("api/threadLastPostNumber.json", "boardName", data.boardName, "threadNumber",
@@ -109,7 +107,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("api/post.json", "boardName", data.boardName, "postNumber", data.postNumber);
 		HttpResponse response = new HttpRequest(uri, data.holder, data).read();
 		JSONObject jsonObject = response.getJsonObject();
@@ -132,7 +130,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
 			InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildPath("action", "search");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(new MultipartEntity("boardName",
 				data.boardName, "query", data.searchQuery)).read().getJsonObject();
@@ -165,7 +163,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildPath("misc", "boards.json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 		if (jsonObject != null)
@@ -181,7 +179,7 @@ public class AllchanChanPerformer extends ChanPerformer
 					String title = CommonUtils.getJsonString(boardJsonObject, "title");
 					boards[i] = new Board(boardName, title);
 				}
-				AllchanChanConfiguration configuration = ChanConfiguration.get(this);
+				AllchanChanConfiguration configuration = AllchanChanConfiguration.get(this);
 				configuration.updateFromBoardsJson(jsonObject);
 				return new ReadBoardsResult(new BoardCategory("Доски", boards));
 			}
@@ -196,7 +194,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("api/threadInfo.json", "boardName", data.boardName,
 				"threadNumber", data.threadNumber);
 		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read();
@@ -223,7 +221,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("api/captchaQuota.json", "boardName", data.boardName);
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 		if (jsonObject != null)
@@ -232,7 +230,7 @@ public class AllchanChanPerformer extends ChanPerformer
 			if (qouta > 0)
 			{
 				return new ReadCaptchaResult(CaptchaState.SKIP, null)
-						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
+						.setValidity(AllchanChanConfiguration.Captcha.Validity.IN_BOARD);
 			}
 		}
 		String captchaType = data.captchaType;
@@ -262,7 +260,7 @@ public class AllchanChanPerformer extends ChanPerformer
 				CaptchaData captchaData = new CaptchaData();
 				captchaData.put(CaptchaData.API_KEY, apiKey);
 				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
-						.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
+						.setValidity(AllchanChanConfiguration.Captcha.Validity.IN_BOARD);
 			}
 			catch (JSONException e)
 			{
@@ -290,7 +288,7 @@ public class AllchanChanPerformer extends ChanPerformer
 			uri = locator.buildPath("node-captcha", fileName);
 			Bitmap image = new HttpRequest(uri, data.holder, data).read().getBitmap();
 			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image)
-					.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD);
+					.setValidity(AllchanChanConfiguration.Captcha.Validity.IN_BOARD);
 		}
 		else throw new InvalidResponseException();
 	}
@@ -338,7 +336,7 @@ public class AllchanChanPerformer extends ChanPerformer
 			}
 		}
 
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		Uri uri = locator.buildPath("action", data.threadNumber != null ? "createPost" : "createThread");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
@@ -397,7 +395,7 @@ public class AllchanChanPerformer extends ChanPerformer
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
 	{
-		AllchanChanLocator locator = ChanLocator.get(this);
+		AllchanChanLocator locator = AllchanChanLocator.get(this);
 		String errorDescription = null;
 		if (data.optionFilesOnly)
 		{

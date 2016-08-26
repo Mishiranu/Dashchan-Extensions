@@ -14,7 +14,6 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 
-import chan.content.ChanLocator;
 import chan.content.model.Attachment;
 import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
@@ -48,8 +47,8 @@ public class AllchanModelMapper
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 	
-	public static FileAttachment createFileAttachment(JSONObject jsonObject, ChanLocator locator, String boardName)
-			throws JSONException
+	public static FileAttachment createFileAttachment(JSONObject jsonObject, AllchanChanLocator locator,
+			String boardName) throws JSONException
 	{
 		FileAttachment attachment = new FileAttachment();
 		String name = CommonUtils.getJsonString(jsonObject, "name");
@@ -70,7 +69,8 @@ public class AllchanModelMapper
 		return attachment;
 	}
 	
-	public static Post createPost(JSONObject jsonObject, ChanLocator locator, String boardName) throws JSONException
+	public static Post createPost(JSONObject jsonObject, AllchanChanLocator locator, String boardName)
+			throws JSONException
 	{
 		Post post = new Post();
 		if (jsonObject.optBoolean("isOp")) post.setOriginalPoster(true);
@@ -164,7 +164,8 @@ public class AllchanModelMapper
 		return post;
 	}
 	
-	public static Post[] createPosts(JSONObject jsonObject, ChanLocator locator, String boardName) throws JSONException
+	public static Post[] createPosts(JSONObject jsonObject, AllchanChanLocator locator, String boardName)
+			throws JSONException
 	{
 		Post originalPost = createPost(jsonObject.getJSONObject("opPost"), locator, boardName);
 		if (jsonObject.optBoolean("fixed")) originalPost.setSticky(true);
@@ -184,7 +185,8 @@ public class AllchanModelMapper
 		else return new Post[] {originalPost};
 	}
 	
-	public static Posts createThread(JSONObject jsonObject, ChanLocator locator, String boardName) throws JSONException
+	public static Posts createThread(JSONObject jsonObject, AllchanChanLocator locator, String boardName)
+			throws JSONException
 	{
 		Post[] posts = createPosts(jsonObject, locator, boardName);
 		Posts thread = new Posts(posts);
@@ -192,7 +194,8 @@ public class AllchanModelMapper
 		return thread;
 	}
 	
-	public static Posts[] createThreads(JSONArray jsonArray, ChanLocator locator, String boardName) throws JSONException
+	public static Posts[] createThreads(JSONArray jsonArray, AllchanChanLocator locator, String boardName)
+			throws JSONException
 	{
 		if (jsonArray == null || jsonArray.length() == 0) return null;
 		Posts[] threads = new Posts[jsonArray.length()];
