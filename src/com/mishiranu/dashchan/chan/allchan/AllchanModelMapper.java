@@ -42,7 +42,7 @@ public class AllchanModelMapper
 	private static final Uri URI_ICON_SAFARI = Uri.parse("chan:///res/raw/raw_browser_safari");
 	private static final Uri URI_ICON_VIVALDI = Uri.parse("chan:///res/raw/raw_browser_vivaldi");
 	
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'", Locale.US);
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
 	
 	static
 	{
