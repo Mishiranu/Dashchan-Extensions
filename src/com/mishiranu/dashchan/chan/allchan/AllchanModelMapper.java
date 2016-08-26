@@ -20,7 +20,6 @@ import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
-import chan.content.model.Threads;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
@@ -193,7 +192,7 @@ public class AllchanModelMapper
 		return thread;
 	}
 	
-	public static Threads createThreads(JSONArray jsonArray, ChanLocator locator, String boardName) throws JSONException
+	public static Posts[] createThreads(JSONArray jsonArray, ChanLocator locator, String boardName) throws JSONException
 	{
 		if (jsonArray == null || jsonArray.length() == 0) return null;
 		Posts[] threads = new Posts[jsonArray.length()];
@@ -201,6 +200,6 @@ public class AllchanModelMapper
 		{
 			threads[i] = createThread(jsonArray.getJSONObject(i), locator, boardName);
 		}
-		return new Threads(threads);
+		return threads;
 	}
 }

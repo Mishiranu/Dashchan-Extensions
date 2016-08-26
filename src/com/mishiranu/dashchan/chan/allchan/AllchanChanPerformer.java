@@ -17,7 +17,6 @@ import chan.content.InvalidResponseException;
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.content.model.Post;
-import chan.content.model.Threads;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
@@ -48,10 +47,10 @@ public class AllchanChanPerformer extends ChanPerformer
 			}
 			try
 			{
-				Threads threads = AllchanModelMapper.createThreads(jsonObject.getJSONArray("threads"),
-						locator, data.boardName);
-				if (threads != null && boardSpeedInt > 0) threads.setBoardSpeed(boardSpeedInt);
-				return new ReadThreadsResult(threads);
+				ReadThreadsResult result = new ReadThreadsResult(AllchanModelMapper
+						.createThreads(jsonObject.getJSONArray("threads"), locator, data.boardName));
+				if (boardSpeedInt > 0) result.setBoardSpeed(boardSpeedInt);
+				return result;
 			}
 			catch (JSONException e)
 			{
