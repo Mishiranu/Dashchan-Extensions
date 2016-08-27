@@ -1,0 +1,9 @@
+<resources>
+	
+	<string name="text_app_name">Dashchan for alterchan.in</string>
+	<string name="text_activity_name">Dashchan</string>
+	
+	<string name="text_login">Login</string>
+	<string name="text_password">Password</string>
+	
+</resources>
