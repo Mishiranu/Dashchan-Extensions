@@ -32,6 +32,7 @@ public class ValkyriaPostsParser
 	private FileAttachment mAttachment;
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
+	private final ArrayList<FileAttachment> mAttachments = new ArrayList<>();
 	
 	private boolean mFileHandling = false;
 	private boolean mHeaderHandling = false;
@@ -44,7 +45,7 @@ public class ValkyriaPostsParser
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT-5"));
 	}
 	
-	private static final Pattern FILE_SIZE = Pattern.compile("\\(([\\d\\.]+)(\\w+), (\\d+)x(\\d+)");
+	private static final Pattern FILE_SIZE = Pattern.compile("([\\d\\.]+)(\\w+), (\\d+)x(\\d+)");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href='(.*?)'>(.*)</a>");
 	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
 	
@@ -114,7 +115,8 @@ public class ValkyriaPostsParser
 		holder.mPost = post;
 		return false;
 		
-	}).equals("div", "class", "FileDetails").open((instance, holder, tagName, attributes) ->
+	}).equals("div", "class", "FileDetails").equals("span", "class", "FileDetails")
+			.open((instance, holder, tagName, attributes) ->
 	{
 		holder.mFileHandling = true;
 		if (holder.mPost == null) holder.mPost = new Post();
@@ -126,7 +128,7 @@ public class ValkyriaPostsParser
 		{
 			holder.mAttachment = new FileAttachment();
 			holder.mAttachment.setFileUri(holder.mLocator, Uri.parse(attributes.get("href")));
-			holder.mPost.setAttachments(holder.mAttachment);
+			holder.mAttachments.add(holder.mAttachment);
 		}
 		return false;
 		
@@ -151,7 +153,7 @@ public class ValkyriaPostsParser
 			}
 		}
 		
-	}).name("div").close((instance, holder, tagName) ->
+	}).name("div").name("span").close((instance, holder, tagName) ->
 	{
 		holder.mFileHandling = false;
 		
@@ -225,6 +227,11 @@ public class ValkyriaPostsParser
 		text = text.replaceAll("<span id=\"SpoilerBox_\\d+\"", "<span class=\"SpoilerBox");
 		text = StringUtils.linkify(text);
 		holder.mPost.setComment(text);
+		if (holder.mAttachments.size() > 0)
+		{
+			holder.mPost.setAttachments(holder.mAttachments);
+			holder.mAttachments.clear();
+		}
 		holder.mPosts.add(holder.mPost);
 		holder.mAttachment = null;
 		holder.mPost = null;
