@@ -51,11 +51,13 @@ public class OnechancaPostsParser implements GroupParser.Callback
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT+3"));
 	}
 
-	private static final Pattern ATTACHMENT = Pattern.compile("(?s)<a class=\"b-image-link\".*?href=\"(.*?)\".*?"
-			+ "title=\"(.*?)\".*?src=\"(.*?)\".*?</a>");
-	private static final Pattern IMAGE = Pattern.compile("(?s)<a.*?<img.*?src=\"(.*?)\".*?/>.*?</a>");
-	private static final Pattern FILE_SIZE = Pattern.compile("(\\d+)x(\\d+), ([\\d\\.]+) (\\w+)");
-	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
+	private static final Pattern PATTERN_ATTACHMENT = Pattern.compile("(?s)<a class=\"b-image-link\".*?" +
+			"href=\"(.*?)\".*?title=\"(.*?)\".*?src=\"(.*?)\".*?</a>");
+	private static final Pattern PATTERN_IMAGE = Pattern.compile("(?s)<a.*?<img.*?src=\"(.*?)\".*?/>.*?</a>");
+	private static final Pattern PATTERN_TTS = Pattern.compile("(?s)<audio.*?src=\"(.*?tts.voicetech.yandex.net.*?)\"" +
+			".*?</audio>");
+	private static final Pattern PATTERN_FILE_SIZE = Pattern.compile("(\\d+)x(\\d+), ([\\d\\.]+) (\\w+)");
+	private static final Pattern PATTERN_NUMBER = Pattern.compile("\\d+");
 	
 	public OnechancaPostsParser(String source, Object linked)
 	{
@@ -220,7 +222,7 @@ public class OnechancaPostsParser implements GroupParser.Callback
 				text = text.replaceAll("(?s)<blockquote>.*?<p>", "$0&gt; ");
 				ArrayList<FileAttachment> attachments = new ArrayList<>();
 				{
-					Matcher matcher = ATTACHMENT.matcher(text);
+					Matcher matcher = PATTERN_ATTACHMENT.matcher(text);
 					if (matcher.find())
 					{
 						text = text.replace(matcher.group(), "");
@@ -232,7 +234,7 @@ public class OnechancaPostsParser implements GroupParser.Callback
 							FileAttachment attachment = new FileAttachment();
 							attachment.setFileUri(mLocator, Uri.parse(href));
 							attachment.setThumbnailUri(mLocator, Uri.parse(src));
-							matcher = FILE_SIZE.matcher(title);
+							matcher = PATTERN_FILE_SIZE.matcher(title);
 							if (matcher.matches())
 							{
 								int width = Integer.parseInt(matcher.group(1));
@@ -251,7 +253,7 @@ public class OnechancaPostsParser implements GroupParser.Callback
 				}
 				// Display smilies as text
 				text = text.replaceAll("(?s)<img src=\".*?/img/(.*?).gif\".*?>", ":$1:");
-				text = StringUtils.replaceAll(text, IMAGE, matcher ->
+				text = StringUtils.replaceAll(text, PATTERN_IMAGE, matcher ->
 				{
 					String uriString = matcher.group(1);
 					Uri uri = Uri.parse(uriString);
@@ -265,6 +267,13 @@ public class OnechancaPostsParser implements GroupParser.Callback
 					}
 					return "<a href=\"" + uriString + "\">" + uriString + "</a>";
 				});
+				text = StringUtils.replaceAll(text, PATTERN_TTS, matcher ->
+				{
+					String uriString = matcher.group(1);
+					Uri uri = Uri.parse(uriString);
+					String ttsText = uri.getQueryParameter("text");
+					return ttsText != null ? "#%" + ttsText.replaceAll("<", "&lt;") + "%#" : "";
+				});
 				text = text.replaceAll("<p><a href=\".*?\">Читать дальше</a></p>", "");
 				mPost.setComment(text);
 				mPost.setAttachments(attachments);
@@ -275,8 +284,8 @@ public class OnechancaPostsParser implements GroupParser.Callback
 			}
 			case EXPECT_OMITTED:
 			{
-				Matcher matcher = NUMBER.matcher(text);
-				if (matcher.matches()) mThread.addPostsCount(Integer.parseInt(matcher.group(1)));
+				Matcher matcher = PATTERN_NUMBER.matcher(text);
+				if (matcher.matches()) mThread.addPostsCount(Integer.parseInt(matcher.group()));
 				break;
 			}
 		}
