@@ -218,41 +218,40 @@ public class OnechancaPostsParser implements GroupParser.Callback
 					text = "<p><a href=\"" + mExternalLink + "\">" + mExternalLink + "</a></p>" + text;
 				}
 				text = text.replaceAll("(?s)<blockquote>.*?<p>", "$0&gt; ");
-				ArrayList<FileAttachment> attachments = null;
-				Matcher matcher = ATTACHMENT.matcher(text);
-				if (matcher.find())
+				ArrayList<FileAttachment> attachments = new ArrayList<>();
 				{
-					text = text.replace(matcher.group(), "");
-					String href = matcher.group(1);
-					String title = matcher.group(2);
-					String src = matcher.group(3);
-					if (!title.startsWith("x"))
+					Matcher matcher = ATTACHMENT.matcher(text);
+					if (matcher.find())
 					{
-						FileAttachment attachment = new FileAttachment();
-						attachment.setFileUri(mLocator, Uri.parse(href));
-						attachment.setThumbnailUri(mLocator, Uri.parse(src));
-						matcher = FILE_SIZE.matcher(title);
-						if (matcher.matches())
+						text = text.replace(matcher.group(), "");
+						String href = matcher.group(1);
+						String title = matcher.group(2);
+						String src = matcher.group(3);
+						if (!title.startsWith("x"))
 						{
-							int width = Integer.parseInt(matcher.group(1));
-							int height = Integer.parseInt(matcher.group(2));
-							float size = Float.parseFloat(matcher.group(3));
-							String dim = matcher.group(4);
-							if ("KB".equals(dim)) size *= 1024;
-							else if ("MB".equals(dim)) size *= 1024 * 1024;
-							attachment.setWidth(width);
-							attachment.setHeight(height);
-							attachment.setSize((int) size);
+							FileAttachment attachment = new FileAttachment();
+							attachment.setFileUri(mLocator, Uri.parse(href));
+							attachment.setThumbnailUri(mLocator, Uri.parse(src));
+							matcher = FILE_SIZE.matcher(title);
+							if (matcher.matches())
+							{
+								int width = Integer.parseInt(matcher.group(1));
+								int height = Integer.parseInt(matcher.group(2));
+								float size = Float.parseFloat(matcher.group(3));
+								String dim = matcher.group(4);
+								if ("KB".equals(dim)) size *= 1024;
+								else if ("MB".equals(dim)) size *= 1024 * 1024;
+								attachment.setWidth(width);
+								attachment.setHeight(height);
+								attachment.setSize((int) size);
+							}
+							attachments.add(attachment);
 						}
-						attachments = new ArrayList<>();
-						attachments.add(attachment);
 					}
 				}
 				// Display smilies as text
 				text = text.replaceAll("(?s)<img src=\".*?/img/(.*?).gif\".*?>", ":$1:");
-				StringBuffer buffer = null;
-				matcher = IMAGE.matcher(text);
-				while (matcher.find())
+				text = StringUtils.replaceAll(text, IMAGE, matcher ->
 				{
 					String uriString = matcher.group(1);
 					Uri uri = Uri.parse(uriString);
@@ -262,17 +261,10 @@ public class OnechancaPostsParser implements GroupParser.Callback
 						attachment.setFileUri(mLocator, uri);
 						attachment.setThumbnailUri(mLocator, uri.buildUpon()
 								.path(uri.getPath().replace(".", "m.")).build());
-						if (attachments == null) attachments = new ArrayList<>();
 						attachments.add(attachment);
 					}
-					if (buffer == null) buffer = new StringBuffer();
-					matcher.appendReplacement(buffer, "<a href=\"$1\">$1</a>");
-				}
-				if (buffer != null)
-				{
-					matcher.appendTail(buffer);
-					text = buffer.toString();
-				}
+					return "<a href=\"" + uriString + "\">" + uriString + "</a>";
+				});
 				text = text.replaceAll("<p><a href=\".*?\">Читать дальше</a></p>", "");
 				mPost.setComment(text);
 				mPost.setAttachments(attachments);
