@@ -72,25 +72,19 @@ public class OnechancaChanLocator extends ChanLocator
 		return uri.getFragment();
 	}
 	
-	private String transformBoardNameForBuild(String boardName)
+	@Override
+	public Uri createBoardUri(String boardName, int pageNumber)
 	{
 		if ("news-all".equals(boardName)) boardName = "news/all";
 		if ("news-hidden".equals(boardName)) boardName = "news/hidden";
 		else if (boardName != null) boardName = boardName.replace("-", "/cat/");
-		return boardName;
-	}
-	
-	@Override
-	public Uri createBoardUri(String boardName, int pageNumber)
-	{
-		boardName = transformBoardNameForBuild(boardName);
 		return pageNumber > 0 ? buildPath(boardName, Integer.toString(pageNumber), "") : buildPath(boardName, "");
 	}
 	
 	@Override
 	public Uri createThreadUri(String boardName, String threadNumber)
 	{
-		boardName = transformBoardNameForBuild(boardName);
+		if (boardName != null && boardName.startsWith("news-")) boardName = "news";
 		return buildPath(boardName, "res", threadNumber, "");
 	}
 	
