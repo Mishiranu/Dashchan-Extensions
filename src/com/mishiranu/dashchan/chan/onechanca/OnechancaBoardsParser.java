@@ -7,11 +7,11 @@ import android.net.Uri;
 import chan.content.ChanLocator;
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class OnechancaBoardsParser implements GroupParser.Callback
+public class OnechancaBoardsParser
 {
 	private final String mSource;
 	private final OnechancaChanLocator mLocator;
@@ -19,12 +19,6 @@ public class OnechancaBoardsParser implements GroupParser.Callback
 	private final ArrayList<Board> mNewsBoards = new ArrayList<>();
 	private final ArrayList<Board> mSocialBoards = new ArrayList<>();
 	
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_BOARD_TITLE = 1;
-	private static final int EXPECT_BOARD_DESCRIPTION = 2;
-	
-	private int mExpect = EXPECT_NONE;
-
 	private String mBoardName;
 	private String mBoardTitle;
 	private String mBoardDescription;
@@ -43,128 +37,69 @@ public class OnechancaBoardsParser implements GroupParser.Callback
 		mNewsBoards.add(new Board("news", "Одобренные"));
 		mNewsBoards.add(new Board("news-all", "Все"));
 		mNewsBoards.add(new Board("news-hidden", "Скрытые"));
-		try
-		{
-			GroupParser.parse(mSource, this);
-		}
-		catch (FinishedException e)
-		{
-			
-		}
+		PARSER.parse(mSource, this);
 		ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 		boardCategories.add(new BoardCategory("Новости", mNewsBoards));
 		boardCategories.add(new BoardCategory("Общение", mSocialBoards));
 		return boardCategories;
 	}
 	
-	private static class FinishedException extends ParseException
+	private static final TemplateParser<OnechancaBoardsParser> PARSER = new TemplateParser<OnechancaBoardsParser>()
+			.equals("div", "class", "b-menu-panel_b-links").open((i, h, t, a) -> !(h.mSocialParsing = true))
+			.equals("div", "class", "b-blog-form_b-form_b-field").open((i, h, t, a) -> !(h.mNewsParsing = true))
+			.name("a").open((instance, holder, tagName, attributes) ->
 	{
-		private static final long serialVersionUID = 1L;
-	}
-	
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs) throws FinishedException
-	{
-		if ("div".equals(tagName))
+		if (holder.mNewsParsing || holder.mSocialParsing)
 		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("b-menu-panel_b-links".equals(cssClass))
+			String href = attributes.get("href");
+			Uri uri = Uri.parse(href);
+			String boardName = holder.mLocator.getBoardName(uri);
+			if (boardName != null)
 			{
-				mSocialParsing = true;
-			}
-			else if ("b-blog-form_b-form_b-field".equals(cssClass))
-			{
-				mNewsParsing = true;
-			}
-		}
-		else if (mNewsParsing || mSocialParsing)
-		{
-			if ("a".equals(tagName))
-			{
-				String href = parser.getAttr(attrs, "href");
-				Uri uri = Uri.parse(href);
-				String boardName = mLocator.getBoardName(uri);
-				if (boardName != null)
+				if ("fav".equals(boardName))
 				{
-					if ("fav".equals(boardName))
-					{
-						mSocialParsing = false;
-						return false;
-					}
-					mBoardName = boardName;
-					mExpect = EXPECT_BOARD_TITLE;
-					return true;
+					holder.mSocialParsing = false;
+					return false;
 				}
-			}
-			else if ("p".equals(tagName))
-			{
-				mExpect = EXPECT_BOARD_DESCRIPTION;
+				holder.mBoardName = boardName;
 				return true;
-			}
-			else if ("li".equals(tagName))
-			{
-				String cssClass = parser.getAttr(attrs, "class");
-				if ("m-active".equals(cssClass))
-				{
-					mSocialParsing = false;
-				}
 			}
 		}
 		return false;
-	}
-	
-	@Override
-	public void onEndElement(GroupParser parser, String tagName)
-	{
-		if ("div".equals(tagName))
-		{
-			if (mNewsParsing)
-			{
-				mNewsBoards.add(new Board(mBoardName, mBoardTitle, mBoardDescription));
-				mBoardName = null;
-				mBoardTitle = null;
-				mBoardDescription = null;
-			}
-			mNewsParsing = false;
-			mSocialParsing = false;
-		}
-	}
-	
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
-	{
 		
-	}
-	
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
+	}).content((instance, holder, text) ->
 	{
-		switch (mExpect)
+		String title = StringUtils.clearHtml(text);
+		if (holder.mNewsParsing)
 		{
-			case EXPECT_BOARD_TITLE:
-			{
-				String title = StringUtils.clearHtml(text);
-				if (mNewsParsing)
-				{
-					int index = title.lastIndexOf(" (");
-					if (index >= 0) title = title.substring(0, index);
-					mBoardTitle = title;
-				}
-				else if (mSocialParsing)
-				{
-					int index = title.indexOf("- ");
-					if (index >= 0) title = title.substring(index + 2);
-					mSocialBoards.add(new Board(mBoardName, title));
-					mBoardName = null;
-				}
-				break;
-			}
-			case EXPECT_BOARD_DESCRIPTION:
-			{
-				mBoardDescription = StringUtils.clearHtml(text);
-				break;
-			}
+			int index = title.lastIndexOf(" (");
+			if (index >= 0) title = title.substring(0, index);
+			holder.mBoardTitle = title;
 		}
-		mExpect = EXPECT_NONE;
-	}
+		else if (holder.mSocialParsing)
+		{
+			int index = title.indexOf("- ");
+			if (index >= 0) title = title.substring(index + 2);
+			holder.mSocialBoards.add(new Board(holder.mBoardName, title));
+			holder.mBoardName = null;
+		}
+		
+	}).name("p").open((instance, holder, tagName, attributes) -> holder.mNewsParsing || holder.mSocialParsing)
+			.content((instance, holder, text) ->
+	{
+		holder.mBoardDescription = StringUtils.clearHtml(text);
+		
+	}).name("div").close((instance, holder, tagName) ->
+	{
+		if (holder.mNewsParsing)
+		{
+			holder.mNewsBoards.add(new Board(holder.mBoardName, holder.mBoardTitle, holder.mBoardDescription));
+			holder.mBoardName = null;
+			holder.mBoardTitle = null;
+			holder.mBoardDescription = null;
+		}
+		holder.mNewsParsing = false;
+		holder.mSocialParsing = false;
+		
+	}).equals("li", "class", "m-active").open((i, h, t, a) -> h.mSocialParsing = false).prepare();
 }
