@@ -105,13 +105,12 @@ public class OnechancaChanPerformer extends ChanPerformer
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
-		boolean newThread = ReadCaptchaData.REQUIREMENT_NEW_THREAD.equals(data.requirement);
 		boolean news = data.boardName.startsWith("news");
 		Uri uri;
 		String key;
 		if (news)
 		{
-			if (newThread)
+			if (data.threadNumber == null)
 			{
 				uri = locator.buildPath("news", "add", "");
 				key = "post";
@@ -124,7 +123,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 		}
 		else
 		{
-			if (newThread)
+			if (data.threadNumber == null)
 			{
 				uri = locator.buildPath(data.boardName, "");
 				key = "board";
