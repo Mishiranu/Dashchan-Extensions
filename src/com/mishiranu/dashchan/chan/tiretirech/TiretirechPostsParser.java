@@ -183,6 +183,11 @@ public class TiretirechPostsParser
 			
 		}
 		
+	}).equals("img", "src", "/lib/img/close.png").open((instance, holder, tagName, attributes) ->
+	{
+		holder.mPost.setClosed(true);
+		return false;
+		
 	}).name("blockquote").content((instance, holder, text) ->
 	{
 		text = text.trim();
