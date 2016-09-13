@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import android.annotation.SuppressLint;
 import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
+import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
 import chan.content.model.Post;
 import chan.content.model.Posts;
@@ -148,6 +149,12 @@ public class TiretirechPostsParser
 	{
 		String path = attributes.get("src");
 		holder.mAttachment.setThumbnailUri(holder.mLocator, holder.mLocator.buildPath(path));
+		return false;
+		
+	}).name("iframe").open((instance, holder, tagName, attributes) ->
+	{
+		EmbeddedAttachment attachment = EmbeddedAttachment.obtain(attributes.get("src"));
+		if (attachment != null) holder.mPost.setAttachments(attachment);
 		return false;
 		
 	}).equals("span", "class", "filetitle").equals("span", "class", "replytitle").content((i, holder, text) ->
