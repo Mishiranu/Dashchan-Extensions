@@ -260,7 +260,7 @@ public class TiretirechPostsParser implements GroupParser.Callback
 			}
 			case EXPECT_SUBJECT:
 			{
-				mPost.setSubject(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_NAME:
@@ -275,12 +275,12 @@ public class TiretirechPostsParser implements GroupParser.Callback
 					text = matcher.group(2);
 				}
 				if ("<font color=\"#0000FF\">V.</font>".equals(text)) mPost.setCapcode("Admin");
-				else mPost.setName(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				else mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_TRIPCODE:
 			{
-				mPost.setTripcode(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim().replace('\u2665', '!')));
+				mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim().replace('\u2665', '!')));
 				break;
 			}
 			case EXPECT_DATE:
