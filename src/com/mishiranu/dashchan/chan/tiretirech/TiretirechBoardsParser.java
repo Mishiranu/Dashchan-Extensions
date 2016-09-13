@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class TiretirechBoardsParser implements GroupParser.Callback
+public class TiretirechBoardsParser
 {
 	private final String mSource;
 	
@@ -21,12 +21,6 @@ public class TiretirechBoardsParser implements GroupParser.Callback
 	private String mBoardCategoryTitle;
 	private String mBoardName;
 
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_CATEGORY = 1;
-	private static final int EXPECT_BOARD = 2;
-	
-	private int mExpect = EXPECT_NONE;
-	
 	private static final Pattern BOARD_URI = Pattern.compile("(\\w+)/");
 	
 	public TiretirechBoardsParser(String source)
@@ -36,7 +30,7 @@ public class TiretirechBoardsParser implements GroupParser.Callback
 	
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
-		GroupParser.parse(mSource, this);
+		PARSER.parse(mSource, this);
 		closeCategory();
 		for (BoardCategory boardCategory : mBoardCategories) Arrays.sort(boardCategory.getBoards());
 		return mBoardCategories;
@@ -52,63 +46,32 @@ public class TiretirechBoardsParser implements GroupParser.Callback
 		}
 	}
 	
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
+	private static final TemplateParser<TiretirechBoardsParser> PARSER = new TemplateParser<TiretirechBoardsParser>()
+			.name("dt").content((instance, holder, text) ->
 	{
-		if ("dt".equals(tagName))
+		holder.closeCategory();
+		holder.mBoardCategoryTitle = StringUtils.clearHtml(text).trim();
+		
+	}).name("a").open((instance, holder, tagName, attributes) ->
+	{
+		if (holder.mBoardCategoryTitle != null)
 		{
-			closeCategory();
-			mExpect = EXPECT_CATEGORY;
-			return true;
-		}
-		else if (mBoardCategoryTitle != null)
-		{
-			if ("a".equals(tagName))
+			String href = attributes.get("href");
+			Matcher matcher = BOARD_URI.matcher(href);
+			if (matcher.matches())
 			{
-				String href = parser.getAttr(attrs, "href");
-				Matcher matcher = BOARD_URI.matcher(href);
-				if (matcher.matches())
-				{
-					mBoardName = matcher.group(1);
-					mExpect = EXPECT_BOARD;
-					return true;
-				}
+				holder.mBoardName = matcher.group(1);
+				return true;
 			}
 		}
 		return false;
-	}
-	
-	@Override
-	public void onEndElement(GroupParser parser, String tagName)
-	{
 		
-	}
-	
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
+	}).content((instance, holder, text) ->
 	{
+		text = StringUtils.clearHtml(text);
+		int index = text.indexOf("— ");
+		if (index >= 0) text = text.substring(index + 2);
+		holder.mBoards.add(new Board(holder.mBoardName, text));
 		
-	}
-	
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		switch (mExpect)
-		{
-			case EXPECT_CATEGORY:
-			{
-				mBoardCategoryTitle = StringUtils.clearHtml(text).trim();
-				break;
-			}
-			case EXPECT_BOARD:
-			{
-				text = StringUtils.clearHtml(text);
-				int index = text.indexOf("— ");
-				if (index >= 0) text = text.substring(index + 2);
-				mBoards.add(new Board(mBoardName, text));
-				break;
-			}
-		}
-		mExpect = EXPECT_NONE;
-	}
+	}).prepare();
 }
