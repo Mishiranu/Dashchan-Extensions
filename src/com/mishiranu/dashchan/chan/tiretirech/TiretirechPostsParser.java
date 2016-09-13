@@ -16,6 +16,7 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
+import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 @SuppressLint("SimpleDateFormat")
@@ -194,6 +195,7 @@ public class TiretirechPostsParser
 			text = text.substring(0, index);
 			if (message.contains("USER WAS BANNED FOR THIS POST")) holder.mPost.setPosterBanned(true);
 		}
+		text = CommonUtils.restoreCloudFlareProtectedEmails(text);
 		holder.mPost.setComment(text);
 		if (holder.mAttachments.size() > 0)
 		{
