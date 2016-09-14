@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.util.Pair;
 
 import chan.content.ApiException;
-import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.model.Post;
@@ -30,7 +29,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, (data.isCatalog() ? "catalog"
 				: Integer.toString(data.pageNumber)) + ".json");
 		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read();
@@ -90,7 +89,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
 				.read().getJsonObject();
@@ -122,7 +121,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath();
 		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
 		try
@@ -138,7 +137,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
 				.read().getJsonObject();
@@ -160,7 +159,7 @@ public class LainchanChanPerformer extends ChanPerformer
 			MultipartEntity entity, String boardName, String threadNumber) throws HttpException,
 			InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = threadNumber != null ? locator.createThreadUri(boardName, threadNumber)
 				: locator.createBoardUri(boardName, 0);
 		String responseText = new HttpRequest(uri, holder, preset).read().getString();
@@ -202,7 +201,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		entity.add("json_response", "1");
 		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
 
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath("post.php");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 				.addHeader("Referer", locator.buildPath().toString())
@@ -280,7 +279,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("delete", "1", "board", data.boardName,
 				"password", data.password, "json_response", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete_" + postNumber, "1");
@@ -313,7 +312,7 @@ public class LainchanChanPerformer extends ChanPerformer
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException
 	{
-		LainchanChanLocator locator = ChanLocator.get(this);
+		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("report", "1", "board", data.boardName,
 				"reason", StringUtils.emptyIfNull(data.comment), "json_response", "1");
 		for (String postNumber : data.postNumbers) entity.add("delete_" + postNumber, "1");

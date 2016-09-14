@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import chan.content.ChanLocator;
 import chan.content.model.FileAttachment;
 import chan.content.model.Post;
 import chan.content.model.Posts;
@@ -15,8 +14,8 @@ import chan.util.StringUtils;
 
 public class LainchanModelMapper
 {
-	public static FileAttachment createFileAttachment(JSONObject jsonObject, ChanLocator locator, String boardName)
-			throws JSONException
+	public static FileAttachment createFileAttachment(JSONObject jsonObject, LainchanChanLocator locator,
+			String boardName) throws JSONException
 	{
 		FileAttachment attachment = new FileAttachment();
 		String tim = CommonUtils.getJsonString(jsonObject, "tim");
@@ -31,7 +30,8 @@ public class LainchanModelMapper
 		return attachment;
 	}
 	
-	public static Post createPost(JSONObject jsonObject, ChanLocator locator, String boardName) throws JSONException
+	public static Post createPost(JSONObject jsonObject, LainchanChanLocator locator, String boardName)
+			throws JSONException
 	{
 		Post post = new Post();
 		if (jsonObject.optInt("sticky") != 0) post.setSticky(true);
@@ -89,7 +89,7 @@ public class LainchanModelMapper
 		return post;
 	}
 	
-	public static Posts createThread(JSONObject jsonObject, ChanLocator locator, String boardName,
+	public static Posts createThread(JSONObject jsonObject, LainchanChanLocator locator, String boardName,
 			boolean fromCatalog) throws JSONException
 	{
 		Post[] posts;
