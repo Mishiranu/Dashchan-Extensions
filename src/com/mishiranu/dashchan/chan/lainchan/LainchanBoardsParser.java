@@ -6,10 +6,11 @@ import java.util.regex.Pattern;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
+import chan.util.StringUtils;
 
-public class LainchanBoardsParser implements GroupParser.Callback
+public class LainchanBoardsParser
 {
 	private final String mSource;
 	
@@ -27,14 +28,7 @@ public class LainchanBoardsParser implements GroupParser.Callback
 	
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
-		try
-		{
-			GroupParser.parse(mSource, this);
-		}
-		catch (FinishedException e)
-		{
-			
-		}
+		PARSER.parse(mSource, this);
 		return mBoardCategories;
 	}
 	
@@ -48,59 +42,29 @@ public class LainchanBoardsParser implements GroupParser.Callback
 		}
 	}
 	
-	private static class FinishedException extends ParseException
+	private static final TemplateParser<LainchanBoardsParser> PARSER = new TemplateParser<LainchanBoardsParser>()
+			.equals("div", "class", "boardlist").open((i, holder, t, a) -> !(holder.mBoardListParsing = true))
+			.name("div").close((instance, holder, tagName) ->
 	{
-		private static final long serialVersionUID = 1L;
-	}
-	
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
-	{
-		if ("div".equals(tagName))
+		if (holder.mBoardListParsing)
 		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("boardlist".equals(cssClass)) mBoardListParsing = true;
+			holder.closeCategory();
+			instance.finish();
 		}
-		else if (mBoardListParsing)
+		
+	}).equals("span", "class", "sub").open((instance, holder, tagName, attributes) ->
+	{
+		holder.closeCategory();
+		return false;
+		
+	}).ends("a", "href", "/index.html").open((instance, holder, tagName, attributes) ->
+	{
+		Matcher matcher = PATTERN_BOARD_URI.matcher(attributes.get("href"));
+		if (matcher.matches())
 		{
-			if ("span".equals(tagName))
-			{
-				String cssClass = parser.getAttr(attrs, "class");
-				if (cssClass.equals("sub")) closeCategory();
-			}
-			else if ("a".equals(tagName))
-			{
-				String href = parser.getAttr(attrs, "href");
-				Matcher matcher = PATTERN_BOARD_URI.matcher(href);
-				if (matcher.matches())
-				{
-					String title = parser.getAttr(attrs, "title");
-					mBoards.add(new Board(matcher.group(1), title));
-				}
-			}
+			holder.mBoards.add(new Board(matcher.group(1), StringUtils.clearHtml(attributes.get("title")).trim()));
 		}
 		return false;
-	}
-	
-	@Override
-	public void onEndElement(GroupParser parser, String tagName) throws FinishedException
-	{
-		if ("div".equals(tagName) && mBoardListParsing)
-		{
-			closeCategory();
-			throw new FinishedException();
-		}
-	}
-	
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
-	{
 		
-	}
-	
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		
-	}
+	}).prepare();
 }
