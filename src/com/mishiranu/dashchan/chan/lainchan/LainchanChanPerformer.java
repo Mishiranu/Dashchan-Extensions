@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.Uri;
-import android.util.Pair;
 
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
@@ -15,7 +14,6 @@ import chan.content.InvalidResponseException;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
@@ -155,40 +153,16 @@ public class LainchanChanPerformer extends ChanPerformer
 		throw new InvalidResponseException();
 	}
 	
-	private void readAndApplyTinyboardAntispamFields(HttpHolder holder, HttpRequest.Preset preset,
-			MultipartEntity entity, String boardName, String threadNumber) throws HttpException,
-			InvalidResponseException
-	{
-		LainchanChanLocator locator = LainchanChanLocator.get(this);
-		Uri uri = threadNumber != null ? locator.createThreadUri(boardName, threadNumber)
-				: locator.createBoardUri(boardName, 0);
-		String responseText = new HttpRequest(uri, holder, preset).read().getString();
-		int start = responseText.indexOf("<form name=\"post\"");
-		if (start == -1) throw new InvalidResponseException();
-		responseText = responseText.substring(start, responseText.indexOf("</form>") + 7);
-		ArrayList<Pair<String, String>> fields;
-		try
-		{
-			fields = new TinyboardAntispamFieldsParser(responseText).convert();
-		}
-		catch (ParseException e)
-		{
-			throw new InvalidResponseException();
-		}
-		for (Pair<String, String> field : fields) entity.add(field.first, field.second);
-	}
-	
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
 		MultipartEntity entity = new MultipartEntity();
-		entity.add("post", "Post"); // Must be "Post"
 		entity.add("board", data.boardName);
 		entity.add("thread", data.threadNumber);
-		entity.add("subject", data.subject);
-		entity.add("body", StringUtils.emptyIfNull(data.comment));
 		entity.add("name", data.name);
 		entity.add("email", data.optionSage ? "sage" : data.email);
+		entity.add("subject", data.subject);
+		entity.add("body", StringUtils.emptyIfNull(data.comment));
 		entity.add("password", data.password);
 		if (data.attachments != null)
 		{
@@ -199,9 +173,20 @@ public class LainchanChanPerformer extends ChanPerformer
 			}
 		}
 		entity.add("json_response", "1");
-		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
-
+		
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
+		Uri contentUri = data.threadNumber != null ? locator.createThreadUri(data.boardName, data.threadNumber)
+				: locator.createBoardUri(data.boardName, 0);
+		String responseText = new HttpRequest(contentUri, data.holder).read().getString();
+		try
+		{
+			AnstispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
+					"subject", "body", "password", "file", "json_response");
+		}
+		catch (ParseException e)
+		{
+			throw new InvalidResponseException();
+		}
 		Uri uri = locator.buildPath("post.php");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 				.addHeader("Referer", locator.buildPath().toString())
