@@ -15,6 +15,7 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
+import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 @SuppressLint("SimpleDateFormat")
@@ -137,6 +138,7 @@ public class AlphachanPostsParser
 		text = text.trim();
 		text = StringUtils.replaceAll(text, PATTERN_LINK, m -> m.group(1) + "&gt;&gt;" + m.group(2));
 		text = text.replace("<span class=\"quote\">", "<span class=\"quote\">&gt; ");
+		text = CommonUtils.restoreCloudFlareProtectedEmails(text);
 		holder.mPost.setComment(text);
 		holder.mPosts.add(holder.mPost);
 
