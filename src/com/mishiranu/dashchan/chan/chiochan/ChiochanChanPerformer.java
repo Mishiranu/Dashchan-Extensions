@@ -30,7 +30,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 	private static final String PREFIX_FAPTCHA = "faptcha_";
 
 	private static final Pattern PATTERN_CATALOG = Pattern.compile("(?s)<a href=\"/\\w+/res/(.*?).html\">"
-			+ "<div class=\"catalogthread\">.*?<span class=\"catalogposts\">(\\d+)</span>");
+			+ "<div class=\"catalogthread.*?\">.*?<span class=\"catalogposts\">(\\d+)</span>");
 
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
