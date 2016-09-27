@@ -13,6 +13,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		setDefaultName("b", "Пассажир");
 		setDefaultName("int", "Anonymous");
 		setDefaultName("dev", "Стив Балмер");
+		setDefaultName("a", "Нінгенъ");
 		setDefaultName("ts", "Baka Inu");
 		setDefaultName("tm", "Шики");
 		setDefaultName("gnx", "Ноно");
