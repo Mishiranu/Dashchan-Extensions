@@ -1,0 +1,8 @@
+<resources>
+
+	<string name="text_app_name">Dashchan for brchan.org</string>
+	<string name="text_activity_name">Dashchan</string>
+
+	<string name="text_global_report">Global report</string>
+
+</resources>
