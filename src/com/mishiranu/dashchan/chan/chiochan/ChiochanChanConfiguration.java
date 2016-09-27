@@ -5,7 +5,7 @@ import chan.content.ChanConfiguration;
 public class ChiochanChanConfiguration extends ChanConfiguration
 {
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
-	
+
 	public ChiochanChanConfiguration()
 	{
 		request(OPTION_READ_POSTS_COUNT);
@@ -18,7 +18,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		setDefaultName("gnx", "Ноно");
 		addCaptchaType("faptcha");
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -30,7 +30,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
 	{
@@ -44,7 +44,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -59,7 +59,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		posting.hasCountryFlags = "int".equals(boardName);
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -69,7 +69,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName)
 	{
@@ -77,7 +77,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 		reporting.multiplePosts = true;
 		return reporting;
 	}
-	
+
 	public void storeNamesEnabled(String boardName, boolean namesEnabled)
 	{
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);

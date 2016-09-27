@@ -28,10 +28,10 @@ public class ChiochanChanPerformer extends ChanPerformer
 {
 	private static final String COOKIE_SESSION = "session";
 	private static final String PREFIX_FAPTCHA = "faptcha_";
-	
+
 	private static final Pattern PATTERN_CATALOG = Pattern.compile("(?s)<a href=\"/\\w+/res/(.*?).html\">"
 			+ "<div class=\"catalogthread\">.*?<span class=\"catalogposts\">(\\d+)</span>");
-	
+
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
@@ -93,7 +93,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			}
 		}
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
@@ -126,7 +126,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -142,10 +142,10 @@ public class ChiochanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	private static final Pattern PATTERN_ARCHIVED_THREAD = Pattern.compile("<a href=\"(\\d+).html\">.*?" +
 			"<td align=\"right\">(.{15,}?)</td>");
-	
+
 	@Override
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException,
 			InvalidResponseException
@@ -164,7 +164,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		return new ReadThreadSummariesResult(threadSummaries);
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -196,7 +196,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		return new ReadPostsCountResult(count);
 	}
-	
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
@@ -231,9 +231,9 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<h2.*?>(?:\r\n)?(.*?)(?:\r\n)?</h2>");
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -255,7 +255,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 			session = data.captchaData.get(CaptchaData.CHALLENGE);
 			entity.add("faptcha", data.captchaData.get(CaptchaData.INPUT));
 		}
-		
+
 		String faptcha = null;
 		if (session != null)
 		{
@@ -287,7 +287,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		{
 			data.holder.disconnect();
 		}
-		
+
 		Matcher matcher = PATTERN_POST_ERROR.matcher(responseText);
 		if (matcher.find())
 		{
@@ -336,7 +336,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -365,7 +365,7 @@ public class ChiochanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException

@@ -12,12 +12,12 @@ import chan.util.StringUtils;
 public class ChiochanBoardsParser
 {
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Общее", "Радио", "Аниме", "На пробу"};
-	
+
 	private final String mSource;
-	
+
 	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
 	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
+
 	private String mBoardCategoryTitle;
 	private String mBoardName;
 
@@ -25,7 +25,7 @@ public class ChiochanBoardsParser
 	{
 		mSource = source;
 	}
-	
+
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
 		PARSER.parse(mSource, this);
@@ -45,7 +45,7 @@ public class ChiochanBoardsParser
 		}
 		return boardCategories;
 	}
-	
+
 	private void closeCategory()
 	{
 		if (mBoardCategoryTitle != null)
@@ -55,13 +55,13 @@ public class ChiochanBoardsParser
 			mBoards.clear();
 		}
 	}
-	
+
 	private static final TemplateParser<ChiochanBoardsParser> PARSER = new TemplateParser<ChiochanBoardsParser>()
 			.name("h2").content((instance, holder, text) ->
 	{
 		holder.closeCategory();
 		holder.mBoardCategoryTitle = StringUtils.clearHtml(text).substring(2);
-		
+
 	}).equals("a", "class", "boardlink").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mBoardCategoryTitle != null)
@@ -71,11 +71,11 @@ public class ChiochanBoardsParser
 			return true;
 		}
 		return false;
-		
+
 	}).content((instance, holder, text) ->
 	{
 		text = StringUtils.clearHtml(text);
 		holder.mBoards.add(new Board(holder.mBoardName, text));
-		
+
 	}).prepare();
 }

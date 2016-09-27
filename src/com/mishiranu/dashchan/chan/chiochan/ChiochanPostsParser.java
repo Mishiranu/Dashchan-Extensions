@@ -21,7 +21,7 @@ public class ChiochanPostsParser
 	private final ChiochanChanConfiguration mConfiguration;
 	private final ChiochanChanLocator mLocator;
 	private final String mBoardName;
-	
+
 	private String mParent;
 	private Posts mThread;
 	private Post mPost;
@@ -29,25 +29,25 @@ public class ChiochanPostsParser
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
 	private boolean mExpandMode = false;
-	
+
 	private boolean mHeaderHandling = false;
-	
+
 	private boolean mHasPostBlock = false;
 	private boolean mHasPostBlockName = false;
-	
+
 	private static final SimpleDateFormat DATE_FORMAT;
-	
+
 	static
 	{
 		DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.US);
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT+3"));
 	}
-	
+
 	private static final Pattern FILE_SIZE = Pattern.compile("\\(([\\d\\.]+)(\\w+) *, *(\\d+)[x×](\\d+)" +
 			"(?: *, *(.+))? *\\) *$");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href=\"(.*?)\">(.*)</a>");
 	static final Pattern NUMBER = Pattern.compile("(\\d+)");
-	
+
 	public ChiochanPostsParser(String source, Object linked, String boardName)
 	{
 		mSource = source;
@@ -55,7 +55,7 @@ public class ChiochanPostsParser
 		mLocator = ChiochanChanLocator.get(linked);
 		mBoardName = boardName;
 	}
-	
+
 	private void closeThread()
 	{
 		if (mThread != null)
@@ -69,7 +69,7 @@ public class ChiochanPostsParser
 			mPosts.clear();
 		}
 	}
-	
+
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
@@ -82,7 +82,7 @@ public class ChiochanPostsParser
 		}
 		return null;
 	}
-	
+
 	public ArrayList<Post> convertPosts() throws ParseException
 	{
 		PARSER.parse(mSource, this);
@@ -93,7 +93,7 @@ public class ChiochanPostsParser
 		}
 		return null;
 	}
-	
+
 	public ArrayList<Post> convertExpand() throws ParseException
 	{
 		mExpandMode = true;
@@ -105,12 +105,12 @@ public class ChiochanPostsParser
 		}
 		return null;
 	}
-	
+
 	private void updateConfiguration()
 	{
 		if (mHasPostBlock) mConfiguration.storeNamesEnabled(mBoardName, mHasPostBlockName);
 	}
-	
+
 	private String convertUriString(String uriString)
 	{
 		if (uriString != null)
@@ -120,7 +120,7 @@ public class ChiochanPostsParser
 		}
 		return uriString;
 	}
-	
+
 	private static final TemplateParser<ChiochanPostsParser> PARSER = new TemplateParser<ChiochanPostsParser>()
 			.starts("div", "id", "thread").open((instance, holder, tagName, attributes) ->
 	{
@@ -135,7 +135,7 @@ public class ChiochanPostsParser
 			holder.mThread = new Posts();
 		}
 		return false;
-		
+
 	}).starts("div", "id", "reply").starts("td", "id", "reply").open((instance, holder, tagName, attributes) ->
 	{
 		String number = attributes.get("id").substring(5);
@@ -143,7 +143,7 @@ public class ChiochanPostsParser
 		holder.mPost.setParentPostNumber(holder.mParent);
 		holder.mPost.setPostNumber(number);
 		return false;
-		
+
 	}).name("input").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mExpandMode)
@@ -156,12 +156,12 @@ public class ChiochanPostsParser
 			}
 		}
 		return false;
-		
+
 	}).name("label").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mPost != null) holder.mHeaderHandling = true;
 		return false;
-		
+
 	}).equals("span", "class", "filesize").content((instance, holder, text) ->
 	{
 		if (holder.mExpandMode && holder.mPost == null) holder.mPost = new Post();
@@ -182,7 +182,7 @@ public class ChiochanPostsParser
 			holder.mAttachment.setHeight(height);
 			holder.mAttachment.setOriginalName(StringUtils.isEmptyOrWhitespace(fileName) ? null : fileName.trim());
 		}
-		
+
 	}).contains("a", "href", "/src/").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mAttachment != null)
@@ -192,13 +192,13 @@ public class ChiochanPostsParser
 			holder.mPost.setAttachments(holder.mAttachment);
 		}
 		return false;
-		
+
 	}).equals("img", "class", "thumb").open((instance, holder, tagName, attributes) ->
 	{
 		String path = holder.convertUriString(attributes.get("src"));
 		holder.mAttachment.setThumbnailUri(holder.mLocator, holder.mLocator.buildPath(path));
 		return false;
-		
+
 	}).equals("span", "class", "filetitle").content((instance, holder, text) ->
 	{
 		text = text.trim();
@@ -208,7 +208,7 @@ public class ChiochanPostsParser
 			holder.mPost.setSage(true);
 		}
 		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).equals("span", "class", "postername").content((instance, holder, text) ->
 	{
 		text = text.trim();
@@ -224,18 +224,18 @@ public class ChiochanPostsParser
 			text = matcher.group(2);
 		}
 		holder.mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).equals("span", "class", "postertrip").content((instance, holder, text) ->
 	{
 		holder.mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).contains("img", "src", "/flags/").open((instance, holder, tagName, attributes) ->
 	{
 		String path = holder.convertUriString(attributes.get("src"));
 		String title = StringUtils.clearHtml(attributes.get("alt"));
 		holder.mPost.setIcons(new Icon(holder.mLocator, holder.mLocator.buildPath(path), title));
 		return false;
-		
+
 	}).text((instance, holder, source, start, end) ->
 	{
 		if (holder.mHeaderHandling)
@@ -256,22 +256,22 @@ public class ChiochanPostsParser
 				}
 				catch (java.text.ParseException e)
 				{
-					
+
 				}
 				holder.mHeaderHandling = false;
 			}
 		}
-		
+
 	}).ends("img", "src", "/css/sticky.gif").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mPost != null) holder.mPost.setSticky(true);
 		return false;
-		
+
 	}).ends("img", "src", "/css/locked.gif").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mPost != null) holder.mPost.setClosed(true);
 		return false;
-		
+
 	}).name("blockquote").content((instance, holder, text) ->
 	{
 		text = text.trim();
@@ -292,7 +292,7 @@ public class ChiochanPostsParser
 		holder.mPosts.add(holder.mPost);
 		holder.mPost = null;
 		holder.mAttachment = null;
-		
+
 	}).equals("span", "class", "omittedposts").content((instance, holder, text) ->
 	{
 		if (holder.mThread != null)
@@ -304,17 +304,17 @@ public class ChiochanPostsParser
 				if (matcher.find()) holder.mThread.addPostsWithFilesCount(Integer.parseInt(matcher.group(1)));
 			}
 		}
-		
+
 	}).equals("div", "class", "logo").content((instance, holder, text) ->
 	{
 		text = StringUtils.clearHtml(text).trim();
 		if (!StringUtils.isEmpty(text)) holder.mConfiguration.storeBoardTitle(holder.mBoardName, text);
-		
+
 	}).equals("td", "class", "postblock").content((instance, holder, text) ->
 	{
 		holder.mHasPostBlock = true;
 		if ("Имя".equals(text) || "Name".equals(text)) holder.mHasPostBlockName = true;
-		
+
 	}).equals("div", "class", "pgstbl").content((instance, holder, text) ->
 	{
 		text = StringUtils.clearHtml(text);
@@ -330,9 +330,9 @@ public class ChiochanPostsParser
 			}
 			catch (NumberFormatException e)
 			{
-				
+
 			}
 		}
-		
+
 	}).prepare();
 }
