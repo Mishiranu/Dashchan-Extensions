@@ -230,6 +230,10 @@ public class ChiochanPostsParser
 	{
 		holder.mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 
+	}).equals("span", "class", "admin").content((instance, holder, text) ->
+	{
+		holder.mPost.setCapcode("Admin");
+
 	}).contains("img", "src", "/flags/").open((instance, holder, tagName, attributes) ->
 	{
 		String path = holder.convertUriString(attributes.get("src"));
