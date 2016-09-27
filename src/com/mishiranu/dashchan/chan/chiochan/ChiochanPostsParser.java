@@ -47,6 +47,7 @@ public class ChiochanPostsParser
 			"(?: *, *(.+))? *\\) *$");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href=\"(.*?)\">(.*)</a>");
 	static final Pattern NUMBER = Pattern.compile("(\\d+)");
+	private static final Pattern BUMP_LIMIT = Pattern.compile("Максимальное количество бампов треда: (\\d+)");
 
 	public ChiochanPostsParser(String source, Object linked, String boardName)
 	{
@@ -303,6 +304,15 @@ public class ChiochanPostsParser
 				holder.mThread.addPostsCount(Integer.parseInt(matcher.group(1)));
 				if (matcher.find()) holder.mThread.addPostsWithFilesCount(Integer.parseInt(matcher.group(1)));
 			}
+		}
+
+	}).equals("td", "class", "rules").content((instance, holder, text) ->
+	{
+		Matcher matcher = BUMP_LIMIT.matcher(text);
+		if (matcher.find())
+		{
+			int bumpLimit = Integer.parseInt(matcher.group(1));
+			holder.mConfiguration.storeBumpLimit(holder.mBoardName, bumpLimit);
 		}
 
 	}).equals("div", "class", "logo").content((instance, holder, text) ->
