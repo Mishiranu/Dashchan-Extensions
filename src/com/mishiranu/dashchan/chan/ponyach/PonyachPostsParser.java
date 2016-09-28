@@ -47,7 +47,7 @@ public class PonyachPostsParser
 	}
 
 	private static final Pattern FILE_SIZE = Pattern.compile("\\(([\\d\\.]+)(\\w+) *, *(\\d+)x(\\d+)" +
-			"(?: *, (.*))? *\\)$");
+			"(?: *, (.*?))? *\\)$");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href=\"(.*?)\">(.*)</a>");
 	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
 
