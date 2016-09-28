@@ -1,8 +1,8 @@
 <resources>
-	
+
 	<string name="text_rating_none">Нет рейтинга</string>
 	<string name="text_rating_nsfw">[S] — NSFW</string>
 	<string name="text_rating_spoiler">[C] — Спойлер/фурри</string>
 	<string name="text_rating_unrelated">[A] — Несвязанный</string>
-	
+
 </resources>

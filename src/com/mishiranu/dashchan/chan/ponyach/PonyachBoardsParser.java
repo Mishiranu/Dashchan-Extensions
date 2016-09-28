@@ -13,18 +13,18 @@ import chan.text.ParseException;
 public class PonyachBoardsParser implements GroupParser.Callback
 {
 	private final String mSource;
-	
+
 	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
+
 	private boolean mBoardListParsing = false;
-	
+
 	private static final Pattern PATTERN_BOARD_URI = Pattern.compile("/(.*?)/?");
-	
+
 	public PonyachBoardsParser(String source)
 	{
 		mSource = source;
 	}
-	
+
 	public BoardCategory convert() throws ParseException
 	{
 		try
@@ -33,16 +33,16 @@ public class PonyachBoardsParser implements GroupParser.Callback
 		}
 		catch (FinishedException e)
 		{
-			
+
 		}
 		return new BoardCategory("Доски", mBoards);
 	}
-	
+
 	private static class FinishedException extends ParseException
 	{
 		private static final long serialVersionUID = 1L;
 	}
-	
+
 	@Override
 	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
 	{
@@ -68,25 +68,25 @@ public class PonyachBoardsParser implements GroupParser.Callback
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void onEndElement(GroupParser parser, String tagName)
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onText(GroupParser parser, String source, int start, int end) throws FinishedException
 	{
 		if (mBoardListParsing && source.substring(start, end).contains("]")) throw new FinishedException();
 	}
-	
+
 	@Override
 	public void onGroupComplete(GroupParser parser, String text)
 	{
-		
+
 	}
-	
+
 	static final String validateBoardTitle(String boardName, String title)
 	{
 		if ("b".equals(boardName)) return "Was never good";

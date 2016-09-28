@@ -8,10 +8,10 @@ public class PonyachChanConfiguration extends ChanConfiguration
 {
 	public static final String CAPTCHA_TYPE_HAIKAPTCHA_EASY = "haikaptcha_easy";
 	public static final String CAPTCHA_TYPE_HAIKAPTCHA_EASYPP = "haikaptcha_easypp";
-	
+
 	private static final String ATTACHMENT_COUNT_KEY = "attachment_count";
 	private static final String COOKIE_SESSION_KEY = "session";
-	
+
 	public PonyachChanConfiguration()
 	{
 		request(OPTION_READ_POSTS_COUNT);
@@ -20,7 +20,7 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		addCaptchaType(CAPTCHA_TYPE_HAIKAPTCHA_EASY);
 		addCaptchaType(CAPTCHA_TYPE_HAIKAPTCHA_EASYPP);
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -29,7 +29,7 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		board.allowDeleting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
 	{
@@ -51,7 +51,7 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -71,7 +71,7 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		posting.attachmentRatings.add(new Pair<>("11", resources.getString(R.string.text_rating_unrelated)));
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -81,17 +81,17 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	public String getSession()
 	{
 		return getCookie(COOKIE_SESSION_KEY);
 	}
-	
+
 	public void storeSession(String session)
 	{
 		storeCookie(COOKIE_SESSION_KEY, session, session != null ? "Session" : null);
 	}
-	
+
 	public void storeAttachmentCount(String boardName, int count)
 	{
 		set(boardName, ATTACHMENT_COUNT_KEY, count);

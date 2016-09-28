@@ -29,7 +29,7 @@ public class PonyachChanPerformer extends ChanPerformer
 	private static final String COOKIE_SESSION = "PHPSESSID";
 	private static final CookieBuilder SPECIAL_COOKIES = new CookieBuilder().append("show_spoiler_9", "true")
 			.append("show_spoiler_10", "true").append("show_spoiler_11", "true").append("r34", "1").append("rf", "1");
-	
+
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
@@ -47,7 +47,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
@@ -65,7 +65,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -83,7 +83,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -101,9 +101,9 @@ public class PonyachChanPerformer extends ChanPerformer
 		}
 		return new ReadPostsCountResult(count);
 	}
-	
+
 	private static final Pattern PATTERN_CAPTCHA_IMAGE = Pattern.compile("src=\"(.*?)\"");
-	
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
@@ -188,9 +188,9 @@ public class PonyachChanPerformer extends ChanPerformer
 			}
 		}
 	}
-	
+
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<h2.*?>(?:\r\n)?(.*?)(?:\r\n)?</h2>");
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -212,7 +212,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			}
 		}
 		else entity.add("nofile", "on");
-		
+
 		PonyachChanConfiguration configuration = ChanConfiguration.get(this);
 		String session = configuration.getSession();
 		PonyachChanLocator locator = ChanLocator.get(this);
@@ -240,7 +240,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			session = newSession;
 			configuration.storeSession(session);
 		}
-		
+
 		Matcher matcher = PATTERN_POST_ERROR.matcher(responseText);
 		if (matcher.find())
 		{
@@ -276,7 +276,7 @@ public class PonyachChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException

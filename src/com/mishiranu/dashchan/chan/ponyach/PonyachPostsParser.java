@@ -25,14 +25,14 @@ public class PonyachPostsParser implements GroupParser.Callback
 	private final PonyachChanConfiguration mConfiguration;
 	private final PonyachChanLocator mLocator;
 	private final String mBoardName;
-	
+
 	private String mParent;
 	private Posts mThread;
 	private Post mPost;
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
 	private final ArrayList<FileAttachment> mAttachments = new ArrayList<>();
-	
+
 	private static final int EXPECT_NONE = 0;
 	private static final int EXPECT_SUBJECT = 1;
 	private static final int EXPECT_NAME = 2;
@@ -43,13 +43,13 @@ public class PonyachPostsParser implements GroupParser.Callback
 	private static final int EXPECT_OMITTED = 7;
 	private static final int EXPECT_BOARD_TITLE = 8;
 	private static final int EXPECT_PAGES_COUNT = 9;
-	
+
 	private int mExpect = EXPECT_NONE;
-	
+
 	private int mAttachmentCount = -1;
-	
+
 	private static final SimpleDateFormat DATE_FORMAT;
-	
+
 	static
 	{
 		DateFormatSymbols symbols = new DateFormatSymbols();
@@ -58,12 +58,12 @@ public class PonyachPostsParser implements GroupParser.Callback
 		DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy HH:mm:ss", symbols);
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT+3"));
 	}
-	
+
 	private static final Pattern FILE_SIZE = Pattern.compile("\\(([\\d\\.]+)(\\w+) *, *(\\d+)x(\\d+)" +
 			"(?: *, (.*))? *\\)$");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href=\"(.*?)\">(.*)</a>");
 	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
-	
+
 	public PonyachPostsParser(String source, Object linked, String boardName)
 	{
 		mSource = source;
@@ -71,7 +71,7 @@ public class PonyachPostsParser implements GroupParser.Callback
 		mLocator = ChanLocator.get(linked);
 		mBoardName = boardName;
 	}
-	
+
 	private void closeThread()
 	{
 		if (mThread != null)
@@ -85,7 +85,7 @@ public class PonyachPostsParser implements GroupParser.Callback
 			mPosts.clear();
 		}
 	}
-	
+
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
@@ -94,13 +94,13 @@ public class PonyachPostsParser implements GroupParser.Callback
 		if (mAttachmentCount >= 0) mConfiguration.storeAttachmentCount(mBoardName, mAttachmentCount);
 		return mThreads;
 	}
-	
+
 	public Posts convertPosts() throws ParseException
 	{
 		GroupParser.parse(mSource, this);
 		return mPosts.size() > 0 ? new Posts(mPosts) : null;
 	}
-	
+
 	@Override
 	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
 	{
@@ -241,19 +241,19 @@ public class PonyachPostsParser implements GroupParser.Callback
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void onEndElement(GroupParser parser, String tagName)
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onText(GroupParser parser, String source, int start, int end) throws ParseException
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onGroupComplete(GroupParser parser, String text)
 	{
@@ -298,7 +298,7 @@ public class PonyachPostsParser implements GroupParser.Callback
 					}
 					catch (java.text.ParseException e)
 					{
-						
+
 					}
 				}
 				break;
@@ -375,7 +375,7 @@ public class PonyachPostsParser implements GroupParser.Callback
 					}
 					catch (NumberFormatException e)
 					{
-						
+
 					}
 				}
 				break;
