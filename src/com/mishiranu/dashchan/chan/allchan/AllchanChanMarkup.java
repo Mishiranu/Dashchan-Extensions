@@ -38,7 +38,7 @@ public class AllchanChanMarkup extends ChanMarkup
 		return (SUPPORTED_TAGS & tag) == tag;
 	}
 	
-	private static final Pattern THREAD_LINK = Pattern.compile("(\\d+).html(?:#(\\d+))?$");
+	private static final Pattern THREAD_LINK = Pattern.compile("(\\d+).html(?:#(?:post-)?(\\d+))?$");
 	
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString)
