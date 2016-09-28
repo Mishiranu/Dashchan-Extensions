@@ -57,7 +57,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
@@ -103,7 +103,7 @@ public class AllchanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException, InvalidResponseException
 	{
@@ -125,7 +125,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		if ("null".equals(response.getString())) throw HttpException.createNotFoundException();
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
 			InvalidResponseException
@@ -159,7 +159,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -190,7 +190,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -217,7 +217,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
@@ -292,7 +292,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		else throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -390,7 +390,7 @@ public class AllchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException

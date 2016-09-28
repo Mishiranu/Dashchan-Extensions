@@ -12,10 +12,10 @@ import chan.util.CommonUtils;
 public class AllchanChanConfiguration extends ChanConfiguration
 {
 	public static final String CAPTCHA_TYPE_NODE_CAPTCHA = "node_captcha";
-	
+
 	private static final String KEY_ATTACHMENTS_COUNT = "attachments_count";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
-	
+
 	public AllchanChanConfiguration()
 	{
 		request(OPTION_READ_THREAD_PARTIALLY);
@@ -27,7 +27,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -38,7 +38,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		board.allowDeleting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
 	{
@@ -52,7 +52,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -74,7 +74,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		posting.attachmentRatings.add(new Pair<>("R-18G", "R-18G"));
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -83,7 +83,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	public void updateFromBoardsJson(JSONObject jsonObject)
 	{
 		try
@@ -105,7 +105,7 @@ public class AllchanChanConfiguration extends ChanConfiguration
 		}
 		catch (JSONException e)
 		{
-			
+
 		}
 	}
 }
