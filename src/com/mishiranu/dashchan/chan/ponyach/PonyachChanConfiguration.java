@@ -6,9 +6,6 @@ import chan.content.ChanConfiguration;
 
 public class PonyachChanConfiguration extends ChanConfiguration
 {
-	public static final String CAPTCHA_TYPE_HAIKAPTCHA_EASY = "haikaptcha_easy";
-	public static final String CAPTCHA_TYPE_HAIKAPTCHA_EASYPP = "haikaptcha_easypp";
-
 	private static final String ATTACHMENT_COUNT_KEY = "attachment_count";
 	private static final String COOKIE_SESSION_KEY = "session";
 
@@ -17,8 +14,7 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		setDefaultName("rf", "Беженец");
-		addCaptchaType(CAPTCHA_TYPE_HAIKAPTCHA_EASY);
-		addCaptchaType(CAPTCHA_TYPE_HAIKAPTCHA_EASYPP);
+		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 	}
 
 	@Override
@@ -28,28 +24,6 @@ public class PonyachChanConfiguration extends ChanConfiguration
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
-	}
-
-	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
-	{
-		if (CAPTCHA_TYPE_HAIKAPTCHA_EASY.equals(captchaType))
-		{
-			Captcha captcha = new Captcha();
-			captcha.title = "Easy";
-			captcha.input = Captcha.Input.ALL;
-			captcha.validity = Captcha.Validity.LONG_LIFETIME;
-			return captcha;
-		}
-		else if (CAPTCHA_TYPE_HAIKAPTCHA_EASYPP.equals(captchaType))
-		{
-			Captcha captcha = new Captcha();
-			captcha.title = "Easy++";
-			captcha.input = Captcha.Input.ALL;
-			captcha.validity = Captcha.Validity.LONG_LIFETIME;
-			return captcha;
-		}
-		return null;
 	}
 
 	@Override

@@ -1,14 +1,10 @@
 package com.mishiranu.dashchan.chan.ponyach;
 
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.net.Uri;
-import android.util.Pair;
 
 import chan.content.ApiException;
 import chan.content.ChanConfiguration;
@@ -102,7 +98,7 @@ public class PonyachChanPerformer extends ChanPerformer
 		return new ReadPostsCountResult(count);
 	}
 
-	private static final Pattern PATTERN_CAPTCHA_IMAGE = Pattern.compile("src=\"(.*?)\"");
+	private static final Pattern PATTERN_CAPTCHA_KEY = Pattern.compile("'sitekey' *: *'(.*?)'");
 
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
@@ -110,7 +106,7 @@ public class PonyachChanPerformer extends ChanPerformer
 		PonyachChanConfiguration configuration = ChanConfiguration.get(this);
 		PonyachChanLocator locator = ChanLocator.get(this);
 		String session = configuration.getSession();
-		Uri uri = locator.buildQuery("haikaptcha.php", "m", "isndn");
+		Uri uri = locator.buildQuery("recaptchav2.php", "c", "isnd");
 		String responseText = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_SESSION, session)
 				.read().getString();
 		String newSession = data.holder.getCookieValue(COOKIE_SESSION);
@@ -121,72 +117,13 @@ public class PonyachChanPerformer extends ChanPerformer
 		}
 		if ("0".equals(responseText)) return new ReadCaptchaResult(CaptchaState.SKIP, null);
 		if (!"1".equals(responseText)) throw new InvalidResponseException();
-		if (data.mayShowLoadButton) return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
-		String captchaType = data.captchaType;
-		boolean easypp = PonyachChanConfiguration.CAPTCHA_TYPE_HAIKAPTCHA_EASYPP.equals(captchaType);
-		String captchaTypeValue = easypp ? "2" : "3";
-		ArrayList<Pair<String, Bitmap>> pairs = new ArrayList<>();
-		while (true)
-		{
-			pairs.clear();
-			uri = locator.buildQuery("haikaptcha.php", "m", "get");
-			responseText = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_SESSION, session)
-					.addCookie("captcha_type", captchaTypeValue).read().getString();
-			if (responseText.contains("haiku_wait"))
-			{
-				try
-				{
-					Thread.sleep(2000);
-					continue;
-				}
-				catch (InterruptedException e)
-				{
-					Thread.currentThread().interrupt();
-					return null;
-				}
-			}
-			Matcher matcher = PATTERN_CAPTCHA_IMAGE.matcher(responseText);
-			Bitmap descriptionImage = null;
-			while (matcher.find())
-			{
-				String path = matcher.group(1);
-				uri = locator.buildPath(path);
-				Bitmap bitmap = new HttpRequest(uri, data.holder, data).read().getBitmap();
-				if (bitmap == null) throw new InvalidResponseException();
-				if (descriptionImage == null)
-				{
-					descriptionImage = Bitmap.createBitmap(266, 62, Bitmap.Config.ARGB_8888);
-					new Canvas(descriptionImage).drawBitmap(bitmap, -80f, -49f, null);
-				}
-				else
-				{
-					Bitmap trimmed = CommonUtils.trimBitmap(bitmap, 0x00000000);
-					if (trimmed == null) trimmed = bitmap;
-					Bitmap image = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888);
-					Canvas canvas = new Canvas(image);
-					canvas.drawColor(0xffffffff);
-					canvas.drawBitmap(trimmed, (image.getWidth() - trimmed.getWidth()) / 2,
-							(image.getHeight() - trimmed.getHeight()) / 2, null);
-					if (trimmed != bitmap) trimmed.recycle();
-					String value = uri.getLastPathSegment();
-					value = value.substring(0, value.indexOf('.'));
-					pairs.add(new Pair<String, Bitmap>(value, image));
-				}
-				bitmap.recycle();
-			}
-			if (pairs.size() == 0) throw new InvalidResponseException();
-			Bitmap[] images = new Bitmap[pairs.size()];
-			for (int i = 0; i < images.length; i++) images[i] = pairs.get(i).second;
-			Integer result = requireUserImageSingleChoice(-1, images, null, descriptionImage);
-			if (result == null) return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
-			if (result != -1)
-			{
-				uri = locator.buildQuery("haikaptcha.php", "m", "chk", "a", pairs.get(result).first);
-				responseText = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_SESSION, session)
-						.read().getString();
-				if (responseText.contains("ты умница")) return new ReadCaptchaResult(CaptchaState.SKIP, null);
-			}
-		}
+		uri = locator.buildPath("lib", "javascript", "recaptcha-logic.js");
+		responseText = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_SESSION, session).read().getString();
+		Matcher matcher = PATTERN_CAPTCHA_KEY.matcher(responseText);
+		if (!matcher.find()) throw new InvalidResponseException();
+		CaptchaData captchaData = new CaptchaData();
+		captchaData.put(CaptchaData.API_KEY, matcher.group(1));
+		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 	}
 
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<h2.*?>(?:\r\n)?(.*?)(?:\r\n)?</h2>");
@@ -212,6 +149,7 @@ public class PonyachChanPerformer extends ChanPerformer
 			}
 		}
 		else entity.add("nofile", "on");
+		if (data.captchaData != null) entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
 
 		PonyachChanConfiguration configuration = ChanConfiguration.get(this);
 		String session = configuration.getSession();
