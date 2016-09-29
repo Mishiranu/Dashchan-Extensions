@@ -433,7 +433,7 @@ public class BrchanChanPerformer extends ChanPerformer
 			{
 				errorType = ApiException.DELETE_ERROR_PASSWORD;
 			}
-			else if (errorMessage.contains("antes de deletar isso"))
+			else if (errorMessage.contains("antes de apagar isso"))
 			{
 				errorType = ApiException.DELETE_ERROR_TOO_NEW;
 			}
