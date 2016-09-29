@@ -10,7 +10,7 @@ import chan.content.ChanLocator;
 public class BrchanChanLocator extends ChanLocator
 {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:(?:catalog|index|\\d+)\\.html)?)?");
-	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/res/(\\d+)\\.html");
+	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/res/(\\d+)(?:\\+50)?\\.html");
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/\\w+/src/\\d+(?:-\\d+)?\\.\\w+");
 
 	public BrchanChanLocator()
