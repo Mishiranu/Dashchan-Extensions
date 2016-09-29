@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.chan.brchan;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +37,8 @@ public class BrchanModelMapper
 		attachment.setOriginalName(filename);
 		return attachment;
 	}
+
+	private static final Pattern PATTERN_LINK = Pattern.compile("<a .*?href=\"(.*?)\".*?>");
 
 	public static Post createPost(JSONObject jsonObject, BrchanChanLocator locator, String boardName)
 			throws JSONException
@@ -80,6 +83,20 @@ public class BrchanModelMapper
 		{
 			// Vichan JSON API bug, sometimes comment is broken
 			com = com.replace("<a  ", "<a ").replaceAll("href=\"\\?", "href=\"");
+			com = StringUtils.replaceAll(com, PATTERN_LINK, matcher ->
+			{
+				String uriString = matcher.group(1);
+				Uri uri = Uri.parse(StringUtils.clearHtml(uriString));
+				if ("privatelink.de".equals(uri.getAuthority()))
+				{
+					String query = uri.getQuery();
+					if (!StringUtils.isEmpty(query))
+					{
+						uriString = query.replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;");
+					}
+				}
+				return "<a href=\"" + uriString + "\">";
+			});
 			post.setComment(com);
 		}
 		String embed = StringUtils.nullIfEmpty(CommonUtils.optJsonString(jsonObject, "embed"));
