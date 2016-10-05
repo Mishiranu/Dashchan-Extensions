@@ -12,7 +12,6 @@ import org.json.JSONObject;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.net.Uri;
@@ -262,10 +261,10 @@ public class BrchanChanPerformer extends ChanPerformer
 		if (jsonObject == null) throw new InvalidResponseException();
 		try
 		{
+			boolean newThreadCaptcha = jsonObject.optBoolean("new_thread_capt");
 			jsonObject = jsonObject.getJSONObject("captcha");
-			if (jsonObject.getBoolean("enabled"))
+			if (jsonObject.getBoolean("enabled") || data.threadNumber == null && newThreadCaptcha)
 			{
-				if (data.mayShowLoadButton) return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
 				String extra = CommonUtils.getJsonString(jsonObject, "extra");
 				Uri providerUri = Uri.parse(CommonUtils.getJsonString(jsonObject, "provider_get"));
 				uri = providerUri.buildUpon().scheme(uri.getScheme()).authority(uri.getAuthority())
@@ -282,14 +281,14 @@ public class BrchanChanPerformer extends ChanPerformer
 						Bitmap newImage = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
 								Bitmap.Config.ARGB_8888);
 						Paint paint = new Paint();
-						ColorMatrix colorMatrix = new ColorMatrix();
-						colorMatrix.setSaturation(0f);
-						paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+						float[] colorMatrixArray = {0.3f, 0.3f, 0.3f, 0f, 48f, 0.3f, 0.3f, 0.3f, 0f, 48f,
+								0.3f, 0.3f, 0.3f, 0f, 48f, 0f, 0f, 0f, 1f, 0f};
+						paint.setColorFilter(new ColorMatrixColorFilter(colorMatrixArray));
 						new Canvas(newImage).drawBitmap(image, 0f, 0f, paint);
 						image.recycle();
 						CaptchaData captchaData = new CaptchaData();
 						captchaData.put(CaptchaData.CHALLENGE, CommonUtils.getJsonString(jsonObject, "cookie"));
-						new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage)
+						return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage)
 								.setValidity(BrchanChanConfiguration.Captcha.Validity.SHORT_LIFETIME);
 					}
 				}
@@ -355,7 +354,7 @@ public class BrchanChanPerformer extends ChanPerformer
 		if (errorMessage != null)
 		{
 			int errorType = 0;
-			if (errorMessage.contains("CAPTCHA"))
+			if (errorMessage.contains("CAPTCHA") || errorMessage.contains("Você errou o codigo de verificação"))
 			{
 				errorType = ApiException.SEND_ERROR_CAPTCHA;
 			}

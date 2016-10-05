@@ -51,7 +51,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 			Captcha captcha = new Captcha();
 			captcha.title = "BRCHAN";
 			captcha.input = Captcha.Input.ALL;
-			captcha.validity = Captcha.Validity.IN_BOARD;
+			captcha.validity = Captcha.Validity.IN_BOARD_SEPARATELY;
 			return captcha;
 		}
 		return null;
