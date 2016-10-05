@@ -362,7 +362,7 @@ public class BrchanChanPerformer extends ChanPerformer
 			{
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
 			}
-			else if (errorMessage.contains("Você deve fazer upload de uma imagem"))
+			else if (errorMessage.contains("Você deve postar com uma imagem"))
 			{
 				errorType = ApiException.SEND_ERROR_EMPTY_FILE;
 			}
