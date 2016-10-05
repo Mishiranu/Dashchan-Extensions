@@ -64,7 +64,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
 		posting.optionSage = true;
-		posting.attachmentCount = get(boardName, KEY_IMAGES_ENABLED, true) ? 5 : 0;
+		posting.attachmentCount = get(boardName, KEY_IMAGES_ENABLED, true) ? 3 : 0;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/*");
 		posting.attachmentMimeTypes.add("audio/*");
