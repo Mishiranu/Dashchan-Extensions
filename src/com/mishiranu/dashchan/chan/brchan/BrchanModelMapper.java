@@ -62,8 +62,11 @@ public class BrchanModelMapper
 		post.setIdentifier(CommonUtils.optJsonString(jsonObject, "id"));
 		post.setCapcode(CommonUtils.optJsonString(jsonObject, "capcode"));
 		String email = CommonUtils.optJsonString(jsonObject, "email");
-		if (!StringUtils.isEmpty(email) && email.equalsIgnoreCase("sage")) post.setSage(true);
-		else post.setEmail(email);
+		if (email != null)
+		{
+			if (email.equalsIgnoreCase("sage")) post.setSage(true);
+			else post.setEmail(StringUtils.nullIfEmpty(StringUtils.clearHtml(email).trim()));
+		}
 		String country = CommonUtils.optJsonString(jsonObject, "country");
 		String countryName = CommonUtils.optJsonString(jsonObject, "country_name");
 		if (country != null)
