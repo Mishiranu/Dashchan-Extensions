@@ -16,6 +16,7 @@ public class FourchanChanMarkup extends ChanMarkup
 		addTag("s", TAG_SPOILER);
 		addTag("pre", TAG_CODE);
 		addTag("span", "quote", TAG_QUOTE);
+		addColorable("span");
 	}
 
 	@Override
