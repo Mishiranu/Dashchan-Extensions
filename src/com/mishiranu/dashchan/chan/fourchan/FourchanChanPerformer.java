@@ -1,9 +1,12 @@
 package com.mishiranu.dashchan.chan.fourchan;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -347,6 +350,8 @@ public class FourchanChanPerformer extends ChanPerformer
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
 	private static final Pattern PATTERN_POST_SUCCESS = Pattern.compile("<!-- thread:(\\d+),no:(\\d+) -->");
 
+	private static final HashSet<String> FORBIDDEN_OPTIONS = new HashSet<>(Arrays.asList("nonoko", "nonokosage"));
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -357,6 +362,10 @@ public class FourchanChanPerformer extends ChanPerformer
 		entity.add("com", data.comment);
 		entity.add("name", data.name);
 		if (data.optionSage) entity.add("email", "sage");
+		else if (data.email != null && !FORBIDDEN_OPTIONS.contains(data.email.toLowerCase(Locale.US)))
+		{
+			entity.add("email", data.email);
+		}
 		entity.add("pwd", data.password);
 		if (data.attachments != null)
 		{

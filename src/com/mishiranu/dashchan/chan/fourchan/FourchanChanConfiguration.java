@@ -48,6 +48,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		boolean isCancerBoard = "b".equals(boardName) || "soc".equals(boardName);
 		posting.allowName = !isCancerBoard;
 		posting.allowTripcode = !isCancerBoard;
+		posting.allowEmail = true;
 		posting.allowSubject = newThread && !isCancerBoard;
 		posting.optionSage = true;
 		posting.maxCommentLength = get(boardName, KEY_MAX_COMMENT_LENGTH, 2000);
