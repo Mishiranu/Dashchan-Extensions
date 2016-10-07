@@ -17,7 +17,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 	private static final String KEY_SPOILERS_ENABLED = "spoilers_enabled";
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
-	
+
 	public FourchanChanConfiguration()
 	{
 		request(OPTION_READ_POSTS_COUNT);
@@ -27,7 +27,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -40,7 +40,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -58,7 +58,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -68,7 +68,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName)
 	{
@@ -78,7 +78,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		reporting.types.add(new Pair<>("illegal", resources.getString(R.string.text_illegal)));
 		return reporting;
 	}
-	
+
 	@Override
 	public Authorization obtainCaptchaPassConfiguration()
 	{
@@ -87,14 +87,14 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		authorization.hints = new String[] {"Token", "PIN"};
 		return authorization;
 	}
-	
+
 	public boolean isTagSupported(String boardName, int tag)
 	{
 		if (tag == ChanMarkup.TAG_SPOILER) return get(boardName, KEY_SPOILERS_ENABLED, false);
 		if (tag == ChanMarkup.TAG_CODE) return get(boardName, KEY_CODE_ENABLED, false);
 		return false;
 	}
-	
+
 	public void updateFromBoardsJson(JSONObject jsonObject)
 	{
 		try
@@ -118,7 +118,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		}
 		catch (JSONException e)
 		{
-			
+
 		}
 	}
 }

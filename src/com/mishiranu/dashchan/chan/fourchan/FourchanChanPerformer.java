@@ -36,16 +36,16 @@ import chan.util.StringUtils;
 public class FourchanChanPerformer extends ChanPerformer
 {
 	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
-	
+
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Misc", "Interests", "Creative", "Other",
 		"Japanese Culture", "Adult"};
-	
+
 	private static final String[][] PREFERRED_BOARDS_MAPPING = {{"b", "r", "r9k", "pol", "soc", "s4s"},
 		{"v", "vg", "vr", "co", "g", "tv", "k", "o", "an", "tg", "sp", "asp", "sci", "int", "out", "toy", "biz"},
 		{"i", "po", "p", "ck", "ic", "wg", "mu", "fa", "3", "gd", "diy", "wsg"},
 		{"trv", "fit", "x", "lit", "adv", "lgbt", "mlp"}, {"a", "c", "w", "m", "cgl", "cm", "f", "n", "jp", "vp"},
 		{"s", "hc", "hm", "h", "e", "u", "d", "y", "t", "hr", "gif"}};
-	
+
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
@@ -96,7 +96,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
@@ -130,7 +130,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	private static String getPreferredBoardCategory(String boardName)
 	{
 		for (int i = 0; i < PREFERRED_BOARDS_ORDER.length; i++)
@@ -143,7 +143,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		return PREFERRED_BOARDS_ORDER[0];
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -191,7 +191,7 @@ public class FourchanChanPerformer extends ChanPerformer
 
 	private static final Pattern PATTERN_ARCHIVED_THREAD = Pattern.compile("<tr><td>(\\d+)</td>.*?" +
 			"<td class=\"teaser-col\">(.*?)</td>");
-	
+
 	@Override
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException,
 			InvalidResponseException
@@ -212,7 +212,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		else return super.onReadThreadSummaries(data);
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -233,7 +233,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	private CookieBuilder buildCookies(String captchaPassCookie)
 	{
 		if (captchaPassCookie != null)
@@ -245,15 +245,15 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		return null;
 	}
-	
+
 	private static String removeErrorFromMessage(String message)
 	{
 		if (message.startsWith("Error: ")) message = message.substring(7);
 		return message;
 	}
-	
+
 	private static final Pattern PATTERN_AUTH_MESSAGE = Pattern.compile("<span.*?>(.*?)<(?:br|/span)>");
-	
+
 	@Override
 	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
 			InvalidResponseException
@@ -261,15 +261,15 @@ public class FourchanChanPerformer extends ChanPerformer
 		return new CheckAuthorizationResult(readCaptchaPass(data.holder, data,
 				data.authorizationData[0], data.authorizationData[1]) != null);
 	}
-	
+
 	private String mLastCaptchaPassData;
 	private String mLastCaptchaPassCookie;
-	
+
 	private String getCaptchaPassData(String token, String pin)
 	{
 		return token + '|' + pin;
 	}
-	
+
 	private String readCaptchaPass(HttpHolder holder, HttpRequest.Preset preset, String token, String pin)
 			throws HttpException, InvalidResponseException
 	{
@@ -316,10 +316,10 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		else throw new InvalidResponseException();
 	}
-	
+
 	private static final String CAPTCHA_TYPE = "captchaType";
 	private static final String CAPTCHA_PASS_COOKIE = "captchaPassCookie";
-	
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
@@ -343,10 +343,10 @@ public class FourchanChanPerformer extends ChanPerformer
 		if ("report".equals(data.requirement)) captchaData.put(CAPTCHA_TYPE, data.captchaType);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 	}
-	
+
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
 	private static final Pattern PATTERN_POST_SUCCESS = Pattern.compile("<!-- thread:(\\d+),no:(\\d+) -->");
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -383,7 +383,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		Uri uri = locator.createSysUri(data.boardName, "post");
 		String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassCookie))
 				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
-		
+
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
 		if (matcher.find())
 		{
@@ -463,7 +463,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -515,9 +515,9 @@ public class FourchanChanPerformer extends ChanPerformer
 		}
 		return null;
 	}
-	
+
 	private static final Pattern PATTERN_REPORT_MESSAGE = Pattern.compile("<font.*?>(.*?)<(?:br|/font)>");
-	
+
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException

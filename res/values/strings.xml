@@ -1,9 +1,9 @@
 <resources>
-	
+
 	<string name="text_app_name">Dashchan for 4chan.org</string>
 	<string name="text_activity_name">Dashchan</string>
-	
+
 	<string name="text_violation">Rule violation</string>
 	<string name="text_illegal">Illegal content</string>
-	
+
 </resources>

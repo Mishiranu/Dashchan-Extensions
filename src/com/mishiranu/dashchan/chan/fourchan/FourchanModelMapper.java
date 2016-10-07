@@ -79,7 +79,7 @@ public class FourchanModelMapper
 		}
 		return post;
 	}
-	
+
 	public static Posts createThread(JSONObject jsonObject, FourchanChanLocator locator, String boardName,
 			boolean fromCatalog) throws JSONException
 	{

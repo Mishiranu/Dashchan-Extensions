@@ -17,13 +17,13 @@ public class FourchanChanMarkup extends ChanMarkup
 		addTag("pre", TAG_CODE);
 		addTag("span", "quote", TAG_QUOTE);
 	}
-	
+
 	@Override
 	public CommentEditor obtainCommentEditor(String boardName)
 	{
 		return new CommentEditor.BulletinBoardCodeCommentEditor();
 	}
-	
+
 	@Override
 	public boolean isTagSupported(String boardName, int tag)
 	{
@@ -34,9 +34,9 @@ public class FourchanChanMarkup extends ChanMarkup
 		}
 		return false;
 	}
-	
+
 	private static final Pattern THREAD_LINK = Pattern.compile("(?:^|thread/(\\d+))(?:#p(\\d+))?$");
-	
+
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString)
 	{
