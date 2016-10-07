@@ -8,7 +8,7 @@
 
 	<uses-feature android:name="chan.extension" />
 
-	<application android:icon="@drawable/ic_launcher" android:allowBackup="false" android:label="@string/text_app_name">
+	<application android:icon="@null" android:allowBackup="false" android:label="@string/text_app_name">
 
 		<meta-data android:name="chan.extension.name" android:value="fourchan" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
