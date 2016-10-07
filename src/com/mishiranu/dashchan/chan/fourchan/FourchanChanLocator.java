@@ -103,11 +103,6 @@ public class FourchanChanLocator extends ChanLocator
 		return buildPathWithSchemeHost(true, HOST_IMAGES, segments);
 	}
 
-	public Uri buildBasePath(String... segments)
-	{
-		return buildPathWithHost(HOST_WWW, segments);
-	}
-
 	public Uri createApiUri(String... segments)
 	{
 		return buildPathWithHost(HOST_API, segments);

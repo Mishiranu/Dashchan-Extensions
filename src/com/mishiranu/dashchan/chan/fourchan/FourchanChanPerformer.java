@@ -157,7 +157,7 @@ public class FourchanChanPerformer extends ChanPerformer
 		{
 			FourchanChanConfiguration configuration = ChanConfiguration.get(this);
 			LinkedHashMap<String, ArrayList<Board>> boardsMap = new LinkedHashMap<>();
-			for (String title : PREFERRED_BOARDS_ORDER) boardsMap.put(title, new ArrayList<Board>());
+			for (String title : PREFERRED_BOARDS_ORDER) boardsMap.put(title, new ArrayList<>());
 			try
 			{
 				JSONArray jsonArray = jsonObject.getJSONArray("boards");
@@ -534,10 +534,11 @@ public class FourchanChanPerformer extends ChanPerformer
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "imgboard.php");
 		boolean retry = false;
-		String message = null;
+		String message;
 		while (true)
 		{
 			CaptchaData captchaData = requireUserCaptcha("report", data.boardName, data.threadNumber, retry);
+			retry = true;
 			if (captchaData == null) throw new ApiException(ApiException.REPORT_ERROR_NO_ACCESS);
 			UrlEncodedEntity entity = new UrlEncodedEntity("mode", "report", "cat",
 					data.type, "board", data.boardName, "no", data.postNumbers.get(0));
@@ -558,12 +559,7 @@ public class FourchanChanPerformer extends ChanPerformer
 			if (matcher.find())
 			{
 				message = matcher.group(1);
-				if (message.contains("CAPTCHA"))
-				{
-					retry = true;
-					continue;
-				}
-				else break;
+				if (!message.contains("CAPTCHA")) break;
 			}
 			else throw new InvalidResponseException();
 		}
