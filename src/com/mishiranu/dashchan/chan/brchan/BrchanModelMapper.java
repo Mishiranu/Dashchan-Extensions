@@ -21,7 +21,7 @@ import chan.util.StringUtils;
 public class BrchanModelMapper
 {
 	public static FileAttachment createFileAttachment(JSONObject jsonObject, BrchanChanLocator locator,
-			String boardName) throws JSONException
+			String boardName, long time) throws JSONException
 	{
 		FileAttachment attachment = new FileAttachment();
 		String tim = CommonUtils.getJsonString(jsonObject, "tim");
@@ -32,8 +32,17 @@ public class BrchanModelMapper
 		attachment.setWidth(jsonObject.optInt("w"));
 		attachment.setHeight(jsonObject.optInt("h"));
 		attachment.setFileUri(locator, locator.buildPath(boardName, "src", tim + ext));
-		attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb",
-				tim + (locator.isImageExtension(ext) ? ext : ".jpg")));
+		if (time >= 1475971200000L)
+		{
+			// first png 08/10/16 22:53:13 (1475974393000)
+			attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb",
+					tim + (locator.isImageExtension(ext) ? ".png" : ".jpg")));
+		}
+		else
+		{
+			attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb",
+					tim + (locator.isImageExtension(ext) ? ext : ".jpg")));
+		}
 		attachment.setOriginalName(filename);
 		return attachment;
 	}
@@ -51,7 +60,8 @@ public class BrchanModelMapper
 		String resto = CommonUtils.getJsonString(jsonObject, "resto");
 		post.setPostNumber(no);
 		if (!"0".equals(resto)) post.setParentPostNumber(resto);
-		post.setTimestamp(jsonObject.getLong("time") * 1000L - 60 * 60 * 1000);
+		long time = jsonObject.getLong("time") * 1000L - 60 * 60 * 1000;
+		post.setTimestamp(time);
 		String name = CommonUtils.optJsonString(jsonObject, "name");
 		if (name != null)
 		{
@@ -113,7 +123,7 @@ public class BrchanModelMapper
 			try
 			{
 				ArrayList<FileAttachment> attachments = new ArrayList<>();
-				FileAttachment attachment = createFileAttachment(jsonObject, locator, boardName);
+				FileAttachment attachment = createFileAttachment(jsonObject, locator, boardName, time);
 				if (attachment != null) attachments.add(attachment);
 				JSONArray filesArray = jsonObject.optJSONArray("extra_files");
 				if (filesArray != null)
@@ -121,7 +131,7 @@ public class BrchanModelMapper
 					for (int i = 0; i < filesArray.length(); i++)
 					{
 						JSONObject fileObject = filesArray.getJSONObject(i);
-						attachment = createFileAttachment(fileObject, locator, boardName);
+						attachment = createFileAttachment(fileObject, locator, boardName, time);
 						if (attachment != null) attachments.add(attachment);
 					}
 				}
