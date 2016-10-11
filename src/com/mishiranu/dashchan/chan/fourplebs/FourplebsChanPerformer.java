@@ -1,7 +1,6 @@
 package com.mishiranu.dashchan.chan.fourplebs;
 
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +10,6 @@ import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.ThreadRedirectException;
-import chan.content.model.Post;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.text.ParseException;
@@ -68,25 +66,18 @@ public class FourplebsChanPerformer extends ChanPerformer
 	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
 			InvalidResponseException
 	{
-		ArrayList<Post> posts = new ArrayList<>();
 		FourplebsChanLocator locator = ChanLocator.get(this);
-		for (int i = 0; i < 5; i++)
+		Uri uri = locator.buildPath(data.boardName, "search", "text").buildUpon().appendPath(data.searchQuery)
+				.appendEncodedPath("page/" + (data.pageNumber + 1) + "/").build();
+		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		try
 		{
-			Uri uri = locator.buildPath(data.boardName, "search", "text").buildUpon()
-					.appendPath(data.searchQuery).appendEncodedPath("page/" + (i + 1) + "/").build();
-			String responseText = new HttpRequest(uri, data.holder, data).read().getString();
-			try
-			{
-				ArrayList<Post> result = new FourplebsPostsParser(responseText, this).convertSearch();
-				if (result == null || result.isEmpty()) break;
-				posts.addAll(result);
-			}
-			catch (ParseException e)
-			{
-				throw new InvalidResponseException(e);
-			}
+			return new ReadSearchPostsResult(new FourplebsPostsParser(responseText, this).convertSearch());
 		}
-		return new ReadSearchPostsResult(posts);
+		catch (ParseException e)
+		{
+			throw new InvalidResponseException(e);
+		}
 	}
 
 	@Override
