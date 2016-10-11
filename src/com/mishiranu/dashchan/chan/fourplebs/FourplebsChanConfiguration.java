@@ -8,7 +8,7 @@ public class FourplebsChanConfiguration extends ChanConfiguration
 	{
 		setDefaultName("Anonymous");
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -16,7 +16,7 @@ public class FourplebsChanConfiguration extends ChanConfiguration
 		board.allowSearch = true;
 		return board;
 	}
-	
+
 	@Override
 	public Statistics obtainStatisticsConfiguration()
 	{

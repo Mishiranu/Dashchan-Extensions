@@ -21,16 +21,16 @@ public class FourplebsPostsParser implements GroupParser.Callback
 {
 	private final String mSource;
 	private final FourplebsChanLocator mLocator;
-	
+
 	private boolean mNeedResTo = false;
-	
+
 	private String mResTo;
 	private Posts mThread;
 	private Post mPost;
 	private FileAttachment mAttachment;
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
-	
+
 	private static final int EXPECT_NONE = 0;
 	private static final int EXPECT_FILE_SIZE = 1;
 	private static final int EXPECT_SUBJECT = 2;
@@ -40,21 +40,21 @@ public class FourplebsPostsParser implements GroupParser.Callback
 	private static final int EXPECT_COMMENT = 6;
 	private static final int EXPECT_OMITTED_POSTS = 7;
 	private static final int EXPECT_OMITTED_IMAGES = 8;
-	
+
 	private int mExpect = EXPECT_NONE;
 	private boolean mOriginalPostFileStart = false;
-	
+
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
-	
+
 	private static final Pattern FILE_SIZE = Pattern.compile("(\\d+)(\\w+), (\\d+)x(\\d+)");
 	private static final Pattern FLAG = Pattern.compile("flag-([a-z]+)");
-	
+
 	public FourplebsPostsParser(String source, Object linked)
 	{
 		mSource = source;
 		mLocator = ChanLocator.get(linked);
 	}
-	
+
 	private void closeThread()
 	{
 		if (mThread != null)
@@ -68,7 +68,7 @@ public class FourplebsPostsParser implements GroupParser.Callback
 			mPosts.clear();
 		}
 	}
-	
+
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
@@ -76,20 +76,20 @@ public class FourplebsPostsParser implements GroupParser.Callback
 		closeThread();
 		return mThreads;
 	}
-	
+
 	public Posts convertPosts(Uri threadUri) throws ParseException
 	{
 		GroupParser.parse(mSource, this);
 		return mPosts.size() > 0 ? new Posts(mPosts).setArchivedThreadUri(threadUri) : null;
 	}
-	
+
 	public ArrayList<Post> convertSearch() throws ParseException
 	{
 		mNeedResTo = true;
 		GroupParser.parse(mSource, this);
 		return mPosts;
 	}
-	
+
 	private void ensureFile()
 	{
 		if (mAttachment == null)
@@ -98,13 +98,13 @@ public class FourplebsPostsParser implements GroupParser.Callback
 			mPost.setAttachments(mAttachment);
 		}
 	}
-	
+
 	private String convertImageSrc(String src)
 	{
 		int index = src.indexOf("/", src.indexOf("//") + 2);
 		return index >= 0 ? src.substring(index) : null;
 	}
-	
+
 	@Override
 	public boolean onStartElement(GroupParser parser, String tagName, String attrs) throws ParseException
 	{
@@ -270,7 +270,7 @@ public class FourplebsPostsParser implements GroupParser.Callback
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void onEndElement(GroupParser parser, String tagName)
 	{
@@ -282,13 +282,13 @@ public class FourplebsPostsParser implements GroupParser.Callback
 			}
 		}
 	}
-	
+
 	@Override
 	public void onText(GroupParser parser, String source, int start, int end)
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onGroupComplete(GroupParser parser, String text)
 	{

@@ -12,26 +12,26 @@ public class FourplebsBoardsParser implements GroupParser.Callback
 {
 	private final String mSource;
 	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
+
 	private String mBoardCategoryTitle;
-	
+
 	private static final int EXPECT_NONE = 0;
 	private static final int EXPECT_CATEGORY = 1;
 	private static final int EXPECT_BOARD = 2;
-	
+
 	private int mExpect = EXPECT_NONE;
-	
+
 	public FourplebsBoardsParser(String source)
 	{
 		mSource = source;
 	}
-	
+
 	public BoardCategory convert() throws ParseException
 	{
 		GroupParser.parse(mSource, this);
 		return new BoardCategory("Archives", mBoards);
 	}
-	
+
 	@Override
 	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
 	{
@@ -50,19 +50,19 @@ public class FourplebsBoardsParser implements GroupParser.Callback
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void onEndElement(GroupParser parser, String tagName)
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onText(GroupParser parser, String source, int start, int end)
 	{
-		
+
 	}
-	
+
 	@Override
 	public void onGroupComplete(GroupParser parser, String text)
 	{

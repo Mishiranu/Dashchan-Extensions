@@ -15,9 +15,9 @@ public class FourplebsChanMarkup extends ChanMarkup
 		addTag("span", "spoiler", TAG_SPOILER);
 		addTag("span", "greentext", TAG_QUOTE);
 	}
-	
+
 	private static final Pattern THREAD_LINK = Pattern.compile("thread/(\\d+)/(?:#(\\d+))?$");
-	
+
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString)
 	{
