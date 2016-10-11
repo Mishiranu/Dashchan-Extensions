@@ -49,7 +49,7 @@ public class FourplebsChanPerformer extends ChanPerformer
 			uri = locator.buildPath(data.boardName, "post", data.threadNumber, "");
 			responseText = new HttpRequest(uri, data.holder, data).read().getString();
 			Matcher matcher = PATTERN_REDIRECT.matcher(responseText);
-			if (matcher.find()) throw new ThreadRedirectException(matcher.group(1), data.threadNumber);
+			if (matcher.find()) throw new ThreadRedirectException(data.boardName, matcher.group(1), data.threadNumber);
 			throw HttpException.createNotFoundException();
 		}
 		else data.holder.checkResponseCode();
