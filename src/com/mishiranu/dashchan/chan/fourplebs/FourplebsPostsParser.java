@@ -13,11 +13,11 @@ import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class FourplebsPostsParser implements GroupParser.Callback
+public class FourplebsPostsParser
 {
 	private final String mSource;
 	private final FourplebsChanLocator mLocator;
@@ -31,23 +31,10 @@ public class FourplebsPostsParser implements GroupParser.Callback
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
 
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_FILE_SIZE = 1;
-	private static final int EXPECT_SUBJECT = 2;
-	private static final int EXPECT_NAME = 3;
-	private static final int EXPECT_TRIPCODE = 4;
-	private static final int EXPECT_IDENTIFIER = 5;
-	private static final int EXPECT_COMMENT = 6;
-	private static final int EXPECT_OMITTED_POSTS = 7;
-	private static final int EXPECT_OMITTED_IMAGES = 8;
-
-	private int mExpect = EXPECT_NONE;
-	private boolean mOriginalPostFileStart = false;
-
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
 
-	private static final Pattern FILE_SIZE = Pattern.compile("(\\d+)(\\w+), (\\d+)x(\\d+)");
-	private static final Pattern FLAG = Pattern.compile("flag-([a-z]+)");
+	private static final Pattern PATTERN_FILE = Pattern.compile("(?:(.*), )?(\\d+)(\\w+), (\\d+)x(\\d+)(?:, (.*))?");
+	private static final Pattern PATTERN_FLAG = Pattern.compile("flag-([a-z]+)");
 
 	public FourplebsPostsParser(String source, Object linked)
 	{
@@ -72,284 +59,165 @@ public class FourplebsPostsParser implements GroupParser.Callback
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
-		GroupParser.parse(mSource, this);
+		PARSER.parse(mSource, this);
 		closeThread();
 		return mThreads;
 	}
 
 	public Posts convertPosts(Uri threadUri) throws ParseException
 	{
-		GroupParser.parse(mSource, this);
+		PARSER.parse(mSource, this);
 		return mPosts.size() > 0 ? new Posts(mPosts).setArchivedThreadUri(threadUri) : null;
 	}
 
 	public ArrayList<Post> convertSearch() throws ParseException
 	{
 		mNeedResTo = true;
-		GroupParser.parse(mSource, this);
+		PARSER.parse(mSource, this);
 		return mPosts;
 	}
 
-	private void ensureFile()
+	private String convertImageUriString(String uriString)
 	{
-		if (mAttachment == null)
+		int index = uriString.indexOf("//");
+		if (index >= 0)
 		{
-			mAttachment = new FileAttachment();
-			mPost.setAttachments(mAttachment);
+			index = uriString.indexOf("/", index + 2);
+			return index >= 0 ? uriString.substring(index) : null;
 		}
+		return uriString;
 	}
 
-	private String convertImageSrc(String src)
+	private static final TemplateParser<FourplebsPostsParser> PARSER = new TemplateParser<FourplebsPostsParser>()
+			.contains("article", "class", "thread").contains("article", "class", "post")
+			.open((instance, holder, tagName, attributes) ->
 	{
-		int index = src.indexOf("/", src.indexOf("//") + 2);
-		return index >= 0 ? src.substring(index) : null;
-	}
-
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs) throws ParseException
-	{
-		if ("article".equals(tagName))
+		String id = attributes.get("id");
+		if (id != null)
 		{
-			String id = parser.getAttr(attrs, "id");
-			if (id != null)
+			if (attributes.get("class").contains("thread"))
 			{
-				String cssClass = parser.getAttr(attrs, "class");
-				if (cssClass != null)
+				Post post = new Post();
+				post.setPostNumber(id);
+				holder.mResTo = id;
+				holder.mPost = post;
+				if (holder.mThreads != null)
 				{
-					if (cssClass.contains("thread"))
-					{
-						String number = id;
-						Post post = new Post();
-						post.setPostNumber(number);
-						mResTo = number;
-						mPost = post;
-						mAttachment = null;
-						if (mThreads != null)
-						{
-							closeThread();
-							mThread = new Posts();
-						}
-					}
-					else if (cssClass.contains("post"))
-					{
-						Post post = new Post();
-						post.setParentPostNumber(mResTo);
-						post.setPostNumber(id);
-						mPost = post;
-						mAttachment = null;
-					}
+					holder.closeThread();
+					holder.mThread = new Posts();
 				}
 			}
-		}
-		else if ("span".equals(tagName))
-		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("post_author".equals(cssClass) && mPost != null)
+			else
 			{
-				mExpect = EXPECT_NAME;
-				return true;
-			}
-			else if ("post_tripcode".equals(cssClass) && mPost != null)
-			{
-				mExpect = EXPECT_TRIPCODE;
-				return true;
-			}
-			else if ("poster_hash".equals(cssClass) && mPost != null)
-			{
-				mExpect = EXPECT_IDENTIFIER;
-				return true;
-			}
-			else if ("omitted_posts".equals(cssClass))
-			{
-				mExpect = EXPECT_OMITTED_POSTS;
-				return true;
-			}
-			else if ("omitted_images".equals(cssClass))
-			{
-				mExpect = EXPECT_OMITTED_IMAGES;
-				return true;
-			}
-			else if ("post_file_metadata".equals(cssClass))
-			{
-				ensureFile();
-				mExpect = EXPECT_FILE_SIZE;
-				return true;
-			}
-			else if (cssClass != null && cssClass.contains("flag"))
-			{
-				Matcher matcher = FLAG.matcher(cssClass);
-				if (matcher.find())
-				{
-					String country = matcher.group(1);
-					Uri uri = mLocator.buildPathWithHost("s.4cdn.org", "image", "country",
-							country.toLowerCase(Locale.US) + ".gif");
-					String title = StringUtils.clearHtml(parser.getAttr(attrs, "title"));
-					mPost.setIcons(new Icon(mLocator, uri, title));
-				}
-			}
-		}
-		else if ("h2".equals(tagName))
-		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("post_title".equals(cssClass))
-			{
-				mExpect = EXPECT_SUBJECT;
-				return true;
-			}
-		}
-		else if ("time".equals(tagName))
-		{
-			String datetime = parser.getAttr(attrs, "datetime");
-			try
-			{
-				mPost.setTimestamp(DATE_FORMAT.parse(datetime).getTime());
-			}
-			catch (java.text.ParseException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		else if ("div".equals(tagName))
-		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("text".equals(cssClass))
-			{
-				mExpect = EXPECT_COMMENT;
-				return true;
-			}
-			else if ("post_file".equals(cssClass) && mPost.getParentPostNumber() == null)
-			{
-				ensureFile();
-				if (mOriginalPostFileStart)
-				{
-					mOriginalPostFileStart = false;
-					mExpect = EXPECT_FILE_SIZE;
-					return true;
-				}
-				else
-				{
-					mOriginalPostFileStart = true;
-					parser.mark();
-				}
-			}
-		}
-		else if ("a".equals(tagName))
-		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("thread_image_link".equals(cssClass))
-			{
-				ensureFile();
-				String path = convertImageSrc(parser.getAttr(attrs, "href"));
-				mAttachment.setFileUri(mLocator, mLocator.createAttachmentUri(path));
-			}
-			else if ("post_file_filename".equals(cssClass))
-			{
-				ensureFile();
-				String originalName = parser.getAttr(attrs, "title");
-				if (originalName != null) mAttachment.setOriginalName(StringUtils.clearHtml(originalName));
-			}
-			else if (mNeedResTo)
-			{
-				String function = parser.getAttr(attrs, "data-function");
-				if ("quote".equals(function))
-				{
-					String href = parser.getAttr(attrs, "href");
-					String threadNumber = mLocator.getThreadNumber(Uri.parse(href));
-					mPost.setParentPostNumber(threadNumber);
-				}
-			}
-		}
-		else if ("img".equals(tagName))
-		{
-			String cssClass = parser.getAttr(attrs, "class");
-			if (cssClass != null && (cssClass.contains("thread_image") || cssClass.contains("post_image")))
-			{
-				String src = convertImageSrc(parser.getAttr(attrs, "src"));
-				mAttachment.setThumbnailUri(mLocator, mLocator.createAttachmentUri(src));
+				Post post = new Post();
+				post.setParentPostNumber(holder.mResTo);
+				post.setPostNumber(id);
+				holder.mPost = post;
 			}
 		}
 		return false;
-	}
 
-	@Override
-	public void onEndElement(GroupParser parser, String tagName)
+	}).equals("span", "class", "post_author").open((i, h, t, a) -> h.mPost != null).content((i, holder, text) ->
 	{
-		if ("div".equals(tagName))
+		holder.mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+
+	}).equals("span", "class", "post_tripcode").open((i, h, t, a) -> h.mPost != null).content((i, holder, text) ->
+	{
+		holder.mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+
+	}).equals("span", "class", "poster_hash").open((i, h, t, a) -> h.mPost != null).content((i, holder, text) ->
+	{
+		holder.mPost.setIdentifier(StringUtils.clearHtml(text).trim().substring(3));
+
+	}).equals("h2", "class", "post_title").content((i, holder, text) ->
+	{
+		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+
+	}).contains("span", "class", "flag").open((instance, holder, tagName, attributes) ->
+	{
+		Matcher matcher = PATTERN_FLAG.matcher(attributes.get("class"));
+		if (matcher.find())
 		{
-			if (mOriginalPostFileStart)
-			{
-				parser.reset();
-			}
+			String country = matcher.group(1);
+			Uri uri = holder.mLocator.buildPathWithHost("s.4cdn.org", "image", "country",
+					country.toLowerCase(Locale.US) + ".gif");
+			String title = StringUtils.clearHtml(attributes.get("title"));
+			holder.mPost.setIcons(new Icon(holder.mLocator, uri, title));
 		}
-	}
+		return false;
 
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
+	}).name("time").open((instance, holder, tagName, attributes) ->
 	{
-
-	}
-
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		switch (mExpect)
+		try
 		{
-			case EXPECT_FILE_SIZE:
-			{
-				Matcher matcher = FILE_SIZE.matcher(text);
-				if (matcher.find())
-				{
-					int size = Integer.parseInt(matcher.group(1));
-					String dim = matcher.group(2);
-					if ("KiB".equals(dim)) size *= 1024;
-					else if ("MiB".equals(dim)) size *= 1024 * 1024;
-					int width = Integer.parseInt(matcher.group(3));
-					int height = Integer.parseInt(matcher.group(4));
-					mAttachment.setSize(size);
-					mAttachment.setWidth(width);
-					mAttachment.setHeight(height);
-				}
-				break;
-			}
-			case EXPECT_SUBJECT:
-			{
-				mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_NAME:
-			{
-				mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_TRIPCODE:
-			{
-				mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_IDENTIFIER:
-			{
-				mPost.setIdentifier(StringUtils.clearHtml(text).trim().substring(3));
-				break;
-			}
-			case EXPECT_COMMENT:
-			{
-				if (text != null) text = text.trim();
-				mPost.setComment(text);
-				mPosts.add(mPost);
-				mPost = null;
-				break;
-			}
-			case EXPECT_OMITTED_POSTS:
-			{
-				mThread.addPostsCount(Integer.parseInt(text));
-				break;
-			}
-			case EXPECT_OMITTED_IMAGES:
-			{
-				mThread.addPostsWithFilesCount(Integer.parseInt(text));
-				break;
-			}
+			holder.mPost.setTimestamp(DATE_FORMAT.parse(attributes.get("datetime")).getTime());
 		}
-		mExpect = EXPECT_NONE;
-	}
+		catch (java.text.ParseException e)
+		{
+
+		}
+		return false;
+
+	}).equals("a", "data-function", "quote").open((instance, holder, tagName, attributes) ->
+	{
+		if (holder.mNeedResTo)
+		{
+			holder.mPost.setParentPostNumber(holder.mLocator.getThreadNumber(Uri.parse(attributes.get("href"))));
+		}
+		return false;
+
+	}).equals("a", "class", "thread_image_link").open((instance, holder, tagName, attributes) ->
+	{
+		String path = holder.convertImageUriString(attributes.get("href"));
+		if (holder.mAttachment == null) holder.mAttachment = new FileAttachment();
+		holder.mAttachment.setFileUri(holder.mLocator, holder.mLocator.createAttachmentUri(path));
+		return false;
+
+	}).equals("div", "class", "post_file").content((instance, holder, text) ->
+	{
+		if (holder.mAttachment == null) holder.mAttachment = new FileAttachment();
+		if (text.contains("<span class=\"post_file_controls\">")) text = text.substring(text.indexOf("</span>") + 7);
+		text = StringUtils.clearHtml(text).trim();
+		Matcher matcher = PATTERN_FILE.matcher(text);
+		if (matcher.find())
+		{
+			int size = Integer.parseInt(matcher.group(2));
+			String dim = matcher.group(3);
+			if ("KiB".equals(dim)) size *= 1024;
+			else if ("MiB".equals(dim)) size *= 1024 * 1024;
+			int width = Integer.parseInt(matcher.group(4));
+			int height = Integer.parseInt(matcher.group(5));
+			holder.mAttachment.setSize(size);
+			holder.mAttachment.setWidth(width);
+			holder.mAttachment.setHeight(height);
+			String originalName = matcher.group(1);
+			if (originalName == null) originalName = matcher.group(6);
+			if (originalName != null) holder.mAttachment.setOriginalName(originalName);
+		}
+
+	}).contains("img", "class", "thread_image").contains("img", "class", "post_image")
+			.open((instance, holder, tagName, attributes) ->
+	{
+		String src = holder.convertImageUriString(attributes.get("src"));
+		holder.mAttachment.setThumbnailUri(holder.mLocator, holder.mLocator.createAttachmentUri(src));
+		return false;
+
+	}).equals("div", "class", "text").content((instance, holder, text) ->
+	{
+		if (text != null) text = text.trim();
+		holder.mPost.setComment(text);
+		if (holder.mAttachment != null) holder.mPost.setAttachments(holder.mAttachment);
+		holder.mPosts.add(holder.mPost);
+		holder.mAttachment = null;
+		holder.mPost = null;
+
+	}).equals("span", "class", "omitted_posts").content((instance, holder, text) ->
+	{
+		holder.mThread.addPostsCount(Integer.parseInt(text));
+
+	}).equals("span", "class", "omitted_images").content((instance, holder, text) ->
+	{
+		holder.mThread.addPostsWithFilesCount(Integer.parseInt(text));
+
+	}).prepare();
 }
