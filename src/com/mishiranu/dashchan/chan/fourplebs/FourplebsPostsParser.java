@@ -34,7 +34,6 @@ public class FourplebsPostsParser
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
 
 	private static final Pattern PATTERN_FILE = Pattern.compile("(?:(.*), )?(\\d+)(\\w+), (\\d+)x(\\d+)(?:, (.*))?");
-	private static final Pattern PATTERN_FLAG = Pattern.compile("flag-([a-z]+)");
 
 	public FourplebsPostsParser(String source, Object linked)
 	{
@@ -133,17 +132,15 @@ public class FourplebsPostsParser
 	{
 		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 
-	}).contains("span", "class", "flag").open((instance, holder, tagName, attributes) ->
+	}).contains("span", "class", "flag-").open((instance, holder, tagName, attributes) ->
 	{
-		Matcher matcher = PATTERN_FLAG.matcher(attributes.get("class"));
-		if (matcher.find())
-		{
-			String country = matcher.group(1);
-			Uri uri = holder.mLocator.buildPathWithHost("s.4cdn.org", "image", "country",
-					country.toLowerCase(Locale.US) + ".gif");
-			String title = StringUtils.clearHtml(attributes.get("title"));
-			holder.mPost.setIcons(new Icon(holder.mLocator, uri, title));
-		}
+		String cssClass = attributes.get("class");
+		Uri uri = holder.mLocator.createFlagStubUri(cssClass);
+		String title = StringUtils.clearHtml(attributes.get("title"));
+		String end = ". Click here to search for posts with this flag";
+		if (title.endsWith(end)) title = title.substring(0, title.length() - end.length());
+		if (title.isEmpty()) title = cssClass.substring(cssClass.lastIndexOf('-') + 1).toUpperCase(Locale.US);
+		holder.mPost.setIcons(new Icon(holder.mLocator, uri, title));
 		return false;
 
 	}).name("time").open((instance, holder, tagName, attributes) ->

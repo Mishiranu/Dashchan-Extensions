@@ -90,4 +90,22 @@ public class FourplebsChanLocator extends ChanLocator
 	{
 		return buildPathWithHost(HOST_IMAGES, path);
 	}
+
+	public Uri createFlagStubUri(String cssClass)
+	{
+		return buildPath("boards", "flag-stub", cssClass);
+	}
+
+	public String extractFlagStubClass(Uri uri)
+	{
+		if (isChanHostOrRelative(uri))
+		{
+			List<String> segments = uri.getPathSegments();
+			if (segments.size() == 3 && "boards".equals(segments.get(0)) && "flag-stub".equals(segments.get(1)))
+			{
+				return segments.get(2);
+			}
+		}
+		return null;
+	}
 }
