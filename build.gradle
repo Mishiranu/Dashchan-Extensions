@@ -4,11 +4,11 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.1.0'
+		classpath 'com.android.tools.build:gradle:2.2.1'
 		classpath 'me.tatarka:gradle-retrolambda:3.2.5'
 		classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
 	}
-	
+
 	configurations.classpath.exclude group: 'com.android.tools.external.lombok'
 }
 
@@ -27,8 +27,8 @@ dependencies {
 }
 
 android {
-	compileSdkVersion 23
-	buildToolsVersion '23.0.3'
+	compileSdkVersion 24
+	buildToolsVersion '24.0.3'
 
 	sourceSets.main {
 		manifest.srcFile 'AndroidManifest.xml'
