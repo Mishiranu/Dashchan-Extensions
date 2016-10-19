@@ -32,6 +32,7 @@ import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
+import chan.http.SimpleEntity;
 import chan.http.UrlEncodedEntity;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
@@ -235,6 +236,31 @@ public class FourchanChanPerformer extends ChanPerformer
 			}
 		}
 		throw new InvalidResponseException();
+	}
+
+	@Override
+	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException
+	{
+		FourchanChanLocator locator = ChanLocator.get(this);
+		String mathData = locator.extractMathData(data.uri);
+		if (mathData != null)
+		{
+			Uri uri = locator.buildPathWithSchemeHost(false, "quicklatex.com", "latex3.f");
+			SimpleEntity entity = new SimpleEntity();
+			entity.setData("formula=" + mathData.replace("%", "%25").replace("&", "%26") + "&fsize=60px&" +
+					"fcolor=000000&mode=0&out=1&remhost=quicklatex.com&preamble=\\usepackage{amsmath}\n" +
+					"\\usepackage{amsfonts}\n\\usepackage{amssymb}");
+			entity.setContentType("application/x-www-form-urlencoded");
+			String responseText = new HttpRequest(uri, data.holder).setPostMethod(entity).read().getString();
+			String[] splitted = responseText.split("\r?\n| ");
+			if (splitted.length >= 2 && "0".equals(splitted[0]))
+			{
+				uri = Uri.parse(splitted[1]);
+				return new ReadContentResult(new HttpRequest(uri, data).read());
+			}
+			throw HttpException.createNotFoundException();
+		}
+		return super.onReadContent(data);
 	}
 
 	private CookieBuilder buildCookies(String captchaPassCookie)

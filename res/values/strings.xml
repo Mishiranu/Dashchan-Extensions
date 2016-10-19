@@ -6,4 +6,7 @@
 	<string name="text_violation">Rule violation</string>
 	<string name="text_illegal">Illegal content</string>
 
+	<string name="preference_math_tags">Handle [math] tags</string>
+	<string name="preference_math_tags_summary">Show image links using quicklatex.com web service (HTTP-only)</string>
+
 </resources>

@@ -18,6 +18,8 @@ public class FourchanChanConfiguration extends ChanConfiguration
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
 
+	private static final String KEY_MATH_TAGS = "math_tags";
+
 	public FourchanChanConfiguration()
 	{
 		request(OPTION_READ_POSTS_COUNT);
@@ -26,6 +28,7 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		setBumpLimit(300);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
+		addCustomPreference(KEY_MATH_TAGS, false);
 	}
 
 	@Override
@@ -89,11 +92,30 @@ public class FourchanChanConfiguration extends ChanConfiguration
 		return authorization;
 	}
 
+	@Override
+	public CustomPreference obtainCustomPreferenceConfiguration(String key)
+	{
+		if (KEY_MATH_TAGS.equals(key))
+		{
+			Resources resources = getResources();
+			CustomPreference customPreference = new CustomPreference();
+			customPreference.title = resources.getString(R.string.preference_math_tags);
+			customPreference.summary = resources.getString(R.string.preference_math_tags_summary);
+			return customPreference;
+		}
+		return null;
+	}
+
 	public boolean isTagSupported(String boardName, int tag)
 	{
 		if (tag == ChanMarkup.TAG_SPOILER) return get(boardName, KEY_SPOILERS_ENABLED, false);
 		if (tag == ChanMarkup.TAG_CODE) return get(boardName, KEY_CODE_ENABLED, false);
 		return false;
+	}
+
+	public boolean isMathTagsHandlingEnabled()
+	{
+		return get(null, KEY_MATH_TAGS, false);
 	}
 
 	public void updateFromBoardsJson(JSONObject jsonObject)

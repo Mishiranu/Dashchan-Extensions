@@ -1,6 +1,7 @@
 package com.mishiranu.dashchan.chan.fourchan;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +18,8 @@ import chan.util.StringUtils;
 
 public class FourchanModelMapper
 {
+	private static final Pattern PATTERN_MATH = Pattern.compile("\\[(math|eqn)\\](.*?)\\[/\\1\\]");
+
 	public static Post createPost(JSONObject jsonObject, FourchanChanLocator locator, String boardName)
 			throws JSONException
 	{
@@ -60,6 +63,14 @@ public class FourchanModelMapper
 		{
 			com = com.replaceAll("<wbr ?/?>", "");
 			com = StringUtils.linkify(com);
+			FourchanChanConfiguration configuration = FourchanChanConfiguration.get(locator);
+			if (configuration.isMathTagsHandlingEnabled())
+			{
+				com = StringUtils.replaceAll(com, PATTERN_MATH, matcher -> "<a href=\"" +
+						locator.buildMathUri(StringUtils.clearHtml(matcher.group(2))).toString()
+						.replaceAll("\"", "&quot;") + "\">" + StringUtils.clearHtml(matcher.group(2))
+						.replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</a>");
+			}
 			post.setComment(com);
 		}
 		String tim = CommonUtils.optJsonString(jsonObject, "tim");

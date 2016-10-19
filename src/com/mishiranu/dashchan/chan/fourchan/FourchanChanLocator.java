@@ -1,5 +1,7 @@
 package com.mishiranu.dashchan.chan.fourchan;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -18,7 +20,7 @@ public class FourchanChanLocator extends ChanLocator
 	private static final String HOST_IMAGES = "i.4cdn.org";
 	private static final String HOST_STATIC = "s.4cdn.org";
 
-	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:(?:\\d+|catalog))?)?");
+	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:\\d+|catalog)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/\\w+/\\d+\\.\\w+");
 
@@ -54,7 +56,7 @@ public class FourchanChanLocator extends ChanLocator
 	@Override
 	public boolean isAttachmentUri(Uri uri)
 	{
-		return isChanHostOrRelative(uri) && isPathMatches(uri, ATTACHMENT_PATH);
+		return isChanHostOrRelative(uri) && (isPathMatches(uri, ATTACHMENT_PATH) || extractMathData(uri) != null);
 	}
 
 	@Override
@@ -116,6 +118,31 @@ public class FourchanChanLocator extends ChanLocator
 	public Uri createSysUri(String... segments)
 	{
 		return buildPathWithSchemeHost(true, HOST_POST, segments);
+	}
+
+	public Uri buildMathUri(String data)
+	{
+		try
+		{
+			return buildPathWithHost(HOST_IMAGES, "math-tag",
+					URLEncoder.encode(data, "UTF-8").replace("+", "%20") + ".png");
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
+	public String extractMathData(Uri uri)
+	{
+		List<String> segments = uri.getPathSegments();
+		if (segments.size() == 2 && "math-tag".equals(segments.get(0)))
+		{
+			String result = segments.get(1);
+			if (result.endsWith(".png")) result = result.substring(0, result.length() - 4);
+			return result;
+		}
+		return null;
 	}
 
 	@Override
