@@ -1,12 +1,8 @@
-*
+/*
 !/res
-!/res/**
 !/src
-!/src/**
-!/.classpath
 !/.gitignore
-!/.project
 !/AndroidManifest.xml
+!/build.gradle
 !/LICENSE
-!/project.properties
 !/README.md
