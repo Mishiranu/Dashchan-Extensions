@@ -359,7 +359,7 @@ public class SevenchanPostsParser implements GroupParser.Callback
 		{
 			case EXPECT_SUBJECT:
 			{
-				mPost.setSubject(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_NAME:
@@ -373,17 +373,17 @@ public class SevenchanPostsParser implements GroupParser.Callback
 					else mPost.setEmail(StringUtils.clearHtml(email));
 					text = matcher.group(2);
 				}
-				mPost.setName(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_TRIPCODE:
 			{
-				mPost.setTripcode(StringUtils.emptyIfNull(StringUtils.clearHtml(text).trim()));
+				mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
 				break;
 			}
 			case EXPECT_CAPCODE:
 			{
-				mPost.setCapcode(StringUtils.emptyIfNull(StringUtils.clearHtml(text).replaceAll(" ?## ?", "").trim()));
+				mPost.setCapcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).replaceAll(" ?## ?", "").trim()));
 				break;
 			}
 			case EXPECT_FILE_SIZE:
