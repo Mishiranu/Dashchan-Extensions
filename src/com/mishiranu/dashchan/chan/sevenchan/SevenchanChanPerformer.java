@@ -115,7 +115,7 @@ public class SevenchanChanPerformer extends ChanPerformer
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
 		ReadCaptchaResult result;
-		if (ReadCaptchaData.REQUIREMENT_NEW_THREAD.equals(data.requirement))
+		if (data.threadNumber == null)
 		{
 			CaptchaData captchaData = new CaptchaData();
 			captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
