@@ -23,19 +23,19 @@ public class OnechancaPostsParser
 {
 	private final String mSource;
 	private final OnechancaChanLocator mLocator;
-	
+
 	private String mParent;
 	private Posts mThread;
 	private Post mPost;
 	private ArrayList<Posts> mThreads;
 	private String mExternalLink;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
-	
+
 	private boolean mHeaderHandling = false;
 	private boolean mReplyParsing = false;
-	
+
 	private static final SimpleDateFormat DATE_FORMAT;
-	
+
 	static
 	{
 		DateFormatSymbols symbols = new DateFormatSymbols();
@@ -52,13 +52,13 @@ public class OnechancaPostsParser
 			".*?</audio>");
 	private static final Pattern PATTERN_FILE_SIZE = Pattern.compile("(\\d+)x(\\d+), ([\\d\\.]+) (\\w+)");
 	private static final Pattern PATTERN_NUMBER = Pattern.compile("\\d+");
-	
+
 	public OnechancaPostsParser(String source, Object linked)
 	{
 		mSource = source.replaceAll("(?s)<textarea.*?</textarea>", "");
 		mLocator = OnechancaChanLocator.get(linked);
 	}
-	
+
 	private void closeThread()
 	{
 		if (mThread != null)
@@ -69,7 +69,7 @@ public class OnechancaPostsParser
 			mPosts.clear();
 		}
 	}
-	
+
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
@@ -77,13 +77,13 @@ public class OnechancaPostsParser
 		closeThread();
 		return mThreads;
 	}
-	
+
 	public ArrayList<Post> convertPosts() throws ParseException
 	{
 		PARSER.parse(mSource, this);
 		return mPosts;
 	}
-	
+
 	private static final TemplateParser<OnechancaPostsParser> PARSER = new TemplateParser<OnechancaPostsParser>()
 			.starts("div", "id", "post_").open((instance, holder, tagName, attributes) ->
 	{
@@ -105,7 +105,7 @@ public class OnechancaPostsParser
 			}
 		}
 		return false;
-		
+
 	}).starts("div", "id", "comment_").open((instance, holder, tagName, attributes) ->
 	{
 		String number = attributes.get("id").substring(8);
@@ -117,27 +117,27 @@ public class OnechancaPostsParser
 		holder.mPost = post;
 		holder.mReplyParsing = true;
 		return false;
-		
+
 	}).equals("div", "class", "b-blog-entry_b-header").open((instance, holder, tagName, attributes) ->
 	{
 		holder.mHeaderHandling = holder.mPost != null;
 		return false;
-		
+
 	}).name("div").close((instance, holder, tagName) ->
 	{
 		holder.mHeaderHandling = false;
 		if (holder.mPosts.size() == 1 && !holder.mReplyParsing) holder.mPost = null;
-		
+
 	}).equals("a", "class", "m-external").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mHeaderHandling) holder.mExternalLink = StringUtils.clearHtml(attributes.get("href"));
 		return false;
-		
+
 	}).equals("a", "class", "b-blog-entry_b-header_m-category").open((instance, holder, tagName, attributes) -> false)
 			.name("a").open((i, h, t, a) -> h.mHeaderHandling).content((instance, holder, text) ->
 	{
 		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).contains("div", "class", "b-blog-entry_b-body").contains("div", "class", "b-comment_b-body")
 			.open((i, h, t, a) -> h.mPost != null).content((instance, holder, text) ->
 	{
@@ -209,7 +209,7 @@ public class OnechancaPostsParser
 		holder.mPosts.add(holder.mPost);
 		if (holder.mReplyParsing) holder.mPost = null;
 		holder.mExternalLink = null;
-		
+
 	}).text((instance, holder, source, start, end) ->
 	{
 		if (holder.mPost != null && source.indexOf('@', start) < end)
@@ -228,15 +228,15 @@ public class OnechancaPostsParser
 			}
 			catch (java.text.ParseException e)
 			{
-				
+
 			}
 			holder.mHeaderHandling = false;
 		}
-		
+
 	}).contains("span", "class", "js-comments").content((instance, holder, text) ->
 	{
 		Matcher matcher = PATTERN_NUMBER.matcher(text);
 		if (matcher.matches()) holder.mThread.addPostsCount(Integer.parseInt(matcher.group()));
-		
+
 	}).prepare();
 }

@@ -11,7 +11,7 @@ import chan.text.CommentEditor;
 public class OnechancaChanMarkup extends ChanMarkup
 {
 	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_SPOILER | TAG_CODE | TAG_HEADING;
-	
+
 	public OnechancaChanMarkup()
 	{
 		addTag("strong", TAG_BOLD);
@@ -21,21 +21,21 @@ public class OnechancaChanMarkup extends ChanMarkup
 		addTag("span", "b-spoiler-text", TAG_SPOILER);
 		addTag("code", TAG_CODE);
 	}
-	
+
 	@Override
 	public CommentEditor obtainCommentEditor(String boardName)
 	{
 		return new CommentEditor.WakabaMarkCommentEditor();
 	}
-	
+
 	@Override
 	public boolean isTagSupported(String boardName, int tag)
 	{
 		return (SUPPORTED_TAGS & tag) == tag;
 	}
-	
+
 	private static final Pattern THREAD_LINK = Pattern.compile("(\\d+)/?(?:#(\\d+))?$");
-	
+
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString)
 	{

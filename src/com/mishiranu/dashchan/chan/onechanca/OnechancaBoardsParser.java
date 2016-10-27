@@ -18,20 +18,20 @@ public class OnechancaBoardsParser
 
 	private final ArrayList<Board> mNewsBoards = new ArrayList<>();
 	private final ArrayList<Board> mSocialBoards = new ArrayList<>();
-	
+
 	private String mBoardName;
 	private String mBoardTitle;
 	private String mBoardDescription;
 
 	private boolean mNewsParsing = false;
 	private boolean mSocialParsing = false;
-	
+
 	public OnechancaBoardsParser(String source, Object linked)
 	{
 		mSource = source;
 		mLocator = ChanLocator.get(linked);
 	}
-	
+
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
 		mNewsBoards.add(new Board("news", "Одобренные"));
@@ -43,7 +43,7 @@ public class OnechancaBoardsParser
 		boardCategories.add(new BoardCategory("Общение", mSocialBoards));
 		return boardCategories;
 	}
-	
+
 	private static final TemplateParser<OnechancaBoardsParser> PARSER = new TemplateParser<OnechancaBoardsParser>()
 			.equals("div", "class", "b-menu-panel_b-links").open((i, h, t, a) -> !(h.mSocialParsing = true))
 			.equals("div", "class", "b-blog-form_b-form_b-field").open((i, h, t, a) -> !(h.mNewsParsing = true))
@@ -66,7 +66,7 @@ public class OnechancaBoardsParser
 			}
 		}
 		return false;
-		
+
 	}).content((instance, holder, text) ->
 	{
 		String title = StringUtils.clearHtml(text);
@@ -83,12 +83,12 @@ public class OnechancaBoardsParser
 			holder.mSocialBoards.add(new Board(holder.mBoardName, title));
 			holder.mBoardName = null;
 		}
-		
+
 	}).name("p").open((instance, holder, tagName, attributes) -> holder.mNewsParsing || holder.mSocialParsing)
 			.content((instance, holder, text) ->
 	{
 		holder.mBoardDescription = StringUtils.clearHtml(text);
-		
+
 	}).name("div").close((instance, holder, tagName) ->
 	{
 		if (holder.mNewsParsing)
@@ -100,6 +100,6 @@ public class OnechancaBoardsParser
 		}
 		holder.mNewsParsing = false;
 		holder.mSocialParsing = false;
-		
+
 	}).equals("li", "class", "m-active").open((i, h, t, a) -> h.mSocialParsing = false).prepare();
 }

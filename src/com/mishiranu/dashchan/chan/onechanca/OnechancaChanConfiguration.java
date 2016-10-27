@@ -5,7 +5,7 @@ import chan.content.ChanConfiguration;
 public class OnechancaChanConfiguration extends ChanConfiguration
 {
 	public static final String CAPTCHA_TYPE_ONECHANCA = "onechanca";
-	
+
 	public OnechancaChanConfiguration()
 	{
 		request(OPTION_READ_SINGLE_POST);
@@ -13,7 +13,7 @@ public class OnechancaChanConfiguration extends ChanConfiguration
 		setDefaultName("Аноним");
 		addCaptchaType(CAPTCHA_TYPE_ONECHANCA);
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -22,7 +22,7 @@ public class OnechancaChanConfiguration extends ChanConfiguration
 		board.allowDeleting = boardName == null || !boardName.startsWith("news");
 		return board;
 	}
-	
+
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
 	{
@@ -36,7 +36,7 @@ public class OnechancaChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -46,7 +46,7 @@ public class OnechancaChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("image/*");
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{

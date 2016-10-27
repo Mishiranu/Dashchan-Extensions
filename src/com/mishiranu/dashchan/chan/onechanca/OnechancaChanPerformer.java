@@ -47,7 +47,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
 			InvalidResponseException
@@ -67,7 +67,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -83,7 +83,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -100,7 +100,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 		}
 		return new ReadPostsCountResult(count);
 	}
-	
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
 	{
@@ -194,7 +194,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			+ "top\\.(?:board|comment)_callback\\((.*?)\\);</script>");
 	private static final Pattern PATTERN_NEWS_POST = Pattern.compile("<div.*?id=\"blog_form_error\">(.*?)</div>");
 	private static final Pattern PATTERN_NEWS_REPLY = Pattern.compile("<em id=\"comment_form_error\">(.*?)</em>");
-	
+
 	private static final HttpRequest.RedirectHandler POST_REDIRECT_HANDLER = new HttpRequest.RedirectHandler()
 	{
 		@Override
@@ -205,7 +205,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			return STRICT.onRedirectReached(responseCode, requestedUri, redirectedUri, holder);
 		}
 	};
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -390,7 +390,7 @@ public class OnechancaChanPerformer extends ChanPerformer
 			else throw new InvalidResponseException();
 		}
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
