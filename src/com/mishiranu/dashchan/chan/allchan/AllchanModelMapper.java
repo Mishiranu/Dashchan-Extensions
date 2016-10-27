@@ -87,11 +87,21 @@ public class AllchanModelMapper
 		{
 
 		}
-		post.setName(CommonUtils.optJsonString(jsonObject, "name"));
-		post.setTripcode(CommonUtils.optJsonString(jsonObject, "tripcode"));
+		String name = CommonUtils.optJsonString(jsonObject, "name");
+		if (!StringUtils.isEmpty(name))
+		{
+			post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(name).trim()));
+		}
+		String tripcode = CommonUtils.optJsonString(jsonObject, "tripcode");
+		if (!StringUtils.isEmpty(tripcode))
+		{
+			post.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(tripcode).trim()));
+		}
 		String email = CommonUtils.optJsonString(jsonObject, "email");
-		if (email != null && email.equalsIgnoreCase("sage")) post.setSage(true);
-		else post.setEmail(email);
+		if (!StringUtils.isEmpty(email) && email.equalsIgnoreCase("sage")) post.setSage(true); else
+		{
+			post.setEmail(StringUtils.nullIfEmpty(StringUtils.clearHtml(email).trim()));
+		}
 		JSONObject userObject = jsonObject.optJSONObject("user");
 		if (userObject != null)
 		{
@@ -103,7 +113,10 @@ public class AllchanModelMapper
 			}
 		}
 		String subject = CommonUtils.optJsonString(jsonObject, "subject");
-		if (subject != null) post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
+		if (!StringUtils.isEmpty(subject))
+		{
+			post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
+		}
 		String text = CommonUtils.optJsonString(jsonObject, "text");
 		if (text != null)
 		{
