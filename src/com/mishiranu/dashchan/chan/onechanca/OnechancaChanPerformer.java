@@ -18,7 +18,7 @@ import android.net.Uri;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
+import chan.content.RedirectException;
 import chan.content.model.Post;
 import chan.http.HttpException;
 import chan.http.HttpHolder;
@@ -49,10 +49,10 @@ public class OnechancaChanPerformer extends ChanPerformer
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
-			InvalidResponseException
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
+			RedirectException
 	{
-		if (data.boardName.startsWith("news-")) throw new ThreadRedirectException("news", data.threadNumber, null);
+		if (data.boardName.startsWith("news-")) throw RedirectException.toThread("news", data.threadNumber, null);
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
 		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
