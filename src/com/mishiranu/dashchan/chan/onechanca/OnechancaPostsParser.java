@@ -181,7 +181,7 @@ public class OnechancaPostsParser
 			}
 		}
 		// Display smilies as text
-		text = text.replaceAll("(?s)<img src=\".*?/img/(.*?).gif\".*?>", ":$1:");
+		text = text.replaceAll("(?s)<img src=\".*?/img/(.*?)\\.\\w+\".*?>", ":$1:");
 		text = StringUtils.replaceAll(text, PATTERN_IMAGE, matcher ->
 		{
 			String uriString = matcher.group(1);
