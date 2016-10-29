@@ -83,7 +83,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
@@ -115,7 +115,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -131,7 +131,7 @@ public class LainchanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -152,7 +152,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -173,14 +173,14 @@ public class LainchanChanPerformer extends ChanPerformer
 			}
 		}
 		entity.add("json_response", "1");
-		
+
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri contentUri = data.threadNumber != null ? locator.createThreadUri(data.boardName, data.threadNumber)
 				: locator.createBoardUri(data.boardName, 0);
 		String responseText = new HttpRequest(contentUri, data.holder).read().getString();
 		try
 		{
-			AnstispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
+			AntispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
 					"subject", "body", "password", "file", "json_response");
 		}
 		catch (ParseException e)
@@ -192,7 +192,7 @@ public class LainchanChanPerformer extends ChanPerformer
 				.addHeader("Referer", locator.buildPath().toString())
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) throw new InvalidResponseException();
-		
+
 		String redirect = jsonObject.optString("redirect");
 		if (!StringUtils.isEmpty(redirect))
 		{
@@ -259,7 +259,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -292,7 +292,7 @@ public class LainchanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException

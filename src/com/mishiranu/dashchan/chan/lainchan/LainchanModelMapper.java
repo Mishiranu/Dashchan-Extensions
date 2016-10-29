@@ -29,7 +29,7 @@ public class LainchanModelMapper
 		attachment.setOriginalName(filename);
 		return attachment;
 	}
-	
+
 	public static Post createPost(JSONObject jsonObject, LainchanChanLocator locator, String boardName)
 			throws JSONException
 	{
@@ -84,11 +84,11 @@ public class LainchanModelMapper
 		}
 		catch (JSONException e)
 		{
-			
+
 		}
 		return post;
 	}
-	
+
 	public static Posts createThread(JSONObject jsonObject, LainchanChanLocator locator, String boardName,
 			boolean fromCatalog) throws JSONException
 	{

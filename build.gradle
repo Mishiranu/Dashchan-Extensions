@@ -8,7 +8,7 @@ buildscript {
 		classpath 'me.tatarka:gradle-retrolambda:3.2.5'
 		classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
 	}
-	
+
 	configurations.classpath.exclude group: 'com.android.tools.external.lombok'
 }
 
@@ -43,7 +43,7 @@ android {
 	if (new File('keystore.properties').exists()) {
 		def Properties keystoreProperties = new Properties()
 		keystoreProperties.load(new FileInputStream(file('keystore.properties')))
-		
+
 		signingConfigs {
 			general {
 				storeFile file(keystoreProperties['store.file'])
@@ -52,22 +52,22 @@ android {
 				keyPassword keystoreProperties['key.password']
 			}
 		}
-		
+
 		buildTypes.debug.signingConfig signingConfigs.general
 		buildTypes.release.signingConfig signingConfigs.general
 	}
-	
+
 	buildTypes {
 		release {
 			minifyEnabled false
 		}
 	}
-	
+
 	lintOptions {
 		abortOnError false
 		disable 'MissingTranslation'
 	}
-	
+
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_8
 		targetCompatibility JavaVersion.VERSION_1_8

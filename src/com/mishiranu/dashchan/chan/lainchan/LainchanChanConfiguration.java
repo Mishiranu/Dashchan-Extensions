@@ -9,7 +9,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -20,7 +20,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -35,7 +35,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("image/*");
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -45,7 +45,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName)
 	{
