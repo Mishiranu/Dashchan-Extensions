@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.mishiranu.dashchan.chan.nulltirech"
 	android:versionCode="1"
-	android:versionName="1.2">
+	android:versionName="1.3">
 
 	<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23" />
 
@@ -27,6 +27,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="http" />
+				<data android:scheme="https" />
 				<data android:host="0-chan.ru" />
 				<data android:host="www.0-chan.ru" />
 			</intent-filter>
