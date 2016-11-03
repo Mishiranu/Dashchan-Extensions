@@ -15,7 +15,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
 	private static final String KEY_DELETE_ENABLED = "delete_enabled";
 	private static final String KEY_CODE_ENABLED = "code_enabled";
-	
+
 	public NulltirechChanConfiguration()
 	{
 		request(OPTION_SINGLE_BOARD_MODE);
@@ -25,7 +25,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		addCaptchaType("infinite");
 		setSingleBoardName("tmp");
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -37,7 +37,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
 	{
@@ -51,7 +51,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -66,7 +66,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -76,7 +76,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName)
 	{
@@ -84,13 +84,13 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 		reporting.comment = true;
 		return reporting;
 	}
-	
+
 	public boolean isTagSupported(String boardName, int tag)
 	{
 		if (tag == NulltirechChanMarkup.TAG_CODE) return get(boardName, KEY_CODE_ENABLED, false);
 		return false;
 	}
-	
+
 	public void updateFromBoardJson(String boardName, JSONObject jsonObject, boolean updateTitle)
 	{
 		if (updateTitle)
@@ -104,7 +104,7 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 			}
 			catch (JSONException e)
 			{
-				
+
 			}
 		}
 		String defaultName = CommonUtils.optJsonString(jsonObject, "anonymous");
