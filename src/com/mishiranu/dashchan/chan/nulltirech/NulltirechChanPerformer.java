@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.chan.nulltirech;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,6 +22,8 @@ import android.util.Base64;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
+import chan.content.model.Board;
+import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
@@ -159,6 +162,13 @@ public class NulltirechChanPerformer extends ChanPerformer
 	}
 
 	@Override
+	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
+	{
+		return new ReadBoardsResult(new BoardCategory(null, Arrays.asList(new Board("b", "Новый Движок"),
+				new Board("tmp", "Временное убежище"))));
+	}
+
+	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
 		NulltirechChanLocator locator = NulltirechChanLocator.get(this);
@@ -177,7 +187,9 @@ public class NulltirechChanPerformer extends ChanPerformer
 			}
 		}
 		throw new InvalidResponseException();
-	}private boolean mRequireCaptcha = false;
+	}
+
+	private boolean mRequireCaptcha = false;
 
 	private static final Pattern PATTERN_CAPTCHA = Pattern.compile("<image src=\"data:image/png;base64,(.*?)\">" +
 			"(?:.*?value=['\"]([^'\"]+?)['\"])?");

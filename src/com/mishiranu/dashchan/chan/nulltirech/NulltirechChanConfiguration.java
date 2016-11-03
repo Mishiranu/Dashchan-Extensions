@@ -18,12 +18,10 @@ public class NulltirechChanConfiguration extends ChanConfiguration
 
 	public NulltirechChanConfiguration()
 	{
-		request(OPTION_SINGLE_BOARD_MODE);
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 		setBumpLimitMode(BumpLimitMode.AFTER_REPLY);
 		addCaptchaType("infinite");
-		setSingleBoardName("tmp");
 	}
 
 	@Override
