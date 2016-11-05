@@ -243,14 +243,15 @@ public class ValkyriaPostsParser
 			Matcher matcher = NUMBER.matcher(text);
 			if (matcher.find())
 			{
-				int count = Integer.parseInt(matcher.group(1));
+				int postsCount = Integer.parseInt(matcher.group(1));
+				int postsWithFilesCount = 0;
 				if (matcher.find())
 				{
-					holder.mThread.addPostsCount(count);
-					holder.mThread.addPostsWithFilesCount(Integer.parseInt(matcher.group(1)));
+					postsWithFilesCount = Integer.parseInt(matcher.group(1));
+					postsCount += postsWithFilesCount;
 				}
-				else if (text.contains("post(s)")) holder.mThread.addPostsCount(count);
-				else holder.mThread.addPostsWithFilesCount(count);
+				else if (text.contains("image reply(s)")) postsWithFilesCount = postsCount;
+				holder.mThread.addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
 			}
 		}
 
