@@ -24,8 +24,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 	{
 		ValkyriaChanLocator locator = ValkyriaChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		try
 		{
 			return new ReadThreadsResult(new ValkyriaPostsParser(responseText, this, data.boardName).convertThreads());
@@ -35,13 +34,13 @@ public class ValkyriaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
 	{
 		ValkyriaChanLocator locator = ValkyriaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		checkThreadNotFound(responseText, data.threadNumber);
 		try
 		{
@@ -52,13 +51,13 @@ public class ValkyriaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
 		ValkyriaChanLocator locator = ValkyriaChanLocator.get(this);
 		Uri uri = locator.buildPath("");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		String responseText = new HttpRequest(uri, data).read().getString();
 		try
 		{
 			return new ReadBoardsResult(new ValkyriaBoardsParser(responseText).convert());
@@ -68,13 +67,13 @@ public class ValkyriaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
 		ValkyriaChanLocator locator = ValkyriaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		checkThreadNotFound(responseText, data.threadNumber);
 		if (!responseText.contains("<form id=\"DeleteForm\"")) throw new InvalidResponseException();
 		int count = 0;
@@ -86,7 +85,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		}
 		return new ReadPostsCountResult(count);
 	}
-	
+
 	private void checkThreadNotFound(String responseText, String threadNumber) throws HttpException,
 			InvalidResponseException
 	{
@@ -99,9 +98,9 @@ public class ValkyriaChanPerformer extends ChanPerformer
 			throw new InvalidResponseException();
 		}
 	}
-	
+
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<div class=\"ErrorMessage\">(.*?)<br/>");
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
@@ -124,7 +123,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		String responseText;
 		try
 		{
-			new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+			new HttpRequest(uri, data).setPostMethod(entity)
 					.setRedirectHandler(HttpRequest.RedirectHandler.NONE).execute();
 			if (data.holder.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) return null;
 			responseText = data.holder.read().getString();
@@ -133,7 +132,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		{
 			data.holder.disconnect();
 		}
-		
+
 		Matcher matcher = PATTERN_POST_ERROR.matcher(responseText);
 		if (matcher.find())
 		{
@@ -161,7 +160,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -174,7 +173,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		String responseText;
 		try
 		{
-			new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+			new HttpRequest(uri, data).setPostMethod(entity)
 					.setRedirectHandler(HttpRequest.RedirectHandler.NONE).execute();
 			if (data.holder.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) return null;
 			responseText = data.holder.read().getString();
@@ -198,7 +197,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -210,7 +209,7 @@ public class ValkyriaChanPerformer extends ChanPerformer
 		String responseText;
 		try
 		{
-			new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+			new HttpRequest(uri, data).setPostMethod(entity)
 					.setRedirectHandler(HttpRequest.RedirectHandler.NONE).execute();
 			if (data.holder.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) return null;
 			responseText = data.holder.read().getString();

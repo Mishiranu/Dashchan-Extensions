@@ -14,21 +14,21 @@ import chan.util.StringUtils;
 public class ValkyriaBoardsParser
 {
 	private final String mSource;
-	
+
 	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
 	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
+
 	private boolean mNavigationParsing = false;
 	private String mBoardCategoryTitle;
 	private String mBoardName;
 
 	private static final Pattern BOARD_NAME_PATTERN = Pattern.compile("/(\\w+)/");
-	
+
 	public ValkyriaBoardsParser(String source)
 	{
 		mSource = source;
 	}
-	
+
 	public ArrayList<BoardCategory> convert() throws ParseException
 	{
 		PARSER.parse(mSource, this);
@@ -36,7 +36,7 @@ public class ValkyriaBoardsParser
 		for (BoardCategory boardCategory : mBoardCategories) Arrays.sort(boardCategory.getBoards());
 		return mBoardCategories;
 	}
-	
+
 	private void closeCategory()
 	{
 		if (mBoardCategoryTitle != null)
@@ -46,13 +46,13 @@ public class ValkyriaBoardsParser
 			mBoards.clear();
 		}
 	}
-	
+
 	private static final TemplateParser<ValkyriaBoardsParser> PARSER = new TemplateParser<ValkyriaBoardsParser>()
 			.equals("div", "class", "board_nav").open((instance, holder, tagName, attributes) ->
 	{
 		holder.mNavigationParsing = true;
 		return false;
-		
+
 	}).equals("a", "href", "#").content((instance, holder, text) ->
 	{
 		if ("Indices".equals(text) || "Misc".equals(text)) instance.finish(); else
@@ -60,7 +60,7 @@ public class ValkyriaBoardsParser
 			holder.closeCategory();
 			holder.mBoardCategoryTitle = StringUtils.clearHtml(text);
 		}
-		
+
 	}).starts("a", "href", "/").open((instance, holder, tagName, attributes) ->
 	{
 		String href = attributes.get("href");
@@ -71,14 +71,14 @@ public class ValkyriaBoardsParser
 			return true;
 		}
 		return false;
-		
+
 	}).content((instance, holder, text) ->
 	{
 		holder.mBoards.add(new Board(holder.mBoardName, StringUtils.clearHtml(text)));
-		
+
 	}).name("div").close((instance, holder, tagName) ->
 	{
 		if (holder.mNavigationParsing) instance.finish();
-		
+
 	}).prepare();
 }

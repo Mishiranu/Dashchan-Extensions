@@ -25,7 +25,7 @@ public class ValkyriaPostsParser
 	private final ValkyriaChanConfiguration mConfiguration;
 	private final ValkyriaChanLocator mLocator;
 	private final String mBoardName;
-	
+
 	private String mParent;
 	private Posts mThread;
 	private Post mPost;
@@ -33,22 +33,22 @@ public class ValkyriaPostsParser
 	private ArrayList<Posts> mThreads;
 	private final ArrayList<Post> mPosts = new ArrayList<>();
 	private final ArrayList<FileAttachment> mAttachments = new ArrayList<>();
-	
+
 	private boolean mFileHandling = false;
 	private boolean mHeaderHandling = false;
-	
+
 	private static final SimpleDateFormat DATE_FORMAT;
-	
+
 	static
 	{
 		DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy(EEE)hh:mm:ss", Locale.US);
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT-5"));
 	}
-	
+
 	private static final Pattern FILE_SIZE = Pattern.compile("([\\d\\.]+)(\\w+), (\\d+)x(\\d+)");
 	private static final Pattern NAME_EMAIL = Pattern.compile("<a href='(.*?)'>(.*)</a>");
 	private static final Pattern NUMBER = Pattern.compile("(\\d+)");
-	
+
 	public ValkyriaPostsParser(String source, Object linked, String boardName)
 	{
 		mSource = source;
@@ -56,7 +56,7 @@ public class ValkyriaPostsParser
 		mLocator = ValkyriaChanLocator.get(linked);
 		mBoardName = boardName;
 	}
-	
+
 	private void closeThread()
 	{
 		if (mThread != null)
@@ -70,7 +70,7 @@ public class ValkyriaPostsParser
 			mPosts.clear();
 		}
 	}
-	
+
 	public ArrayList<Posts> convertThreads() throws ParseException
 	{
 		mThreads = new ArrayList<>();
@@ -78,13 +78,13 @@ public class ValkyriaPostsParser
 		closeThread();
 		return mThreads;
 	}
-	
+
 	public ArrayList<Post> convertPosts() throws ParseException
 	{
 		PARSER.parse(mSource, this);
 		return mPosts;
 	}
-	
+
 	private static final TemplateParser<ValkyriaPostsParser> PARSER = new TemplateParser<ValkyriaPostsParser>()
 			.starts("input", "name", "post_").open((instance, holder, tagName, attributes) ->
 	{
@@ -105,7 +105,7 @@ public class ValkyriaPostsParser
 			}
 		}
 		return false;
-		
+
 	}).starts("td", "id", "replybox_").open((instance, holder, tagName, attributes) ->
 	{
 		String number = attributes.get("id").substring(9);
@@ -114,14 +114,14 @@ public class ValkyriaPostsParser
 		post.setPostNumber(number);
 		holder.mPost = post;
 		return false;
-		
+
 	}).equals("div", "class", "FileDetails").equals("span", "class", "FileDetails")
 			.open((instance, holder, tagName, attributes) ->
 	{
 		holder.mFileHandling = true;
 		if (holder.mPost == null) holder.mPost = new Post();
 		return false;
-		
+
 	}).name("a").open((instance, holder, tagName, attributes) ->
 	{
 		if (holder.mFileHandling)
@@ -131,7 +131,7 @@ public class ValkyriaPostsParser
 			holder.mAttachments.add(holder.mAttachment);
 		}
 		return false;
-		
+
 	}).text((instance, holder, source, start, end) ->
 	{
 		if (holder.mFileHandling)
@@ -152,11 +152,11 @@ public class ValkyriaPostsParser
 				holder.mFileHandling = false;
 			}
 		}
-		
+
 	}).name("div").name("span").close((instance, holder, tagName) ->
 	{
 		holder.mFileHandling = false;
-		
+
 	}).contains("img", "class", "ThumbnailImage").open((instance, holder, tagName, attributes) ->
 	{
 		String uriString = attributes.get("data-original");
@@ -167,16 +167,16 @@ public class ValkyriaPostsParser
 			else holder.mAttachment.setThumbnailUri(holder.mLocator, Uri.parse(uriString));
 		}
 		return false;
-		
+
 	}).equals("object", "class", "MediaEmbed").content((instance, holder, text) ->
 	{
 		EmbeddedAttachment attachment = EmbeddedAttachment.obtain(text);
 		if (attachment != null) holder.mPost.setAttachments(attachment);
-		
+
 	}).equals("span", "class", "Subject").content((instance, holder, text) ->
 	{
 		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).equals("span", "class", "UserName").content((instance, holder, text) ->
 	{
 		text = CommonUtils.restoreCloudFlareProtectedEmails(text);
@@ -188,18 +188,18 @@ public class ValkyriaPostsParser
 			text = matcher.group(2);
 		}
 		holder.mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).equals("span", "class", "UserNameTripcode").content((instance, holder, text) ->
 	{
 		holder.mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-		
+
 	}).contains("img", "src", "/images/flags/").open((instance, holder, tagName, attributes) ->
 	{
 		String title = StringUtils.clearHtml(attributes.get("title"));
 		Uri uri = Uri.parse(attributes.get("src"));
 		holder.mPost.setIcons(new Icon(holder.mLocator, uri, title));
 		return false;
-		
+
 	}).text((instance, holder, source, start, end) ->
 	{
 		if (holder.mHeaderHandling)
@@ -213,12 +213,12 @@ public class ValkyriaPostsParser
 				}
 				catch (java.text.ParseException e)
 				{
-					
+
 				}
 				holder.mHeaderHandling = false;
 			}
 		}
-		
+
 	}).ends("span", "id", "_message_div").content((instance, holder, text) ->
 	{
 		text = CommonUtils.restoreCloudFlareProtectedEmails(text);
@@ -235,7 +235,7 @@ public class ValkyriaPostsParser
 		holder.mPosts.add(holder.mPost);
 		holder.mAttachment = null;
 		holder.mPost = null;
-		
+
 	}).equals("span", "class", "OmissionText").content((instance, holder, text) ->
 	{
 		if (holder.mThreads != null)
@@ -253,14 +253,14 @@ public class ValkyriaPostsParser
 				else holder.mThread.addPostsWithFilesCount(count);
 			}
 		}
-		
+
 	}).equals("div", "class", "Title").content((instance, holder, text) ->
 	{
 		text = StringUtils.clearHtml(text).trim();
 		int index = text.indexOf("- ");
 		if (index >= 0) text = text.substring(index + 2);
 		if (!StringUtils.isEmpty(text)) holder.mConfiguration.storeBoardTitle(holder.mBoardName, text);
-		
+
 	}).equals("table", "class", "PagingTable").content((instance, holder, text) ->
 	{
 		text = StringUtils.clearHtml(text);
@@ -276,9 +276,9 @@ public class ValkyriaPostsParser
 			}
 			catch (NumberFormatException e)
 			{
-				
+
 			}
 		}
-		
+
 	}).prepare();
 }

@@ -13,7 +13,7 @@ public class ValkyriaChanConfiguration extends ChanConfiguration
 			setDefaultName(boardName, "Anonymous");
 		}
 	}
-	
+
 	@Override
 	public Board obtainBoardConfiguration(String boardName)
 	{
@@ -23,7 +23,7 @@ public class ValkyriaChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
 	{
@@ -38,7 +38,7 @@ public class ValkyriaChanConfiguration extends ChanConfiguration
 		posting.attachmentSpoiler = true;
 		return posting;
 	}
-	
+
 	@Override
 	public Deleting obtainDeletingConfiguration(String boardName)
 	{
@@ -48,7 +48,7 @@ public class ValkyriaChanConfiguration extends ChanConfiguration
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName)
 	{

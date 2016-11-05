@@ -12,7 +12,7 @@ public class ValkyriaChanMarkup extends ChanMarkup
 {
 	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_UNDERLINE | TAG_STRIKE
 			| TAG_SPOILER | TAG_CODE;
-	
+
 	public ValkyriaChanMarkup()
 	{
 		addTag("b", TAG_BOLD);
@@ -23,21 +23,21 @@ public class ValkyriaChanMarkup extends ChanMarkup
 		addTag("span", "SpoilerBox", TAG_SPOILER);
 		addTag("span", "QuoteText", TAG_QUOTE);
 	}
-	
+
 	@Override
 	public CommentEditor obtainCommentEditor(String boardName)
 	{
 		return new CommentEditor.BulletinBoardCodeCommentEditor();
 	}
-	
+
 	@Override
 	public boolean isTagSupported(String boardName, int tag)
 	{
 		return (SUPPORTED_TAGS & tag) == tag;
 	}
-	
+
 	private static final Pattern THREAD_LINK = Pattern.compile("topic/(\\d+)(?:#(\\d+))?$");
-	
+
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString)
 	{
