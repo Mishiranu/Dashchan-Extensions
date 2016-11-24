@@ -17,7 +17,7 @@ public class HaibaneChanConfiguration extends ChanConfiguration {
 		setDefaultName("zen", "\u9053\u5143");
 		setDefaultName("test", "Тостер");
 		setBumpLimit(500);
-		addCaptchaType("haibane");
+		addCaptchaType("monaba");
 	}
 
 	@Override
@@ -31,9 +31,9 @@ public class HaibaneChanConfiguration extends ChanConfiguration {
 
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if ("haibane".equals(captchaType)) {
+		if ("monaba".equals(captchaType)) {
 			Captcha captcha = new Captcha();
-			captcha.title = "Haibane";
+			captcha.title = "Monaba";
 			captcha.input = Captcha.Input.LATIN;
 			captcha.validity = Captcha.Validity.LONG_LIFETIME;
 			return captcha;

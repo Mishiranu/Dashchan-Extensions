@@ -182,7 +182,7 @@ public class HaibaneChanPerformer extends ChanPerformer {
 			return HttpRequest.RedirectHandler.STRICT.onRedirectReached(responseCode,
 					requestedUri, redirectedUri, holder);
 		}
-	};
+	}
 
 	private static final Pattern PATTERN_SEND_ERROR = Pattern.compile("<div id=\"message\">(.*?)</div>");
 
@@ -198,10 +198,11 @@ public class HaibaneChanPerformer extends ChanPerformer {
 			entity.add("f7", "yes");
 		}
 		if (data.attachments != null) {
+			int maxFilesCount = 10;
 			for (int i = 0; i < data.attachments.length; i++) {
 				SendPostData.Attachment attachment = data.attachments[i];
 				attachment.addToEntity(entity, "f" + (8 + i));
-				entity.add("f" + (18 + i), attachment.rating);
+				entity.add("f" + (8 + maxFilesCount + i), attachment.rating);
 			}
 		}
 		if (data.captchaData != null) {
@@ -245,7 +246,9 @@ public class HaibaneChanPerformer extends ChanPerformer {
 		}
 
 		int errorType = 0;
-		if (errorMessage.contains("Thread subject is required")) {
+		if (errorMessage.contains("Wrong captcha")) {
+			errorType = ApiException.SEND_ERROR_CAPTCHA;
+		} else if (errorMessage.contains("Thread subject is required")) {
 			errorType = ApiException.SEND_ERROR_EMPTY_SUBJECT;
 		} else if (errorMessage.contains("File required")) {
 			errorType = ApiException.SEND_ERROR_EMPTY_FILE;
