@@ -11,67 +11,60 @@ import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class TiretirechBoardsParser
-{
-	private final String mSource;
-	
-	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
-	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
-	private String mBoardCategoryTitle;
-	private String mBoardName;
+public class TiretirechBoardsParser {
+	private final String source;
+
+	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+	private final ArrayList<Board> boards = new ArrayList<>();
+
+	private String boardCategoryTitle;
+	private String boardName;
 
 	private static final Pattern BOARD_URI = Pattern.compile("(\\w+)/");
-	
-	public TiretirechBoardsParser(String source)
-	{
-		mSource = source;
+
+	public TiretirechBoardsParser(String source) {
+		this.source = source;
 	}
-	
-	public ArrayList<BoardCategory> convert() throws ParseException
-	{
-		PARSER.parse(mSource, this);
+
+	public ArrayList<BoardCategory> convert() throws ParseException {
+		PARSER.parse(source, this);
 		closeCategory();
-		for (BoardCategory boardCategory : mBoardCategories) Arrays.sort(boardCategory.getBoards());
-		return mBoardCategories;
+		for (BoardCategory boardCategory : boardCategories) {
+			Arrays.sort(boardCategory.getBoards());
+		}
+		return boardCategories;
 	}
-	
-	private void closeCategory()
-	{
-		if (mBoardCategoryTitle != null)
-		{
-			if (mBoards.size() > 0) mBoardCategories.add(new BoardCategory(mBoardCategoryTitle, mBoards));
-			mBoardCategoryTitle = null;
-			mBoards.clear();
+
+	private void closeCategory() {
+		if (boardCategoryTitle != null) {
+			if (boards.size() > 0) {
+				boardCategories.add(new BoardCategory(boardCategoryTitle, boards));
+			}
+			boardCategoryTitle = null;
+			boards.clear();
 		}
 	}
-	
+
 	private static final TemplateParser<TiretirechBoardsParser> PARSER = new TemplateParser<TiretirechBoardsParser>()
-			.name("dt").content((instance, holder, text) ->
-	{
+			.name("dt").content((instance, holder, text) -> {
 		holder.closeCategory();
-		holder.mBoardCategoryTitle = StringUtils.clearHtml(text).trim();
-		
-	}).name("a").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mBoardCategoryTitle != null)
-		{
+		holder.boardCategoryTitle = StringUtils.clearHtml(text).trim();
+	}).name("a").open((instance, holder, tagName, attributes) -> {
+		if (holder.boardCategoryTitle != null) {
 			String href = attributes.get("href");
 			Matcher matcher = BOARD_URI.matcher(href);
-			if (matcher.matches())
-			{
-				holder.mBoardName = matcher.group(1);
+			if (matcher.matches()) {
+				holder.boardName = matcher.group(1);
 				return true;
 			}
 		}
 		return false;
-		
-	}).content((instance, holder, text) ->
-	{
+	}).content((instance, holder, text) -> {
 		text = StringUtils.clearHtml(text);
 		int index = text.indexOf("— ");
-		if (index >= 0) text = text.substring(index + 2);
-		holder.mBoards.add(new Board(holder.mBoardName, text));
-		
+		if (index >= 0) {
+			text = text.substring(index + 2);
+		}
+		holder.boards.add(new Board(holder.boardName, text));
 	}).prepare();
 }
