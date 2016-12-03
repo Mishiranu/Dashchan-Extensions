@@ -161,7 +161,7 @@ public class TiretirechPostsParser {
 		}
 	}).equals("span", "class", "postertrip").content((instance, holder, text) -> {
 		holder.post.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim().replace('\u2665', '!')));
-	}).equals("span", "class", "postdate").content((instance, holder, text) -> {
+	}).contains("span", "class", "postdate").content((instance, holder, text) -> {
 		try {
 			holder.post.setTimestamp(DATE_FORMAT.parse(text).getTime());
 		} catch (java.text.ParseException e) {
