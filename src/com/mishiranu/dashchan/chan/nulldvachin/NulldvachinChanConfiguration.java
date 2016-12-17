@@ -105,7 +105,7 @@ public class NulldvachinChanConfiguration extends ChanConfiguration {
 			}
 			JSONObject configObject = infoObject.optJSONObject("config");
 			if (configObject != null) {
-				String defaultName = StringUtils.nullIfEmpty(CommonUtils.optJsonString(infoObject, "default_name"));
+				String defaultName = StringUtils.nullIfEmpty(CommonUtils.optJsonString(configObject, "default_name"));
 				int bumpLimit = configObject.optInt("max_res");
 				boolean namesEnabled = configObject.optInt("names_allowed", 1) != 0;
 				boolean threadImagesEnabled = configObject.optInt("image_op", 1) != 0;
