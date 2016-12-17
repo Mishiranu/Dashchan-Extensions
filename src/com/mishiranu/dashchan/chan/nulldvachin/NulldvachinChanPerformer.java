@@ -22,7 +22,6 @@ import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
@@ -38,7 +37,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		NulldvachinChanConfiguration configuration = NulldvachinChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/threads", "page", Integer.toString(data.pageNumber + 1));
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -71,7 +70,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		} else {
 			uri = locator.buildQuery(data.boardName + "/api/thread", "id", data.threadNumber);
 		}
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -81,7 +80,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		} catch (HttpException e) {
 			if (lastPostNumber != null && e.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
 				// Will throw exception if original post doesn't exist
-				onReadSinglePost(data.holder, data, data.boardName, data.threadNumber);
+				onReadSinglePost(data, data.boardName, data.threadNumber);
 				return new ReadPostsResult((Posts) null); // No new posts
 			}
 			throw e;
@@ -101,16 +100,16 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 	@Override
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException,
 			InvalidResponseException {
-		return new ReadSinglePostResult(onReadSinglePost(data.holder, data, data.boardName, data.postNumber));
+		return new ReadSinglePostResult(onReadSinglePost(data, data.boardName, data.postNumber));
 	}
 
-	private Post onReadSinglePost(HttpHolder holder, HttpRequest.Preset preset, String boardName, String postNumber)
+	private Post onReadSinglePost(HttpRequest.Preset preset, String boardName, String postNumber)
 			throws HttpException, InvalidResponseException {
 		NulldvachinChanLocator locator = NulldvachinChanLocator.get(this);
 		NulldvachinChanConfiguration configuration = NulldvachinChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(boardName + "/api/post", "id", postNumber);
-		JSONObject jsonObject = new HttpRequest(uri, holder, preset).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, preset).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -132,7 +131,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/search", "subject", "1", "comment", "1",
 				"find", data.searchQuery);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -161,7 +160,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		NulldvachinChanLocator locator = NulldvachinChanLocator.get(this);
 		Uri uri = locator.buildPath("b", "api", "getboards");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
 		}
@@ -212,7 +211,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		NulldvachinChanConfiguration configuration = NulldvachinChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/postcount", "id", data.threadNumber);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject != null) {
 			handleStatus(jsonObject);
@@ -248,7 +247,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		try {
 			NulldvachinChanLocator locator = NulldvachinChanLocator.get(this);
 			Uri uri = locator.buildQuery("b/api/authorize", "auth", data.authorizationData[0]);
-			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+			JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
 			if (jsonObject == null) {
 				throw new InvalidResponseException();
 			}
@@ -273,7 +272,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		NulldvachinChanConfiguration configuration = NulldvachinChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildQuery(data.boardName + "/api/checkconfig", "captcha", "");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).addCookie(COOKIE_AUTH, authorizedTripcode)
+		JSONObject jsonObject = new HttpRequest(uri, data).addCookie(COOKIE_AUTH, authorizedTripcode)
 				.read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -287,7 +286,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		if (needCaptcha) {
 			uri = locator.buildQuery("captcha.pl", "board", data.boardName, "key",
 					data.threadNumber == null ? "mainpage" : "res" + data.threadNumber);
-			Bitmap image = new HttpRequest(uri, data.holder, data).read().getBitmap();
+			Bitmap image = new HttpRequest(uri, data).read().getBitmap();
 			if (image != null) {
 				Bitmap newImage = Bitmap.createBitmap(image.getWidth(), 32, Bitmap.Config.ARGB_8888);
 				Canvas canvas = new Canvas(newImage);
@@ -334,7 +333,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		NulldvachinChanConfiguration configuration = NulldvachinChanConfiguration.get(this);
 		String authorizedTripcode = configuration.getAuthorizedTripcode();
 		Uri uri = locator.buildPath("wakaba.pl");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).addCookie(COOKIE_AUTH,
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity).addCookie(COOKIE_AUTH,
 				authorizedTripcode).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -436,7 +435,7 @@ public class NulldvachinChanPerformer extends ChanPerformer {
 		for (String postNumber : data.postNumbers) {
 			entity.add("delete", postNumber);
 		}
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.addCookie(COOKIE_AUTH, authorizedTripcode).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
