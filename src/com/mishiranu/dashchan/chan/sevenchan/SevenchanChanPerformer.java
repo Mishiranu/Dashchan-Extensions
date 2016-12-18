@@ -11,7 +11,6 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanPerformer;
 import chan.content.ChanLocator;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.MultipartEntity;
@@ -36,8 +35,7 @@ public class SevenchanChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
-			InvalidResponseException {
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		SevenchanChanLocator locator = ChanLocator.get(this);
 		String lastPostNumber = data.partialThreadLoading ? data.lastPostNumber : null;
 		if (lastPostNumber != null) {
