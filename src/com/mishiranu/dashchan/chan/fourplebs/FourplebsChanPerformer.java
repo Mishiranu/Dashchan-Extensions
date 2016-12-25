@@ -85,9 +85,12 @@ public class FourplebsChanPerformer extends ChanPerformer {
 		}
 	}
 
+	private static final Pattern PATTERN_PREFIX = Pattern.compile("foolfuuka/foolz/foolfuuka-theme-fourpleb" +
+			"/assets-.*?(?=/)");
 	private static final Pattern PATTERN_FLAG_DATA_CSS = Pattern.compile("(flag-[a-z]+)" +
 			"\\{ *background-position: *(-?\\d+)(?:px)? +(-?\\d+)(?:px)?;? *\\}");
 
+	private String flagPrefix;
 	private final HashMap<String, Pair<Integer, Integer>> flagDatas = new HashMap<>();
 
 	@Override
@@ -95,23 +98,30 @@ public class FourplebsChanPerformer extends ChanPerformer {
 		FourplebsChanLocator locator = FourplebsChanLocator.get(this);
 		String cssClass = locator.extractFlagStubClass(data.uri);
 		if (cssClass != null) {
-			String prefix = "foolfuuka/foolz/foolfuuka-theme-fourpleb/assets-0.1.6";
 			Pair<Integer, Integer> flagData;
 			synchronized (flagDatas) {
 				if (flagDatas.isEmpty()) {
-					Uri uri = locator.buildPath(prefix, "flags.css");
+					Uri uri = locator.createBoardUri("pol", 0);
 					String responseText = new HttpRequest(uri, data.holder).read().getString();
-					Matcher matcher = PATTERN_FLAG_DATA_CSS.matcher(responseText);
-					while (matcher.find()) {
-						flagDatas.put("flag " + matcher.group(1), new Pair<>(Integer.parseInt(matcher.group(2)),
-								Integer.parseInt(matcher.group(3))));
-					}
-					uri = locator.buildPath(prefix, "polflags.css");
-					responseText = new HttpRequest(uri, data.holder).read().getString();
-					matcher = PATTERN_FLAG_DATA_CSS.matcher(responseText);
-					while (matcher.find()) {
-						flagDatas.put("flag-pol " + matcher.group(1), new Pair<>(Integer.parseInt(matcher.group(2)),
-								Integer.parseInt(matcher.group(3))));
+					Matcher matcher = PATTERN_PREFIX.matcher(responseText);
+					if (matcher.find()) {
+						flagPrefix = matcher.group();
+						uri = locator.buildPath(flagPrefix, "flags.css");
+						responseText = new HttpRequest(uri, data.holder).read().getString();
+						matcher = PATTERN_FLAG_DATA_CSS.matcher(responseText);
+						while (matcher.find()) {
+							flagDatas.put("flag " + matcher.group(1), new Pair<>(Integer.parseInt(matcher.group(2)),
+									Integer.parseInt(matcher.group(3))));
+						}
+						uri = locator.buildPath(flagPrefix, "polflags.css");
+						responseText = new HttpRequest(uri, data.holder).read().getString();
+						matcher = PATTERN_FLAG_DATA_CSS.matcher(responseText);
+						while (matcher.find()) {
+							flagDatas.put("flag-pol " + matcher.group(1), new Pair<>(Integer.parseInt(matcher.group(2)),
+									Integer.parseInt(matcher.group(3))));
+						}
+					} else {
+						throw HttpException.createNotFoundException();
 					}
 				}
 				flagData = flagDatas.get(cssClass);
@@ -119,8 +129,8 @@ public class FourplebsChanPerformer extends ChanPerformer {
 			if (flagData != null) {
 				String path = null;
 				switch (cssClass.split(" +")[0]) {
-					case "flag": path = prefix + "/images/flags.png"; break;
-					case "flag-pol": path = prefix + "/images/polflags.png"; break;
+					case "flag": path = flagPrefix + "/images/flags.png"; break;
+					case "flag-pol": path = flagPrefix + "/images/polflags.png"; break;
 				}
 				if (path != null) {
 					Uri uri = locator.buildPath(path);
