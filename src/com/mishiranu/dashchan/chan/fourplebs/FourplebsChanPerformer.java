@@ -13,7 +13,7 @@ import android.util.Pair;
 
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
+import chan.content.RedirectException;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
@@ -35,8 +35,8 @@ public class FourplebsChanPerformer extends ChanPerformer {
 	private static final Pattern PATTERN_REDIRECT = Pattern.compile("You are being redirected to .*?/thread/(\\d+)/#");
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
-			InvalidResponseException {
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
+			RedirectException {
 		FourplebsChanLocator locator = FourplebsChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
 		String responseText = new HttpRequest(uri, data).setValidator(data.validator)
@@ -46,7 +46,7 @@ public class FourplebsChanPerformer extends ChanPerformer {
 			responseText = new HttpRequest(uri, data.holder, data).read().getString();
 			Matcher matcher = PATTERN_REDIRECT.matcher(responseText);
 			if (matcher.find()) {
-				throw new ThreadRedirectException(data.boardName, matcher.group(1), data.threadNumber);
+				throw RedirectException.toThread(data.boardName, matcher.group(1), data.threadNumber);
 			}
 			throw HttpException.createNotFoundException();
 		} else {
