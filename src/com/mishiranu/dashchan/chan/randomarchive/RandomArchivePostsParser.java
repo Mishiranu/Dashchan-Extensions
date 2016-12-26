@@ -124,7 +124,8 @@ public class RandomArchivePostsParser {
 		}
 		holder.attachment.setFileUri(holder.locator, Uri.parse(attributes.get("href")));
 		return false;
-	}).contains("img", "src", "/thumb/").open((instance, holder, tagName, attributes) -> {
+	}).contains("img", "src", "/thumb/").contains("img", "src", "i.imgur.com")
+			.open((instance, holder, tagName, attributes) -> {
 		holder.attachment.setThumbnailUri(holder.locator, Uri.parse(attributes.get("src")));
 		return false;
 	}).name("blockquote").content((instance, holder, text) -> {
