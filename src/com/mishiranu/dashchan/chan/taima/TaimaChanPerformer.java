@@ -243,7 +243,7 @@ public class TaimaChanPerformer extends ChanPerformer {
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		TaimaChanLocator locator = TaimaChanLocator.get(this);
-		Uri uri = locator.createSpecialBoardUri("bunker", "");
+		Uri uri = locator.createSpecialBoardUriHttps("bunker", "");
 		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(new UrlEncodedEntity("b", "0"))
 				.addHeader("X-Requested-With", "XMLHttpRequest").read().getJsonObject();
 		String banana = jsonObject != null ? CommonUtils.optJsonString(jsonObject, "response") : null;
@@ -270,7 +270,7 @@ public class TaimaChanPerformer extends ChanPerformer {
 		}
 		entity.add("banana", banana);
 
-		uri = locator.createSpecialBoardUri(data.boardName, "taimaba.pl");
+		uri = locator.createSpecialBoardUriHttps(data.boardName, "taimaba.pl");
 		String responseText;
 		try {
 			new HttpRequest(uri, data).setPostMethod(entity)

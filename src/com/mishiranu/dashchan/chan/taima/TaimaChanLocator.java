@@ -19,6 +19,7 @@ public class TaimaChanLocator extends ChanLocator {
 		addChanHost("420chan.org");
 		addSpecialChanHost(HOST_BOARDS);
 		addSpecialChanHost(HOST_API);
+		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 
 	@Override
@@ -77,5 +78,9 @@ public class TaimaChanLocator extends ChanLocator {
 
 	public Uri createSpecialBoardUri(String... segments) {
 		return buildPathWithHost(HOST_BOARDS, segments);
+	}
+
+	public Uri createSpecialBoardUriHttps(String... segments) {
+		return buildPathWithSchemeHost(true, HOST_BOARDS, segments);
 	}
 }
