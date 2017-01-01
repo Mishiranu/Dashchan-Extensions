@@ -3,13 +3,13 @@
 	package="com.mishiranu.dashchan.chan.taima"
 	android:versionCode="1"
 	android:versionName="1.3">
-	
+
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
-	
+
 	<uses-feature android:name="chan.extension" />
-	
+
 	<application android:icon="@null" android:allowBackup="false" android:label="@string/text_app_name">
-		
+
 		<meta-data android:name="chan.extension.name" android:value="taima" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_taima_white" />
@@ -18,10 +18,10 @@
 		<meta-data android:name="chan.extension.class.performer" android:value=".TaimaChanPerformer" />
 		<meta-data android:name="chan.extension.class.locator" android:value=".TaimaChanLocator" />
 		<meta-data android:name="chan.extension.class.markup" android:value=".TaimaChanMarkup" />
-		
+
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
 		    android:theme="@android:style/Theme.NoDisplay">
-			
+
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -30,9 +30,9 @@
 				<data android:host="420chan.org" />
 				<data android:host="boards.420chan.org" />
 			</intent-filter>
-			
+
 		</activity>
-		
+
 	</application>
-	
+
 </manifest>

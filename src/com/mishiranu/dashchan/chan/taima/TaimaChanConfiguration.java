@@ -4,29 +4,25 @@ import android.content.res.Resources;
 import android.util.Pair;
 import chan.content.ChanConfiguration;
 
-public class TaimaChanConfiguration extends ChanConfiguration
-{
+public class TaimaChanConfiguration extends ChanConfiguration {
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
-	
-	public TaimaChanConfiguration()
-	{
+
+	public TaimaChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 	}
-	
+
 	@Override
-	public Board obtainBoardConfiguration(String boardName)
-	{
+	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
 		board.allowCatalog = true;
 		board.allowPosting = true;
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
-	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
-	{
+	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
 		Posting posting = new Posting();
 		posting.allowName = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowTripcode = true;
@@ -36,10 +32,9 @@ public class TaimaChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("image/*");
 		return posting;
 	}
-	
+
 	@Override
-	public Reporting obtainReportingConfiguration(String boardName)
-	{
+	public Reporting obtainReportingConfiguration(String boardName) {
 		Resources resources = getResources();
 		Reporting reporting = new Reporting();
 		reporting.comment = true;
@@ -47,9 +42,8 @@ public class TaimaChanConfiguration extends ChanConfiguration
 		reporting.types.add(new Pair<>("ILLEGAL_CONTENT", resources.getString(R.string.text_illegal)));
 		return reporting;
 	}
-	
-	public void storeNamesEnabled(String boardName, boolean namesEnabled)
-	{
+
+	public void storeNamesEnabled(String boardName, boolean namesEnabled) {
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 	}
 }
