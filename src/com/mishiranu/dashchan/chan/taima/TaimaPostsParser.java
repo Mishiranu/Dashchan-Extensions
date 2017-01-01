@@ -12,9 +12,10 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class TaimaPostsParser implements GroupParser.Callback {
+public class TaimaPostsParser {
 	private final String source;
 	private final TaimaChanConfiguration configuration;
 	private final TaimaChanLocator locator;
@@ -26,19 +27,6 @@ public class TaimaPostsParser implements GroupParser.Callback {
 	private FileAttachment attachment;
 	private ArrayList<Posts> threads;
 	private final ArrayList<Post> posts = new ArrayList<>();
-
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_SUBJECT = 1;
-	private static final int EXPECT_NAME = 2;
-	private static final int EXPECT_TRIPCODE = 3;
-	private static final int EXPECT_DATE_ID = 4;
-	private static final int EXPECT_FILE_DATA = 5;
-	private static final int EXPECT_COMMENT = 6;
-	private static final int EXPECT_OMITTED = 7;
-	private static final int EXPECT_BOARD_TITLE = 8;
-	private static final int EXPECT_PAGES_COUNT = 9;
-
-	private int expect = EXPECT_NONE;
 
 	private boolean hasPostBlock = false;
 	private boolean hasPostBlockName = false;
@@ -76,7 +64,7 @@ public class TaimaPostsParser implements GroupParser.Callback {
 
 	public ArrayList<Posts> convertThreads() throws ParseException {
 		threads = new ArrayList<>();
-		GroupParser.parse(source, this);
+		PARSER.parse(source, this);
 		closeThread();
 		if (threads.size() > 0) {
 			updateConfiguration();
@@ -86,7 +74,7 @@ public class TaimaPostsParser implements GroupParser.Callback {
 	}
 
 	public Posts convertPosts() throws ParseException {
-		GroupParser.parse(source, this);
+		PARSER.parse(source, this);
 		if (posts.size() > 0) {
 			updateConfiguration();
 			return new Posts(posts);
@@ -100,213 +88,131 @@ public class TaimaPostsParser implements GroupParser.Callback {
 		}
 	}
 
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs) {
-		if ("div".equals(tagName)) {
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("thread_header".equals(cssClass)) {
-				parent = null;
-				post = new Post();
-				if (threads != null) {
-					closeThread();
-					thread = new Posts();
-				}
-			} else if ("lock".equals(cssClass)) {
-				post.setClosed(true);
-			} else if ("ban".equals(cssClass)) {
-				post.setPosterBanned(true);
-			} else if ("warn".equals(cssClass)) {
-				post.setPosterWarned(true);
-			} else if ("pagelist".equals(cssClass)) {
-				expect = EXPECT_PAGES_COUNT;
-				return true;
-			}
-		} else if ("td".equals(tagName)) {
-			String id = parser.getAttr(attrs, "id");
-			if (id != null && id.startsWith("reply")) {
-				String number = id.substring(5);
-				post = new Post();
-				post.setParentPostNumber(parent);
-				post.setPostNumber(number);
-			}
-		} else if ("span".equals(tagName)) {
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("filetitle".equals(cssClass)) {
-				expect = EXPECT_SUBJECT;
-				return true;
-			} else if ("postername".equals(cssClass) || "commentpostername".equals(cssClass)) {
-				expect = EXPECT_NAME;
-				return true;
-			} else if ("postertrip".equals(cssClass)) {
-				expect = EXPECT_TRIPCODE;
-				return true;
-			} else if ("idhighlight".equals(cssClass)) {
-				expect = EXPECT_DATE_ID;
-				return true;
-			} else if ("filesize".equals(cssClass)) {
-				expect = EXPECT_FILE_DATA;
-				attachment = new FileAttachment();
-				post.setAttachments(attachment);
-			} else if ("board_title".equals(cssClass)) {
-				expect = EXPECT_BOARD_TITLE;
-				return true;
-			} else if ("omittedposts".equals(cssClass)) {
-				expect = EXPECT_OMITTED;
-				return true;
-			}
-		} else if ("em".equals(tagName)) {
-			if (expect == EXPECT_FILE_DATA) {
-				return true;
-			}
-		} else if ("a".equals(tagName)) {
-			if (expect == EXPECT_FILE_DATA) {
-				String path = parser.getAttr(attrs, "href");
-				if (path != null) {
-					attachment.setFileUri(locator, locator.createSpecialBoardUri(path));
-				}
-			} else if (parent == null && post != null) {
-				String id = parser.getAttr(attrs, "id");
-				if (id != null) {
-					parent = id;
-					post.setPostNumber(id);
-				}
-			}
-		} else if ("img".equals(tagName)) {
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("thumb".equals(cssClass)) {
-				String path = parser.getAttr(attrs, "src");
-				if (path != null && (!path.equals(attachment.getFileUri(locator).getPath()) ||
-						attachment.getSize() < 50 * 1024)) {
-					// GIF thumbnails has the same URI as image and can weigh a lot
-					if (path != null) {
-						attachment.setThumbnailUri(locator, locator.createSpecialBoardUri(path));
-					}
-				}
-			}
-		} else if ("i".equals(tagName)) {
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("gl glyphicon-paperclip".equals(cssClass)) {
-				post.setSticky(true);
-			}
-		} else if ("blockquote".equals(tagName)) {
-			expect = EXPECT_COMMENT;
-			return true;
-		} else if ("form".equals(tagName)) {
-			String id = parser.getAttr(attrs, "id");
-			if ("postform".equals(id)) {
-				hasPostBlock = true;
-			}
-		} else if ("input".equals(tagName)) {
-			if (hasPostBlock) {
-				String name = parser.getAttr(attrs, "name");
-				if ("field1".equals(name)) {
-					hasPostBlockName = true;
-				}
+	private static final TemplateParser<TaimaPostsParser> PARSER = new TemplateParser<TaimaPostsParser>()
+			.equals("div", "class", "thread_header").open((instance, holder, tagName, attributes) -> {
+		holder.parent = null;
+		holder.post = new Post();
+		if (holder.threads != null) {
+			holder.closeThread();
+			holder.thread = new Posts();
+		}
+		return false;
+	}).starts("td", "id", "reply").open((instance, holder, tagName, attributes) -> {
+		String number = attributes.get("id").substring(5);
+		holder.post = new Post();
+		holder.post.setParentPostNumber(holder.parent);
+		holder.post.setPostNumber(number);
+		return false;
+	}).contains("a", "id", "").open((instance, holder, tagName, attributes) -> {
+		if (holder.parent == null && holder.post != null) {
+			String id = attributes.get("id");
+			if (id != null) {
+				holder.parent = id;
+				holder.post.setPostNumber(id);
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public void onEndElement(GroupParser parser, String tagName) {}
-
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end) {}
-
-	@Override
-	public void onGroupComplete(GroupParser parser, String text) {
-		switch (expect) {
-			case EXPECT_SUBJECT: {
-				post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_NAME: {
-				post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_TRIPCODE: {
-				post.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-				break;
-			}
-			case EXPECT_DATE_ID: {
-				int index = text.indexOf("ID:");
-				if (index >= 0) {
-					post.setIdentifier(text.substring(index + 3));
+	}).name("em").content((instance, holder, text) -> {
+		Matcher matcher = FILE_SIZE.matcher(text);
+		if (matcher.matches()) {
+			String sizebs = matcher.group(1);
+			int size;
+			if (sizebs != null) {
+				size = Integer.parseInt(sizebs);
+			} else {
+				size = Integer.parseInt(matcher.group(2));
+				String dim = matcher.group(3);
+				if ("KB".equals(dim)) {
+					size *= 1024;
+				} else if ("MB".equals(dim)) {
+					size *= 1024 * 1024;
 				}
-				index = text.indexOf("EST");
-				if (index >= 0) {
-					try {
-						post.setTimestamp(DATE_FORMAT.parse(text.substring(0, index + 3)).getTime());
-					} catch (java.text.ParseException e) {
-						// Ignore exception
-					}
-				}
-				break;
 			}
-			case EXPECT_FILE_DATA: {
-				Matcher matcher = FILE_SIZE.matcher(text);
-				if (matcher.matches()) {
-					String sizebs = matcher.group(1);
-					int size;
-					if (sizebs != null) {
-						size = Integer.parseInt(sizebs);
-					} else {
-						size = Integer.parseInt(matcher.group(2));
-						String dim = matcher.group(3);
-						if ("KB".equals(dim)) {
-							size *= 1024;
-						} else if ("MB".equals(dim)) {
-							size *= 1024 * 1024;
-						}
-					}
-					int width = Integer.parseInt(matcher.group(4));
-					int height = Integer.parseInt(matcher.group(5));
-					attachment.setSize(size);
-					attachment.setWidth(width);
-					attachment.setHeight(height);
-				}
-				break;
+			int width = Integer.parseInt(matcher.group(4));
+			int height = Integer.parseInt(matcher.group(5));
+			if (holder.attachment == null) {
+				holder.attachment = new FileAttachment();
+				holder.post.setAttachments(holder.attachment);
 			}
-			case EXPECT_COMMENT: {
-				text = text.trim();
-				int index = text.lastIndexOf("<div class=\"abbrev\">");
-				if (index >= 0) {
-					text = text.substring(0, index).trim();
-				}
-				post.setComment(text);
-				posts.add(post);
-				break;
+			holder.attachment.setSize(size);
+			holder.attachment.setWidth(width);
+			holder.attachment.setHeight(height);
+		}
+	}).contains("a", "href", "/src/").open((instance, holder, tagName, attributes) -> {
+		String path = attributes.get("href");
+		if (path != null) {
+			if (holder.attachment == null) {
+				holder.attachment = new FileAttachment();
+				holder.post.setAttachments(holder.attachment);
 			}
-			case EXPECT_OMITTED: {
-				Matcher matcher = NUMBER.matcher(text);
-				if (matcher.find()) {
-					thread.addPostsCount(Integer.parseInt(matcher.group(1)));
-					if (matcher.find()) {
-						thread.addPostsWithFilesCount(Integer.parseInt(matcher.group(1)));
-					}
-				}
-				break;
-			}
-			case EXPECT_BOARD_TITLE: {
-				text = StringUtils.clearHtml(text).trim();
-				if (!StringUtils.isEmpty(text)) {
-					configuration.storeBoardTitle(boardName, text);
-				}
-				break;
-			}
-			case EXPECT_PAGES_COUNT: {
-				text = StringUtils.clearHtml(text);
-				String pagesCount = null;
-				Matcher matcher = NUMBER.matcher(text);
-				while (matcher.find()) {
-					pagesCount = matcher.group(1);
-				}
-				if (pagesCount != null) {
-					configuration.storePagesCount(boardName, Integer.parseInt(pagesCount) + 1);
-				}
-				break;
+			holder.attachment.setFileUri(holder.locator, holder.locator.createSpecialBoardUri(path));
+		}
+		return false;
+	}).equals("img", "class", "thumb").open((instance, holder, tagName, attributes) -> {
+		String path = attributes.get("src");
+		if (path != null && (!path.contains("/src/") || holder.attachment.getSize() < 50 * 1024)) {
+			// GIF thumbnails has the same URI as image and can weigh a lot
+			if (path != null) {
+				holder.attachment.setThumbnailUri(holder.locator, holder.locator.createSpecialBoardUri(path));
 			}
 		}
-		expect = EXPECT_NONE;
-	}
+		return false;
+	}).equals("div", "class", "lock").open((i, h, t, a) -> !h.post.setClosed(true).isClosed())
+			.equals("div", "class", "ban").open((i, h, t, a) -> !h.post.setPosterBanned(true).isPosterBanned())
+			.equals("div", "class", "warn").open((i, h, t, a) -> !h.post.setPosterWarned(true).isPosterWarned())
+			.equals("i", "class", "gl glyphicon-paperclip").open((i, h, t, a) -> !h.post.setSticky(true).isSticky())
+			.equals("span", "class", "filetitle").content((instance, holder, text) -> {
+		holder.post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "postername").equals("span", "class", "commentpostername")
+			.content((instance, holder, text) -> {
+		holder.post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "postertrip").content((instance, holder, text) -> {
+		holder.post.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "idhighlight").content((instance, holder, text) -> {
+		int index = text.indexOf("ID:");
+		if (index >= 0) {
+			holder.post.setIdentifier(text.substring(index + 3));
+		}
+		index = text.indexOf("EST");
+		if (index >= 0) {
+			try {
+				holder.post.setTimestamp(DATE_FORMAT.parse(text.substring(0, index + 3)).getTime());
+			} catch (java.text.ParseException e) {
+				// Ignore exception
+			}
+		}
+	}).equals("span", "class", "omittedposts").content((instance, holder, text) -> {
+		Matcher matcher = NUMBER.matcher(text);
+		if (matcher.find()) {
+			holder.thread.addPostsCount(Integer.parseInt(matcher.group(1)));
+			if (matcher.find()) {
+				holder.thread.addPostsWithFilesCount(Integer.parseInt(matcher.group(1)));
+			}
+		}
+	}).name("blockquote").content((instance, holder, text) -> {
+		text = text.trim();
+		int index = text.lastIndexOf("<div class=\"abbrev\">");
+		if (index >= 0) {
+			text = text.substring(0, index).trim();
+		}
+		holder.post.setComment(text);
+		holder.posts.add(holder.post);
+		holder.attachment = null;
+	}).equals("span", "class", "board_title").content((instance, holder, text) -> {
+		text = StringUtils.clearHtml(text).trim();
+		if (!StringUtils.isEmpty(text)) {
+			holder.configuration.storeBoardTitle(holder.boardName, text);
+		}
+	}).equals("div", "class", "pagelist").content((instance, holder, text) -> {
+		text = StringUtils.clearHtml(text);
+		String pagesCount = null;
+		Matcher matcher = NUMBER.matcher(text);
+		while (matcher.find()) {
+			pagesCount = matcher.group(1);
+		}
+		if (pagesCount != null) {
+			holder.configuration.storePagesCount(holder.boardName, Integer.parseInt(pagesCount) + 1);
+		}
+	}).equals("form", "id", "postform").open((i, h, t, a) -> h.hasPostBlock = true)
+			.equals("input", "name", "field1").open((i, h, t, a) -> h.hasPostBlockName = true).prepare();
 }
