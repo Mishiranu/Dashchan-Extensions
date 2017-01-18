@@ -9,34 +9,28 @@ import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class ChiochanBoardsParser
-{
+public class ChiochanBoardsParser {
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Общее", "Радио", "Аниме", "На пробу"};
 
-	private final String mSource;
+	private final String source;
 
-	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
-	private final ArrayList<Board> mBoards = new ArrayList<>();
+	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+	private final ArrayList<Board> boards = new ArrayList<>();
 
-	private String mBoardCategoryTitle;
-	private String mBoardName;
+	private String boardCategoryTitle;
+	private String boardName;
 
-	public ChiochanBoardsParser(String source)
-	{
-		mSource = source;
+	public ChiochanBoardsParser(String source) {
+		this.source = source;
 	}
 
-	public ArrayList<BoardCategory> convert() throws ParseException
-	{
-		PARSER.parse(mSource, this);
+	public ArrayList<BoardCategory> convert() throws ParseException {
+		PARSER.parse(source, this);
 		closeCategory();
 		ArrayList<BoardCategory> boardCategories = new ArrayList<>();
-		for (String title : PREFERRED_BOARDS_ORDER)
-		{
-			for (BoardCategory boardCategory : mBoardCategories)
-			{
-				if (title.equals(boardCategory.getTitle()))
-				{
+		for (String title : PREFERRED_BOARDS_ORDER) {
+			for (BoardCategory boardCategory : this.boardCategories) {
+				if (title.equals(boardCategory.getTitle())) {
 					Arrays.sort(boardCategory.getBoards());
 					boardCategories.add(boardCategory);
 					break;
@@ -46,36 +40,29 @@ public class ChiochanBoardsParser
 		return boardCategories;
 	}
 
-	private void closeCategory()
-	{
-		if (mBoardCategoryTitle != null)
-		{
-			if (mBoards.size() > 0) mBoardCategories.add(new BoardCategory(mBoardCategoryTitle, mBoards));
-			mBoardCategoryTitle = null;
-			mBoards.clear();
+	private void closeCategory() {
+		if (boardCategoryTitle != null) {
+			if (boards.size() > 0) {
+				boardCategories.add(new BoardCategory(boardCategoryTitle, boards));
+			}
+			boardCategoryTitle = null;
+			boards.clear();
 		}
 	}
 
 	private static final TemplateParser<ChiochanBoardsParser> PARSER = new TemplateParser<ChiochanBoardsParser>()
-			.name("h2").content((instance, holder, text) ->
-	{
+			.name("h2").content((instance, holder, text) -> {
 		holder.closeCategory();
-		holder.mBoardCategoryTitle = StringUtils.clearHtml(text).substring(2);
-
-	}).equals("a", "class", "boardlink").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mBoardCategoryTitle != null)
-		{
+		holder.boardCategoryTitle = StringUtils.clearHtml(text).substring(2);
+	}).equals("a", "class", "boardlink").open((instance, holder, tagName, attributes) -> {
+		if (holder.boardCategoryTitle != null) {
 			String href = attributes.get("href");
-			holder.mBoardName = href.substring(1, href.length() - 1);
+			holder.boardName = href.substring(1, href.length() - 1);
 			return true;
 		}
 		return false;
-
-	}).content((instance, holder, text) ->
-	{
+	}).content((instance, holder, text) -> {
 		text = StringUtils.clearHtml(text);
-		holder.mBoards.add(new Board(holder.mBoardName, text));
-
+		holder.boards.add(new Board(holder.boardName, text));
 	}).prepare();
 }

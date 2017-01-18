@@ -2,12 +2,10 @@ package com.mishiranu.dashchan.chan.chiochan;
 
 import chan.content.ChanConfiguration;
 
-public class ChiochanChanConfiguration extends ChanConfiguration
-{
+public class ChiochanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
 
-	public ChiochanChanConfiguration()
-	{
+	public ChiochanChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		setDefaultName("b", "Пассажир");
@@ -21,8 +19,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Board obtainBoardConfiguration(String boardName)
-	{
+	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
 		board.allowCatalog = true;
 		board.allowArchive = true;
@@ -33,10 +30,8 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
-	{
-		if ("faptcha".equals(captchaType))
-		{
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if ("faptcha".equals(captchaType)) {
 			Captcha captcha = new Captcha();
 			captcha.title = "Faptcha";
 			captcha.input = Captcha.Input.ALL;
@@ -47,8 +42,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
-	{
+	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
 		Posting posting = new Posting();
 		posting.allowName = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowTripcode = true;
@@ -62,8 +56,7 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Deleting obtainDeletingConfiguration(String boardName)
-	{
+	public Deleting obtainDeletingConfiguration(String boardName) {
 		Deleting deleting = new Deleting();
 		deleting.password = true;
 		deleting.multiplePosts = true;
@@ -72,15 +65,13 @@ public class ChiochanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Reporting obtainReportingConfiguration(String boardName)
-	{
+	public Reporting obtainReportingConfiguration(String boardName) {
 		Reporting reporting = new Reporting();
 		reporting.multiplePosts = true;
 		return reporting;
 	}
 
-	public void storeNamesEnabled(String boardName, boolean namesEnabled)
-	{
+	public void storeNamesEnabled(String boardName, boolean namesEnabled) {
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 	}
 }
