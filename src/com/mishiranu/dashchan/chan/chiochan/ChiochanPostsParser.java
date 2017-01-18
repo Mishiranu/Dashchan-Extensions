@@ -213,7 +213,7 @@ public class ChiochanPostsParser {
 	}).text((instance, holder, source, start, end) -> {
 		if (holder.headerHandling) {
 			String text = source.substring(start, end).trim();
-			if (text.length() > 0) {
+			if (text.length() > 0 && (text = StringUtils.clearHtml(text).trim()).length() > 0) {
 				int index1 = text.indexOf('(');
 				int index2 = text.indexOf(')');
 				if (index2 > index1 && index1 > 0) {
