@@ -19,7 +19,6 @@ import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.ChanLocator;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
 import chan.content.model.Post;
 import chan.http.CookieBuilder;
 import chan.http.HttpException;
@@ -49,8 +48,7 @@ public class KurisachChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
-			InvalidResponseException {
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
 		String lastPostNumber = data.partialThreadLoading ? data.lastPostNumber : null;
 		if (lastPostNumber != null) {
