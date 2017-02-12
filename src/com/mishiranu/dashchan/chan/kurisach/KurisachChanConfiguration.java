@@ -2,14 +2,12 @@ package com.mishiranu.dashchan.chan.kurisach;
 
 import chan.content.ChanConfiguration;
 
-public class KurisachChanConfiguration extends ChanConfiguration
-{
+public class KurisachChanConfiguration extends ChanConfiguration {
 	public static final String CAPTCHA_TYPE_INCH_NUMERIC = "inch_numeric";
 	public static final String CAPTCHA_TYPE_INCH_LATIN = "inch_latin";
 	public static final String CAPTCHA_TYPE_INCH_CYRILLIC = "inch_cyrillic";
-	
-	public KurisachChanConfiguration()
-	{
+
+	public KurisachChanConfiguration() {
 		request(OPTION_READ_THREAD_PARTIALLY);
 		request(OPTION_READ_SINGLE_POST);
 		request(OPTION_READ_POSTS_COUNT);
@@ -19,10 +17,9 @@ public class KurisachChanConfiguration extends ChanConfiguration
 		addCaptchaType(CAPTCHA_TYPE_INCH_LATIN);
 		addCaptchaType(CAPTCHA_TYPE_INCH_CYRILLIC);
 	}
-	
+
 	@Override
-	public Board obtainBoardConfiguration(String boardName)
-	{
+	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
 		board.allowSearch = true;
 		board.allowPosting = true;
@@ -30,25 +27,18 @@ public class KurisachChanConfiguration extends ChanConfiguration
 		board.allowReporting = true;
 		return board;
 	}
-	
+
 	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
-	{
-		if (captchaType.startsWith("inch_"))
-		{
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if (captchaType.startsWith("inch_")) {
 			Captcha captcha = new Captcha();
-			if (CAPTCHA_TYPE_INCH_NUMERIC.equals(captchaType))
-			{
+			if (CAPTCHA_TYPE_INCH_NUMERIC.equals(captchaType)) {
 				captcha.title = "Numeric";
 				captcha.input = Captcha.Input.NUMERIC;
-			}
-			else if (CAPTCHA_TYPE_INCH_LATIN.equals(captchaType))
-			{
+			} else if (CAPTCHA_TYPE_INCH_LATIN.equals(captchaType)) {
 				captcha.title = "Simple";
 				captcha.input = Captcha.Input.NUMERIC;
-			}
-			else if (CAPTCHA_TYPE_INCH_CYRILLIC.equals(captchaType))
-			{
+			} else if (CAPTCHA_TYPE_INCH_CYRILLIC.equals(captchaType)) {
 				captcha.title = "Cyrillic";
 				captcha.input = Captcha.Input.ALL;
 			}
@@ -57,10 +47,9 @@ public class KurisachChanConfiguration extends ChanConfiguration
 		}
 		return null;
 	}
-	
+
 	@Override
-	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
-	{
+	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
 		Posting posting = new Posting();
 		posting.allowName = true;
 		posting.allowTripcode = true;
@@ -72,20 +61,18 @@ public class KurisachChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("video/webm");
 		return posting;
 	}
-	
+
 	@Override
-	public Deleting obtainDeletingConfiguration(String boardName)
-	{
+	public Deleting obtainDeletingConfiguration(String boardName) {
 		Deleting deleting = new Deleting();
 		deleting.password = true;
 		deleting.multiplePosts = true;
 		deleting.optionFilesOnly = true;
 		return deleting;
 	}
-	
+
 	@Override
-	public Reporting obtainReportingConfiguration(String boardName)
-	{
+	public Reporting obtainReportingConfiguration(String boardName) {
 		Reporting reporting = new Reporting();
 		reporting.comment = true;
 		reporting.multiplePosts = true;
