@@ -8,7 +8,6 @@ public class KurisachChanConfiguration extends ChanConfiguration {
 	public static final String CAPTCHA_TYPE_INCH_CYRILLIC = "inch_cyrillic";
 
 	public KurisachChanConfiguration() {
-		request(OPTION_READ_THREAD_PARTIALLY);
 		request(OPTION_READ_SINGLE_POST);
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
@@ -21,7 +20,7 @@ public class KurisachChanConfiguration extends ChanConfiguration {
 	@Override
 	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
-		board.allowSearch = true;
+		board.allowCatalog = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		board.allowReporting = true;
@@ -59,6 +58,7 @@ public class KurisachChanConfiguration extends ChanConfiguration {
 		posting.attachmentCount = 1;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/webm");
+		posting.attachmentSpoiler = true;
 		return posting;
 	}
 

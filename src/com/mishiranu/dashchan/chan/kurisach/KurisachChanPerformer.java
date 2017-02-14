@@ -3,7 +3,8 @@ package com.mishiranu.dashchan.chan.kurisach;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -15,34 +16,64 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.net.Uri;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.ChanLocator;
 import chan.content.InvalidResponseException;
-import chan.content.model.Post;
-import chan.http.CookieBuilder;
+import chan.content.model.Board;
+import chan.content.model.BoardCategory;
+import chan.content.model.Posts;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
-import chan.http.HttpValidator;
 import chan.http.MultipartEntity;
+import chan.http.SimpleEntity;
 import chan.http.UrlEncodedEntity;
-import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 public class KurisachChanPerformer extends ChanPerformer {
-	// Server sends obsolete static data in response to request without any cookies
-	private static CookieBuilder FAKE_COOKIE = new CookieBuilder().append("kustyle", "Photon");
-
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.addCookie(FAKE_COOKIE).read().getString();
+		int postsPerPage = 15;
+		int boardSpeed = -1;
+		if ("sg".equals(data.boardName) && data.pageNumber == 0) {
+			try {
+				Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_stats", "type", "postslasthour");
+				JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+						.read().getJsonObject();
+				if (jsonObject != null) {
+					boardSpeed = jsonObject.getJSONObject("result").getInt("result");
+				}
+			} catch (JSONException e) {
+				// Ignore exception
+			} catch (HttpException e) {
+				if (!e.isHttpException() && !e.isSocketException()) {
+					throw e;
+				}
+			}
+		}
+		Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_part_of_board", "board", data.boardName,
+				"start", data.isCatalog() ? "0" : Integer.toString(data.pageNumber * postsPerPage),
+				"threadnum", Integer.toString(data.isCatalog() ? Integer.MAX_VALUE : postsPerPage),
+				"previewnum", data.isCatalog() ? "0" : "5");
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+				.read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
 		try {
-			return new ReadThreadsResult(new KurisachPostsParser(responseText, this, data.boardName).convertThreads());
-		} catch (ParseException e) {
+			JSONArray jsonArray = jsonObject.getJSONArray("result");
+			ArrayList<Posts> threads = new ArrayList<>();
+			for (int i = 0; i < jsonArray.length(); i++) {
+				threads.add(KurisachModelMapper.createThread(jsonArray.getJSONObject(i), locator, data.boardName));
+			}
+			return new ReadThreadsResult(threads).setBoardSpeed(boardSpeed);
+		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 	}
@@ -50,36 +81,18 @@ public class KurisachChanPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		String lastPostNumber = data.partialThreadLoading ? data.lastPostNumber : null;
-		if (lastPostNumber != null) {
-			Uri uri = locator.buildQuery("expand.php", "board", data.boardName, "threadid", data.threadNumber,
-					"after", lastPostNumber);
-			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.read().getString();
-			ArrayList<Post> posts = null;
-			if (!StringUtils.isEmpty(responseText)) {
-				try {
-					posts = new KurisachPostsParser(responseText, this, data.boardName, data.threadNumber)
-							.convertPosts();
-				} catch (ParseException e) {
-					throw new InvalidResponseException(e);
-				}
-			}
-			if (posts == null || posts.isEmpty()) {
-				// Will throw exception if thread doesn't exist
-				uri = locator.createThreadUri(data.boardName, data.threadNumber);
-				new HttpRequest(uri, data.holder, data).setHeadMethod().addCookie(FAKE_COOKIE).read();
-			}
-			return new ReadPostsResult(posts);
-		} else {
-			Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-			String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.addCookie(FAKE_COOKIE).read().getString();
-			try {
-				return new ReadPostsResult(new KurisachPostsParser(responseText, this, data.boardName).convertPosts());
-			} catch (ParseException e) {
-				throw new InvalidResponseException(e);
-			}
+		Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_thread",
+				"board", data.boardName, "thread_id", data.threadNumber);
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
+				.read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
+		try {
+			return new ReadPostsResult(KurisachModelMapper.createPosts(jsonObject.getJSONObject("result"),
+					locator, data.boardName));
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
 	}
 
@@ -87,29 +100,34 @@ public class KurisachChanPerformer extends ChanPerformer {
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException,
 			InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildQuery("read.php", "b", data.boardName, "t", "0", "p", data.postNumber, "single", "");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		Uri uri = locator.buildPath("api.php");
+		SimpleEntity entity = new SimpleEntity();
+		entity.setContentType("application/json");
 		try {
-			Post post = new KurisachPostsParser(responseText, this, data.boardName).convertSinglePost();
-			if (post == null) {
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("id", 0);
+			jsonObject.put("method", "get_posts_by_id");
+			JSONObject paramsObject = new JSONObject();
+			paramsObject.put("board", data.boardName);
+			JSONArray jsonArray = new JSONArray();
+			jsonArray.put(data.postNumber);
+			paramsObject.put("ids", jsonArray);
+			jsonObject.put("params", paramsObject);
+			entity.setData(jsonObject.toString());
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity).read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
+		try {
+			jsonObject = jsonObject.getJSONObject("result").optJSONObject(data.postNumber);
+			if (jsonObject == null) {
 				throw HttpException.createNotFoundException();
 			}
-			return new ReadSinglePostResult(post);
-		} catch (ParseException e) {
-			throw new InvalidResponseException(e);
-		}
-	}
-
-	@Override
-	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
-			InvalidResponseException {
-		KurisachChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildQuery("read2.php", "b", data.boardName, "v", data.searchQuery);
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
-		try {
-			return new ReadSearchPostsResult(new KurisachPostsParser(responseText, this, data.boardName)
-					.convertSearchPosts());
-		} catch (ParseException e) {
+			return new ReadSinglePostResult(KurisachModelMapper.createPost(jsonObject, locator, data.boardName));
+		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 	}
@@ -117,11 +135,22 @@ public class KurisachChanPerformer extends ChanPerformer {
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildPath("menu.php");
-		String responseText = new HttpRequest(uri, data.holder, data).addCookie(FAKE_COOKIE).read().getString();
+		Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_boards");
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
 		try {
-			return new ReadBoardsResult(new KurisachBoardsParser(responseText).convert());
-		} catch (ParseException e) {
+			jsonObject = jsonObject.getJSONObject("result");
+			ArrayList<Board> boards = new ArrayList<>();
+			for (Iterator<String> keys = jsonObject.keys(); keys.hasNext();) {
+				String boardName = keys.next();
+				String title = CommonUtils.getJsonString(jsonObject.getJSONObject(boardName), "name");
+				boards.add(new Board(boardName, title));
+			}
+			Collections.sort(boards);
+			return new ReadBoardsResult(new BoardCategory(null, boards));
+		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 	}
@@ -130,93 +159,41 @@ public class KurisachChanPerformer extends ChanPerformer {
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
-		boolean notFound = data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND;
-		int count = 0;
-		if (notFound) {
-			uri = locator.createThreadUri(data.boardName, data.threadNumber);
-			responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.addCookie(FAKE_COOKIE).read().getString();
-		} else {
-			data.holder.checkResponseCode();
+		Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_thread_ids", "board", data.boardName,
+				"thread_id", data.threadNumber);
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
 		}
-		int index = 0;
-		while (index != -1) {
-			count++;
-			index = responseText.indexOf("<td class=\"reply\"", index + 1);
-		}
-		index = responseText.indexOf("<span class=\"omittedposts\">");
-		if (index >= 0) {
-			Matcher matcher = KurisachPostsParser.NUMBER.matcher(responseText);
-			if (matcher.find(index + 27)) {
-				count += Integer.parseInt(matcher.group(1));
-			}
-		}
-		return new ReadPostsCountResult(count);
-	}
-
-	private class CapcthaPolicy {
-		public final HttpValidator validator;
-		public final boolean needCaptcha;
-		public final String threadNumber;
-
-		public CapcthaPolicy(HttpValidator validator, boolean needCaptcha, String threadNumber) {
-			this.validator = validator;
-			this.needCaptcha = needCaptcha;
-			this.threadNumber = threadNumber;
+		try {
+			return new ReadPostsCountResult(jsonObject.getJSONArray("result").length());
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
 	}
 
 	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
 			{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1f, 0f});
 
-	private final HashMap<String, CapcthaPolicy> readCaptchaPolicies = new HashMap<>();
-
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		KurisachChanLocator locator = ChanLocator.get(this);
-		boolean needCaptcha;
-		CapcthaPolicy policy;
-		synchronized (readCaptchaPolicies) {
-			policy = readCaptchaPolicies.get(data.boardName);
+		Uri uri = locator.buildQuery("api.php", "id", "0", "method", "get_boards");
+		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
 		}
+		boolean needCaptcha;
 		try {
-			HttpValidator validator = policy != null && StringUtils.equals(data.threadNumber, policy.threadNumber)
-					? policy.validator : null;
-			String responseText;
-			if (data.threadNumber != null) {
-				Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + "+50.html");
-				responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-						.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
-				if (data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-					uri = locator.createThreadUri(data.boardName, data.threadNumber);
-					responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-							.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
-				}
-			} else {
-				Uri uri = locator.createBoardUri(data.boardName, 0);
-				responseText = new HttpRequest(uri, data.holder, data).setValidator(validator)
-						.setSuccessOnly(false).addCookie(FAKE_COOKIE).read().getString();
-			}
-			needCaptcha = responseText.contains("<span class=\"captcha_status\">");
-			policy = new CapcthaPolicy(data.holder.getValidator(), needCaptcha, data.threadNumber);
-			synchronized (readCaptchaPolicies) {
-				readCaptchaPolicies.put(data.boardName, policy);
-			}
-		} catch (HttpException e) {
-			int responseCode = e.getResponseCode();
-			if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-				needCaptcha = policy.needCaptcha;
-			} else {
-				throw e;
-			}
+			needCaptcha = jsonObject.getJSONObject("result").getJSONObject(data.boardName)
+					.optInt("captchaenabled") != 0;
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
 		if (!needCaptcha) {
 			return new ReadCaptchaResult(CaptchaState.SKIP, null);
 		}
-		Uri uri = locator.buildPath("captcha.php");
+		uri = locator.buildPath("captcha.php");
 		String lang;
 		if (KurisachChanConfiguration.CAPTCHA_TYPE_INCH_LATIN.equals(data.captchaType)) {
 			lang = "en";
@@ -277,6 +254,9 @@ public class KurisachChanPerformer extends ChanPerformer {
 		entity.add("embed", ""); // Otherwise there will be a "Please enter an embed ID" error
 		if (data.attachments != null) {
 			data.attachments[0].addToEntity(entity, "imagefile");
+			if (data.attachments[0].optionSpoiler) {
+				entity.add("picspoiler", "1");
+			}
 		}
 		String sessionCookie = null;
 		if (data.captchaData != null) {
