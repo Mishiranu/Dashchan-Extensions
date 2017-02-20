@@ -84,6 +84,7 @@ public class FourplebsPostsParser {
 			.open((instance, holder, tagName, attributes) -> {
 		String id = attributes.get("id");
 		if (id != null) {
+			id = id.replace('_', '.');
 			if (attributes.get("class").contains("thread")) {
 				Post post = new Post();
 				post.setPostNumber(id);
