@@ -146,7 +146,10 @@ public class ChaosachPostsParser {
 		text = StringUtils.replaceAll(text, "(<a .*?#)p\\d+(.*?>>>.*?(\\d+)</a>)",
 				matcher -> matcher.group(1) + matcher.group(3) + matcher.group(2));
 		holder.post.setComment(text);
-		holder.posts.add(holder.post);
+		// Filter invalid post numbers
+		if (holder.posts.isEmpty() || holder.post.compareTo(holder.posts.get(0)) > 0) {
+			holder.posts.add(holder.post);
+		}
 		if (!holder.attachments.isEmpty()) {
 			holder.post.setAttachments(holder.attachments);
 			holder.attachments.clear();
