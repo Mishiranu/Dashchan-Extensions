@@ -271,7 +271,8 @@ public class ChiochanChanPerformer extends ChanPerformer {
 				if (errorMessage.contains("Please enter a faptcha") ||
 						errorMessage.contains("Incorrect faptcha entered")) {
 					errorType = ApiException.SEND_ERROR_CAPTCHA;
-				} else if (errorMessage.contains("Old faptcha is old")) {
+				} else if (errorMessage.contains("Old faptcha is old") || responseText.contains("Session expired")
+						|| responseText.contains("DONTTRICK")) {
 					configuration.storeCookie(PREFIX_FAPTCHA + data.boardName, null, null);
 					errorType = ApiException.SEND_ERROR_CAPTCHA;
 				} else if (errorMessage.contains("Для ответа необходимо") ||
