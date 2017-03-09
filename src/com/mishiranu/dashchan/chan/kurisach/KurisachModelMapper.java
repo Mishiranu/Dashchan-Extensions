@@ -76,7 +76,11 @@ public class KurisachModelMapper {
 		}
 
 		post.setName(CommonUtils.optJsonString(jsonObject, "name"));
-		post.setTripcode(CommonUtils.optJsonString(jsonObject, "tripcode"));
+		String tripcode = CommonUtils.optJsonString(jsonObject, "tripcode");
+		if (!StringUtils.isEmpty(tripcode)) {
+			tripcode = "!" + tripcode;
+		}
+		post.setTripcode(tripcode);
 		String email = CommonUtils.optJsonString(jsonObject, "email");
 		if (email.toLowerCase(Locale.US).equals("sage")) {
 			post.setSage(true);
