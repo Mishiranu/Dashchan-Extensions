@@ -135,7 +135,7 @@ public class KurisachModelMapper {
 
 	public static Posts createThread(JSONObject jsonObject, KurisachChanLocator locator, String boardName)
 			throws JSONException {
-		int postsCount = jsonObject.optInt("numreplies");
+		int postsCount = jsonObject.optInt("numreplies") + 1;
 		int postsWithFilesCount = jsonObject.optInt("numpicreplies");
 		ArrayList<Post> posts = new ArrayList<>();
 		posts.add(createPost(jsonObject.getJSONObject("op"), locator, boardName));
@@ -146,6 +146,9 @@ public class KurisachModelMapper {
 			}
 		}
 		Collections.sort(posts);
+		if (posts.size() > 0 && posts.get(0).getAttachmentsCount() > 0) {
+			postsWithFilesCount++;
+		}
 		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
 	}
 }
