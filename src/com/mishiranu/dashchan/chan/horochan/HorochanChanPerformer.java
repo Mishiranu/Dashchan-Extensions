@@ -135,6 +135,18 @@ public class HorochanChanPerformer extends ChanPerformer {
 
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
+		HorochanChanLocator locator = ChanLocator.get(this);
+		Uri uri;
+		if (data.threadNumber != null) {
+			uri = locator.buildApiPath("v1", "threads", data.threadNumber,
+					"after", Integer.toString(Integer.MAX_VALUE));
+		} else {
+			uri = locator.buildApiPath("v1", "boards", "1");
+		}
+		JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
+		if (jsonObject != null && !jsonObject.optBoolean("captchaEnabled", true)) {
+			return new ReadCaptchaResult(CaptchaState.SKIP, null);
+		}
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_KEY);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);

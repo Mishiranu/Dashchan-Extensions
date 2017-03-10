@@ -131,7 +131,7 @@ public class HorochanModelMapper {
 			throws JSONException {
 		Post originalPost = createPost(jsonObject, locator, null);
 		JSONArray jsonArray = jsonObject.optJSONArray("replies");
-		Post[] posts = null;
+		Post[] posts;
 		if (jsonArray != null && jsonArray.length() > 0) {
 			if (postNumbers == null) {
 				postNumbers = new HashSet<>();
