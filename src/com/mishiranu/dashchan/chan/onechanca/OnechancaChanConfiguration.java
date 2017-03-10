@@ -8,6 +8,7 @@ public class OnechancaChanConfiguration extends ChanConfiguration {
 	public OnechancaChanConfiguration() {
 		request(OPTION_READ_SINGLE_POST);
 		request(OPTION_READ_POSTS_COUNT);
+		request(OPTION_ALLOW_CAPTCHA_PASS);
 		setDefaultName("Аноним");
 		addCaptchaType(CAPTCHA_TYPE_ONECHANCA);
 	}

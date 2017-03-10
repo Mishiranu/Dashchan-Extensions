@@ -29,6 +29,8 @@ import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 public class OnechancaChanPerformer extends ChanPerformer {
+	private static final String COOKIE_CAPTCHA_PASS = "pssscode";
+
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
@@ -92,6 +94,25 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		return new ReadPostsCountResult(count);
 	}
 
+	private boolean fetchCaptchaPass(HttpRequest.Preset preset, String captchaPass) throws HttpException {
+		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
+		Uri uri = locator.buildPath("pssscode");
+		String responseText = new HttpRequest(uri, preset).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
+				.read().getString();
+		return StringUtils.clearHtml(responseText).contains("Введенный пссскод \"" + captchaPass + "\" активирован!");
+	}
+
+	private boolean checkCaptchaSkip(String responseText) {
+		return responseText.contains("<div class=\"b-comment-form_b-captcha\" style=\"display:none\">")
+				|| !responseText.contains("<input type=\"text\" name=\"captcha\" value=\"\" />");
+	}
+
+	@Override
+	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
+			InvalidResponseException {
+		return new CheckAuthorizationResult(fetchCaptchaPass(data, data.authorizationData[0]));
+	}
+
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
@@ -117,6 +138,13 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			}
 		}
 
+		boolean captchaPassValid = false;
+		String captchaPass = data.captchaPass != null ? data.captchaPass[0] : null;
+		if (news && captchaPass != null && fetchCaptchaPass(data, captchaPass)) {
+			String responseText = new HttpRequest(uri, data.holder, data)
+					.addCookie(COOKIE_CAPTCHA_PASS, captchaPass).read().getString();
+			captchaPassValid = checkCaptchaSkip(responseText);
+		}
 		// Get or refresh cookie
 		String sessionCookie = configuration.getCookie("PHPSESSID");
 		String responseText = new HttpRequest(uri, data.holder, data)
@@ -129,9 +157,13 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		if (StringUtils.isEmpty(sessionCookie)) {
 			throw new InvalidResponseException();
 		}
-		if (news && !responseText.contains("<input type=\"text\" name=\"captcha\" value=\"\" />")) {
-			CaptchaData captchaData = new CaptchaData();
-			captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
+		CaptchaData captchaData = new CaptchaData();
+		captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
+		if (captchaPassValid) {
+			captchaData.put(COOKIE_CAPTCHA_PASS, captchaPass);
+			return new ReadCaptchaResult(CaptchaState.PASS, captchaData);
+		}
+		if (news && checkCaptchaSkip(responseText)) {
 			return new ReadCaptchaResult(CaptchaState.SKIP, captchaData);
 		}
 
@@ -175,8 +207,6 @@ public class OnechancaChanPerformer extends ChanPerformer {
 					image.setPixels(pixels, 0, pixels.length, 0, y, pixels.length, 1);
 				}
 			}
-			CaptchaData captchaData = new CaptchaData();
-			captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
 			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image);
 		}
 		throw new InvalidResponseException();
@@ -200,70 +230,75 @@ public class OnechancaChanPerformer extends ChanPerformer {
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		String sessionCookie = null;
 		String captchaInput = null;
+		String captchaPass = null;
 		if (data.captchaData != null) {
 			sessionCookie = data.captchaData.get(CaptchaData.CHALLENGE);
 			captchaInput = data.captchaData.get(CaptchaData.INPUT);
+			captchaPass = data.captchaData.get(COOKIE_CAPTCHA_PASS);
 		}
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		if (data.boardName.startsWith("news")) {
-			Uri uri = locator.buildPath("weedcaptcha", "simpleCaptcha.php");
-			JSONObject jsonObject = new HttpRequest(uri, data.holder).addCookie("PHPSESSID", sessionCookie)
-					.read().getJsonObject();
-			if (jsonObject == null) {
-				throw new InvalidResponseException();
-			}
-			String text;
-			ArrayList<String> hashes = new ArrayList<>();
-			try {
-				text = jsonObject.getString("text");
-				JSONArray jsonArray = jsonObject.getJSONArray("images");
-				for (int i = 0; i < jsonArray.length(); i++) {
-					hashes.add(jsonArray.getString(i));
-				}
-			} catch (JSONException e) {
-				throw new InvalidResponseException(e);
-			}
-			Bitmap[] images = new Bitmap[hashes.size()];
-			for (int i = 0; i < images.length; i++) {
-				images[i] = new HttpRequest(uri.buildUpon()
-						.appendQueryParameter("hash", hashes.get(i)).build(), data.holder)
-						.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
-				if (images[i] == null) {
+			if (captchaPass == null) {
+				Uri uri = locator.buildPath("weedcaptcha", "simpleCaptcha.php");
+				JSONObject jsonObject = new HttpRequest(uri, data.holder).addCookie("PHPSESSID", sessionCookie)
+						.read().getJsonObject();
+				if (jsonObject == null) {
 					throw new InvalidResponseException();
 				}
-			}
-			Integer imageIndex = requireUserImageSingleChoice(-1, images, "Select: " + text, null);
-			if (imageIndex == null) {
-				throw new ApiException(ApiException.SEND_ERROR_CAPTCHA);
-			}
-			uri = locator.buildPath("weedcaptcha", "verify.php");
-			String responseText = new HttpRequest(uri, data.holder)
-					.setPostMethod(new UrlEncodedEntity("captchaSelection", hashes.get(imageIndex)))
-					.addCookie("PHPSESSID", sessionCookie).read().getString();
-			int responseTextIndex = responseText.indexOf("</head>");
-			if (responseTextIndex >= 0) {
-				responseText = responseText.substring(responseTextIndex + 7);
-			}
-			responseText = StringUtils.clearHtml(responseText).trim();
-			if (responseText.contains("Капча введена неверно или была протухшая") ||
-					responseText.contains("Повторите попытку через")) {
-				ApiException.BanExtra banExtra = new ApiException.BanExtra().setMessage("captcha");
-				Matcher matcher = PATTERN_FLOAT_NUMBER.matcher(responseText);
-				if (matcher.find()) {
-					long time = System.currentTimeMillis() + (int) (Float.parseFloat(matcher.group()) * 60 * 1000);
-					banExtra.setExpireDate(time);
+				String text;
+				ArrayList<String> hashes = new ArrayList<>();
+				try {
+					text = jsonObject.getString("text");
+					JSONArray jsonArray = jsonObject.getJSONArray("images");
+					for (int i = 0; i < jsonArray.length(); i++) {
+						hashes.add(jsonArray.getString(i));
+					}
+				} catch (JSONException e) {
+					throw new InvalidResponseException(e);
 				}
-				throw new ApiException(ApiException.SEND_ERROR_BANNED, banExtra);
-			} else if (!responseText.contains("Проверка пройдена")) {
-				CommonUtils.writeLog("Onechanca send message", responseText);
-				throw new ApiException(responseText);
+				Bitmap[] images = new Bitmap[hashes.size()];
+				for (int i = 0; i < images.length; i++) {
+					images[i] = new HttpRequest(uri.buildUpon()
+							.appendQueryParameter("hash", hashes.get(i)).build(), data.holder)
+							.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
+					if (images[i] == null) {
+						throw new InvalidResponseException();
+					}
+				}
+				Integer imageIndex = requireUserImageSingleChoice(-1, images, "Select: " + text, null);
+				if (imageIndex == null) {
+					throw new ApiException(ApiException.SEND_ERROR_CAPTCHA);
+				}
+				uri = locator.buildPath("weedcaptcha", "verify.php");
+				String responseText = new HttpRequest(uri, data.holder)
+						.setPostMethod(new UrlEncodedEntity("captchaSelection", hashes.get(imageIndex)))
+						.addCookie("PHPSESSID", sessionCookie).read().getString();
+				int responseTextIndex = responseText.indexOf("</head>");
+				if (responseTextIndex >= 0) {
+					responseText = responseText.substring(responseTextIndex + 7);
+				}
+				responseText = StringUtils.clearHtml(responseText).trim();
+				if (responseText.contains("Капча введена неверно или была протухшая") ||
+						responseText.contains("Повторите попытку через")) {
+					ApiException.BanExtra banExtra = new ApiException.BanExtra().setMessage("captcha");
+					Matcher matcher = PATTERN_FLOAT_NUMBER.matcher(responseText);
+					if (matcher.find()) {
+						long time = System.currentTimeMillis() + (int) (Float.parseFloat(matcher.group()) * 60 * 1000);
+						banExtra.setExpireDate(time);
+					}
+					throw new ApiException(ApiException.SEND_ERROR_BANNED, banExtra);
+				} else if (!responseText.contains("Проверка пройдена")) {
+					CommonUtils.writeLog("Onechanca send message", responseText);
+					throw new ApiException(responseText);
+				}
 			}
+
 			if (data.threadNumber == null) {
 				boolean hidden = data.boardName.equals("news-hidden");
 				String category = data.boardName.equals("news") || data.boardName.equals("news-all") || hidden
 						? null : data.boardName.substring(5);
 				if (category != null) {
-					uri = locator.buildPath("news", "cat", "");
+					Uri uri = locator.buildPath("news", "cat", "");
 					JSONArray jsonArray = new HttpRequest(uri, data.holder, data)
 							.addHeader("X-Requested-With", "XMLHttpRequest").read().getJsonArray();
 					String title = null;
@@ -272,7 +307,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 					}
 					try {
 						for (int i = 0; i < jsonArray.length(); i++) {
-							jsonObject = jsonArray.getJSONObject(i);
+							JSONObject jsonObject = jsonArray.getJSONObject(i);
 							String value = CommonUtils.getJsonString(jsonObject, "value");
 							if (category.equals(value)) {
 								title = CommonUtils.getJsonString(jsonObject, "title");
@@ -320,10 +355,10 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				if (hidden) {
 					entity.add("vip", "on");
 				}
-				uri = locator.buildPath("news", "add", "");
-				responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-						.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(POST_REDIRECT_HANDLER)
-						.read().getString();
+				Uri uri = locator.buildPath("news", "add", "");
+				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+						.addCookie("PHPSESSID", sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
+						.setRedirectHandler(POST_REDIRECT_HANDLER).read().getString();
 				if (data.holder.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
 					uri = data.holder.getRedirectedUri();
 					return new SendPostResult(locator.getThreadNumber(uri), null);
@@ -349,10 +384,10 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			} else {
 				UrlEncodedEntity entity = new UrlEncodedEntity("post_id", data.threadNumber, "text",
 						StringUtils.emptyIfNull(data.comment), "captcha_key", "comment", "captcha", captchaInput);
-				uri = locator.buildPath("news", "res", data.threadNumber, "add_comment", "");
-				responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-						.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(HttpRequest.RedirectHandler.STRICT)
-						.read().getString();
+				Uri uri = locator.buildPath("news", "res", data.threadNumber, "add_comment", "");
+				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+						.addCookie("PHPSESSID", sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
+						.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 				Matcher matcher = PATTERN_NEWS_REPLY.matcher(responseText);
 				if (matcher.find()) {
 					String message = matcher.group(1);
