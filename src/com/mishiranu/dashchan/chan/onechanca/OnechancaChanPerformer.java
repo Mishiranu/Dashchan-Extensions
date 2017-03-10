@@ -95,6 +95,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
+		OnechancaChanConfiguration configuration = OnechancaChanConfiguration.get(this);
 		boolean news = data.boardName.startsWith("news");
 		Uri uri;
 		String key;
@@ -115,13 +116,28 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				key = "board_comment";
 			}
 		}
-		new HttpRequest(uri, data.holder, data).read();
-		String sessionCookie = data.holder.getCookieValue("PHPSESSID");
+
+		// Get or refresh cookie
+		String sessionCookie = configuration.getCookie("PHPSESSID");
+		String responseText = new HttpRequest(uri, data.holder, data)
+				.addCookie("PHPSESSID", sessionCookie).read().getString();
+		String sessionCookieNew = data.holder.getCookieValue("PHPSESSID");
+		if (sessionCookieNew != null && !sessionCookieNew.equals(sessionCookie)) {
+			sessionCookie = sessionCookieNew;
+			configuration.storeCookie("PHPSESSID", sessionCookie, "Session");
+		}
 		if (StringUtils.isEmpty(sessionCookie)) {
 			throw new InvalidResponseException();
 		}
-		uri = locator.buildQuery("captcha/", "key", key);
-		Bitmap image = new HttpRequest(uri, data.holder, data).addCookie("PHPSESSID", sessionCookie).read().getBitmap();
+		if (news && !responseText.contains("<input type=\"text\" name=\"captcha\" value=\"\" />")) {
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CaptchaData.CHALLENGE, sessionCookie);
+			return new ReadCaptchaResult(CaptchaState.SKIP, captchaData);
+		}
+
+		uri = locator.buildQuery("captcha/", "key", key, "PHPSESSID", sessionCookie);
+		Bitmap image = new HttpRequest(uri, data.holder, data)
+				.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
 		if (image != null) {
 			int color = 0xffffffff;
 			int sum = 0xff + 0xff + 0xff;
@@ -170,6 +186,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			+ "top\\.(?:board|comment)_callback\\((.*?)\\);</script>");
 	private static final Pattern PATTERN_NEWS_POST = Pattern.compile("<div.*?id=\"blog_form_error\">(.*?)</div>");
 	private static final Pattern PATTERN_NEWS_REPLY = Pattern.compile("<em id=\"comment_form_error\">(.*?)</em>");
+	private static final Pattern PATTERN_FLOAT_NUMBER = Pattern.compile("\\d+(?:\\.\\d+)?");
 
 	private static final HttpRequest.RedirectHandler POST_REDIRECT_HANDLER =
 			(responseCode, requestedUri, redirectedUri, holder) -> {
@@ -189,12 +206,64 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		}
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		if (data.boardName.startsWith("news")) {
+			Uri uri = locator.buildPath("weedcaptcha", "simpleCaptcha.php");
+			JSONObject jsonObject = new HttpRequest(uri, data.holder).addCookie("PHPSESSID", sessionCookie)
+					.read().getJsonObject();
+			if (jsonObject == null) {
+				throw new InvalidResponseException();
+			}
+			String text;
+			ArrayList<String> hashes = new ArrayList<>();
+			try {
+				text = jsonObject.getString("text");
+				JSONArray jsonArray = jsonObject.getJSONArray("images");
+				for (int i = 0; i < jsonArray.length(); i++) {
+					hashes.add(jsonArray.getString(i));
+				}
+			} catch (JSONException e) {
+				throw new InvalidResponseException(e);
+			}
+			Bitmap[] images = new Bitmap[hashes.size()];
+			for (int i = 0; i < images.length; i++) {
+				images[i] = new HttpRequest(uri.buildUpon()
+						.appendQueryParameter("hash", hashes.get(i)).build(), data.holder)
+						.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
+				if (images[i] == null) {
+					throw new InvalidResponseException();
+				}
+			}
+			Integer imageIndex = requireUserImageSingleChoice(-1, images, "Select: " + text, null);
+			if (imageIndex == null) {
+				throw new ApiException(ApiException.SEND_ERROR_CAPTCHA);
+			}
+			uri = locator.buildPath("weedcaptcha", "verify.php");
+			String responseText = new HttpRequest(uri, data.holder)
+					.setPostMethod(new UrlEncodedEntity("captchaSelection", hashes.get(imageIndex)))
+					.addCookie("PHPSESSID", sessionCookie).read().getString();
+			int responseTextIndex = responseText.indexOf("</head>");
+			if (responseTextIndex >= 0) {
+				responseText = responseText.substring(responseTextIndex + 7);
+			}
+			responseText = StringUtils.clearHtml(responseText).trim();
+			if (responseText.contains("Капча введена неверно или была протухшая") ||
+					responseText.contains("Повторите попытку через")) {
+				ApiException.BanExtra banExtra = new ApiException.BanExtra().setMessage("captcha");
+				Matcher matcher = PATTERN_FLOAT_NUMBER.matcher(responseText);
+				if (matcher.find()) {
+					long time = System.currentTimeMillis() + (int) (Float.parseFloat(matcher.group()) * 60 * 1000);
+					banExtra.setExpireDate(time);
+				}
+				throw new ApiException(ApiException.SEND_ERROR_BANNED, banExtra);
+			} else if (!responseText.contains("Проверка пройдена")) {
+				CommonUtils.writeLog("Onechanca send message", responseText);
+				throw new ApiException(responseText);
+			}
 			if (data.threadNumber == null) {
 				boolean hidden = data.boardName.equals("news-hidden");
 				String category = data.boardName.equals("news") || data.boardName.equals("news-all") || hidden
 						? null : data.boardName.substring(5);
 				if (category != null) {
-					Uri uri = locator.buildPath("news", "cat", "");
+					uri = locator.buildPath("news", "cat", "");
 					JSONArray jsonArray = new HttpRequest(uri, data.holder, data)
 							.addHeader("X-Requested-With", "XMLHttpRequest").read().getJsonArray();
 					String title = null;
@@ -203,7 +272,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 					}
 					try {
 						for (int i = 0; i < jsonArray.length(); i++) {
-							JSONObject jsonObject = jsonArray.getJSONObject(i);
+							jsonObject = jsonArray.getJSONObject(i);
 							String value = CommonUtils.getJsonString(jsonObject, "value");
 							if (category.equals(value)) {
 								title = CommonUtils.getJsonString(jsonObject, "title");
@@ -251,8 +320,8 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				if (hidden) {
 					entity.add("vip", "on");
 				}
-				Uri uri = locator.buildPath("news", "add", "");
-				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+				uri = locator.buildPath("news", "add", "");
+				responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 						.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(POST_REDIRECT_HANDLER)
 						.read().getString();
 				if (data.holder.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
@@ -280,8 +349,8 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			} else {
 				UrlEncodedEntity entity = new UrlEncodedEntity("post_id", data.threadNumber, "text",
 						StringUtils.emptyIfNull(data.comment), "captcha_key", "comment", "captcha", captchaInput);
-				Uri uri = locator.buildPath("news", "res", data.threadNumber, "add_comment", "");
-				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+				uri = locator.buildPath("news", "res", data.threadNumber, "add_comment", "");
+				responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 						.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(HttpRequest.RedirectHandler.STRICT)
 						.read().getString();
 				Matcher matcher = PATTERN_NEWS_REPLY.matcher(responseText);
