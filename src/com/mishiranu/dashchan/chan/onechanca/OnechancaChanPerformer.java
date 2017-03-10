@@ -190,8 +190,9 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		if (data.boardName.startsWith("news")) {
 			if (data.threadNumber == null) {
-				String category = data.boardName.equals("news") || data.boardName.equals("news-all")
-						|| data.boardName.equals("news-hidden") ? null : data.boardName.substring(5);
+				boolean hidden = data.boardName.equals("news-hidden");
+				String category = data.boardName.equals("news") || data.boardName.equals("news-all") || hidden
+						? null : data.boardName.substring(5);
 				if (category != null) {
 					Uri uri = locator.buildPath("news", "cat", "");
 					JSONArray jsonArray = new HttpRequest(uri, data.holder, data)
@@ -247,6 +248,9 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				UrlEncodedEntity entity = new UrlEncodedEntity("category", category, "title", data.subject,
 						"link", link, "text", comment, "text_full", commentFull, "captcha_key", "post",
 						"captcha", captchaInput);
+				if (hidden) {
+					entity.add("vip", "on");
+				}
 				Uri uri = locator.buildPath("news", "add", "");
 				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 						.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(POST_REDIRECT_HANDLER)
