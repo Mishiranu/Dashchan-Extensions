@@ -80,7 +80,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
 		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
-		if (!responseText.contains("<div class=\"b-blog-entry\"")) {
+		if (!responseText.contains("<div class=\"b-blog-entry_b-body g-clearfix\">")) {
 			throw new InvalidResponseException();
 		}
 		int count = 0;
