@@ -14,7 +14,6 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
@@ -58,8 +57,7 @@ public class HorochanChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
-			InvalidResponseException {
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		HorochanChanLocator locator = ChanLocator.get(this);
 		boolean partial = data.partialThreadLoading && data.lastPostNumber != null;
 		Uri uri = partial ? locator.buildApiPath("v1", "threads", data.threadNumber, "after", data.lastPostNumber)
