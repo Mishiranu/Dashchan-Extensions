@@ -30,13 +30,13 @@ import chan.util.StringUtils;
 
 public class OnechancaChanPerformer extends ChanPerformer {
 	private static final String COOKIE_CAPTCHA_PASS = "pssscode";
+	private static final String COOKIE_SESSION = "PHPSESSID";
 
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		try {
 			return new ReadThreadsResult(new OnechancaPostsParser(responseText, this).convertThreads());
 		} catch (ParseException e) {
@@ -52,7 +52,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		}
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		try {
 			ArrayList<Post> posts = new OnechancaPostsParser(responseText, this).convertPosts();
 			if (posts == null || posts.isEmpty()) {
@@ -68,7 +68,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.buildPath("news", "cat", "");
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		String responseText = new HttpRequest(uri, data).read().getString();
 		try {
 			return new ReadBoardsResult(new OnechancaBoardsParser(responseText, this).convert());
 		} catch (ParseException e) {
@@ -81,7 +81,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		if (!responseText.contains("<div class=\"b-blog-entry_b-body g-clearfix\">")) {
 			throw new InvalidResponseException();
 		}
@@ -141,18 +141,18 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		boolean captchaPassValid = false;
 		String captchaPass = data.captchaPass != null ? data.captchaPass[0] : null;
 		if (news && captchaPass != null && fetchCaptchaPass(data, captchaPass)) {
-			String responseText = new HttpRequest(uri, data.holder, data)
+			String responseText = new HttpRequest(uri, data)
 					.addCookie(COOKIE_CAPTCHA_PASS, captchaPass).read().getString();
 			captchaPassValid = checkCaptchaSkip(responseText);
 		}
 		// Get or refresh cookie
-		String sessionCookie = configuration.getCookie("PHPSESSID");
-		String responseText = new HttpRequest(uri, data.holder, data)
-				.addCookie("PHPSESSID", sessionCookie).read().getString();
-		String sessionCookieNew = data.holder.getCookieValue("PHPSESSID");
+		String sessionCookie = configuration.getCookie(COOKIE_SESSION);
+		String responseText = new HttpRequest(uri, data)
+				.addCookie(COOKIE_SESSION, sessionCookie).read().getString();
+		String sessionCookieNew = data.holder.getCookieValue(COOKIE_SESSION);
 		if (sessionCookieNew != null && !sessionCookieNew.equals(sessionCookie)) {
 			sessionCookie = sessionCookieNew;
-			configuration.storeCookie("PHPSESSID", sessionCookie, "Session");
+			configuration.storeCookie(COOKIE_SESSION, sessionCookie, "Session");
 		}
 		if (StringUtils.isEmpty(sessionCookie)) {
 			throw new InvalidResponseException();
@@ -167,9 +167,9 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			return new ReadCaptchaResult(CaptchaState.SKIP, captchaData);
 		}
 
-		uri = locator.buildQuery("captcha/", "key", key, "PHPSESSID", sessionCookie);
-		Bitmap image = new HttpRequest(uri, data.holder, data)
-				.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
+		uri = locator.buildQuery("captcha/", "key", key, COOKIE_SESSION, sessionCookie);
+		Bitmap image = new HttpRequest(uri, data)
+				.addCookie(COOKIE_SESSION, sessionCookie).read().getBitmap();
 		if (image != null) {
 			int color = 0xffffffff;
 			int sum = 0xff + 0xff + 0xff;
@@ -240,8 +240,8 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		if (data.boardName.startsWith("news")) {
 			if (captchaPass == null) {
 				Uri uri = locator.buildPath("weedcaptcha", "simpleCaptcha.php");
-				JSONObject jsonObject = new HttpRequest(uri, data.holder).addCookie("PHPSESSID", sessionCookie)
-						.read().getJsonObject();
+				JSONObject jsonObject = new HttpRequest(uri, data.holder)
+						.addCookie(COOKIE_SESSION, sessionCookie).read().getJsonObject();
 				if (jsonObject == null) {
 					throw new InvalidResponseException();
 				}
@@ -260,7 +260,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				for (int i = 0; i < images.length; i++) {
 					images[i] = new HttpRequest(uri.buildUpon()
 							.appendQueryParameter("hash", hashes.get(i)).build(), data.holder)
-							.addCookie("PHPSESSID", sessionCookie).read().getBitmap();
+							.addCookie(COOKIE_SESSION, sessionCookie).read().getBitmap();
 					if (images[i] == null) {
 						throw new InvalidResponseException();
 					}
@@ -299,7 +299,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 						? null : data.boardName.substring(5);
 				if (category != null) {
 					Uri uri = locator.buildPath("news", "cat", "");
-					JSONArray jsonArray = new HttpRequest(uri, data.holder, data)
+					JSONArray jsonArray = new HttpRequest(uri, data.holder)
 							.addHeader("X-Requested-With", "XMLHttpRequest").read().getJsonArray();
 					String title = null;
 					if (jsonArray == null) {
@@ -356,8 +356,8 @@ public class OnechancaChanPerformer extends ChanPerformer {
 					entity.add("vip", "on");
 				}
 				Uri uri = locator.buildPath("news", "add", "");
-				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-						.addCookie("PHPSESSID", sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
+				String responseText = new HttpRequest(uri, data).setPostMethod(entity)
+						.addCookie(COOKIE_SESSION, sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
 						.setRedirectHandler(POST_REDIRECT_HANDLER).read().getString();
 				if (data.holder.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
 					uri = data.holder.getRedirectedUri();
@@ -385,8 +385,8 @@ public class OnechancaChanPerformer extends ChanPerformer {
 				UrlEncodedEntity entity = new UrlEncodedEntity("post_id", data.threadNumber, "text",
 						StringUtils.emptyIfNull(data.comment), "captcha_key", "comment", "captcha", captchaInput);
 				Uri uri = locator.buildPath("news", "res", data.threadNumber, "add_comment", "");
-				String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-						.addCookie("PHPSESSID", sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
+				String responseText = new HttpRequest(uri, data).setPostMethod(entity)
+						.addCookie(COOKIE_SESSION, sessionCookie).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
 						.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 				Matcher matcher = PATTERN_NEWS_REPLY.matcher(responseText);
 				if (matcher.find()) {
@@ -416,8 +416,9 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			entity.add("captcha", captchaInput);
 			Uri uri = locator.buildPath(data.boardName, data.threadNumber != null
 					? "createPostAjaxForm" : "createAjaxForm", "");
-			String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-					.addCookie("PHPSESSID", sessionCookie).setRedirectHandler(HttpRequest.RedirectHandler.STRICT)
+			String responseText = new HttpRequest(uri, data).setPostMethod(entity)
+					.addCookie(COOKIE_SESSION, sessionCookie)
+					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT)
 					.setSuccessOnly(false).read().getString();
 			if (data.holder.getResponseCode() == HttpURLConnection.HTTP_ENTITY_TOO_LARGE) {
 				throw new ApiException(ApiException.SEND_ERROR_FILE_TOO_BIG);
@@ -461,7 +462,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 			OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 			Uri uri = locator.buildQuery(data.boardName + "/remove/", "id", data.postNumbers.get(0),
 					"password", data.password);
-			String responseText = new HttpRequest(uri, data.holder, data)
+			String responseText = new HttpRequest(uri, data)
 					.addHeader("X-Requested-With", "XMLHttpRequest").read().getString();
 			if ("true".equals(responseText)) {
 				return new SendDeletePostsResult();
