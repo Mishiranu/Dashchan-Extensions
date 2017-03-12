@@ -94,7 +94,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 		return new ReadPostsCountResult(count);
 	}
 
-	private boolean fetchCaptchaPass(HttpRequest.Preset preset, String captchaPass) throws HttpException {
+	private boolean validateCaptchaPass(HttpRequest.Preset preset, String captchaPass) throws HttpException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
 		Uri uri = locator.buildPath("pssscode");
 		String responseText = new HttpRequest(uri, preset).addCookie(COOKIE_CAPTCHA_PASS, captchaPass)
@@ -104,13 +104,14 @@ public class OnechancaChanPerformer extends ChanPerformer {
 
 	private boolean checkCaptchaSkip(String responseText) {
 		return responseText.contains("<div class=\"b-comment-form_b-captcha\" style=\"display:none\">")
+				|| responseText.contains("<div class=\"b-blog-form_b-form_b-field\" style=\"display:none\">")
 				|| !responseText.contains("<input type=\"text\" name=\"captcha\" value=\"\" />");
 	}
 
 	@Override
 	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
 			InvalidResponseException {
-		return new CheckAuthorizationResult(fetchCaptchaPass(data, data.authorizationData[0]));
+		return new CheckAuthorizationResult(validateCaptchaPass(data, data.authorizationData[0]));
 	}
 
 	@Override
@@ -140,7 +141,7 @@ public class OnechancaChanPerformer extends ChanPerformer {
 
 		boolean captchaPassValid = false;
 		String captchaPass = data.captchaPass != null ? data.captchaPass[0] : null;
-		if (news && captchaPass != null && fetchCaptchaPass(data, captchaPass)) {
+		if (news && captchaPass != null && validateCaptchaPass(data, captchaPass)) {
 			String responseText = new HttpRequest(uri, data)
 					.addCookie(COOKIE_CAPTCHA_PASS, captchaPass).read().getString();
 			captchaPassValid = checkCaptchaSkip(responseText);
