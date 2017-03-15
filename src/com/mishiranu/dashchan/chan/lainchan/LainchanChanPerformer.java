@@ -28,7 +28,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, (data.isCatalog() ? "catalog"
 				: Integer.toString(data.pageNumber)) + ".json");
-		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read();
+		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).read();
 		JSONObject jsonObject = response.getJsonObject();
 		JSONArray jsonArray = response.getJsonArray();
 		if (jsonObject != null && data.pageNumber >= 0) {
@@ -75,8 +75,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
 		if (jsonObject != null) {
 			try {
 				JSONArray jsonArray = jsonObject.getJSONArray("posts");
@@ -100,7 +99,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath();
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+		String responseText = new HttpRequest(uri, data).read().getString();
 		try {
 			return new ReadBoardsResult(new LainchanBoardsParser(responseText).convert());
 		} catch (ParseException e) {
@@ -113,8 +112,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		LainchanChanLocator locator = LainchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonObject();
+		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
 		if (jsonObject != null) {
 			try {
 				return new ReadPostsCountResult(jsonObject.getJSONArray("posts").length());
@@ -161,7 +159,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 			throw new InvalidResponseException();
 		}
 		Uri uri = locator.buildPath("post.php");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.addHeader("Referer", locator.buildPath().toString())
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
@@ -225,7 +223,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 			entity.add("file", "on");
 		}
 		Uri uri = locator.buildPath("post.php");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
@@ -260,7 +258,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 			entity.add("delete_" + postNumber, "1");
 		}
 		Uri uri = locator.buildPath("post.php");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
