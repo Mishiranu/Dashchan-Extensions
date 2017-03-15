@@ -11,66 +11,54 @@ import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class AntispamFieldsParser
-{
-	private final HashSet<String> mIgnoreFields = new HashSet<>();
-	private final ArrayList<Pair<String, String>> mFields = new ArrayList<>();
+public class AntispamFieldsParser {
+	private final HashSet<String> ignoreFields = new HashSet<>();
+	private final ArrayList<Pair<String, String>> fields = new ArrayList<>();
 
-	private boolean mFormParsing;
-	private String mFieldName;
+	private boolean formParsing;
+	private String fieldName;
 
-	private AntispamFieldsParser(String source, RequestEntity entity, String... ignoreFields) throws ParseException
-	{
-		Collections.addAll(mIgnoreFields, ignoreFields);
+	private AntispamFieldsParser(String source, RequestEntity entity, String... ignoreFields) throws ParseException {
+		Collections.addAll(this.ignoreFields, ignoreFields);
 		PARSER.parse(source, this);
-		for (Pair<String, String> field : mFields) entity.add(field.first, field.second);
+		for (Pair<String, String> field : fields) {
+			entity.add(field.first, field.second);
+		}
 	}
 
-	public static void parseAndApply(String source, RequestEntity entity, String... ignoreFields) throws ParseException
-	{
+	public static void parseAndApply(String source, RequestEntity entity, String... ignoreFields)
+			throws ParseException {
 		new AntispamFieldsParser(source, entity, ignoreFields);
 	}
 
 	private static final TemplateParser<AntispamFieldsParser> PARSER = new TemplateParser<AntispamFieldsParser>()
-			.equals("form", "name", "post").open((instance, holder, tagName, attributes) ->
-	{
-		holder.mFormParsing = true;
+			.equals("form", "name", "post").open((instance, holder, tagName, attributes) -> {
+		holder.formParsing = true;
 		return false;
-
-	}).name("input").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mFormParsing)
-		{
+	}).name("input").open((instance, holder, tagName, attributes) -> {
+		if (holder.formParsing) {
 			String name = attributes.get("name");
-			if (!holder.mIgnoreFields.contains(name))
-			{
+			if (!holder.ignoreFields.contains(name)) {
 				String value = StringUtils.unescapeHtml(attributes.get("value"));
-				holder.mFields.add(new Pair<>(name, value));
+				holder.fields.add(new Pair<>(name, value));
 			}
 		}
 		return false;
-
-	}).name("textarea").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mFormParsing)
-		{
+	}).name("textarea").open((instance, holder, tagName, attributes) -> {
+		if (holder.formParsing) {
 			String name = attributes.get("name");
-			if (!holder.mIgnoreFields.contains(name))
-			{
-				holder.mFieldName = name;
+			if (!holder.ignoreFields.contains(name)) {
+				holder.fieldName = name;
 				return true;
 			}
 		}
 		return false;
-
-	}).content((instance, holder, text) ->
-	{
+	}).content((instance, holder, text) -> {
 		String value = StringUtils.unescapeHtml(text);
-		holder.mFields.add(new Pair<>(holder.mFieldName, value));
-
-	}).name("form").close((instance, holder, tagName) ->
-	{
-		if (holder.mFormParsing) instance.finish();
-
+		holder.fields.add(new Pair<>(holder.fieldName, value));
+	}).name("form").close((instance, holder, tagName) -> {
+		if (holder.formParsing) {
+			instance.finish();
+		}
 	}).prepare();
 }

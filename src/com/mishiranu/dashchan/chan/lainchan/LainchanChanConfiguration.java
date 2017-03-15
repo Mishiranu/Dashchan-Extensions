@@ -2,17 +2,14 @@ package com.mishiranu.dashchan.chan.lainchan;
 
 import chan.content.ChanConfiguration;
 
-public class LainchanChanConfiguration extends ChanConfiguration
-{
-	public LainchanChanConfiguration()
-	{
+public class LainchanChanConfiguration extends ChanConfiguration {
+	public LainchanChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 	}
 
 	@Override
-	public Board obtainBoardConfiguration(String boardName)
-	{
+	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
 		board.allowCatalog = true;
 		board.allowPosting = true;
@@ -22,8 +19,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
-	{
+	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
 		Posting posting = new Posting();
 		boolean namesAndEmails = !"layer".equals(boardName);
 		posting.allowName = namesAndEmails;
@@ -37,8 +33,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Deleting obtainDeletingConfiguration(String boardName)
-	{
+	public Deleting obtainDeletingConfiguration(String boardName) {
 		Deleting deleting = new Deleting();
 		deleting.password = true;
 		deleting.multiplePosts = true;
@@ -47,8 +42,7 @@ public class LainchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Reporting obtainReportingConfiguration(String boardName)
-	{
+	public Reporting obtainReportingConfiguration(String boardName) {
 		Reporting reporting = new Reporting();
 		reporting.comment = true;
 		reporting.multiplePosts = true;
