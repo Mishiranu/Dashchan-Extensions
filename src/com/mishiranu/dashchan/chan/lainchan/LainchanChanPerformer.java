@@ -149,7 +149,7 @@ public class LainchanChanPerformer extends ChanPerformer {
 		String responseText = new HttpRequest(contentUri, data.holder).read().getString();
 		try {
 			AntispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
-					"subject", "body", "password", "file", "json_response");
+					"subject", "body", "password", "file", "spoiler", "json_response");
 		} catch (ParseException e) {
 			throw new InvalidResponseException();
 		}
