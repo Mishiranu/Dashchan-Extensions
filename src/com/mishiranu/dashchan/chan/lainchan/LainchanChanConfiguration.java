@@ -29,6 +29,7 @@ public class LainchanChanConfiguration extends ChanConfiguration {
 		posting.optionSage = namesAndEmails;
 		posting.attachmentCount = 3;
 		posting.attachmentMimeTypes.add("image/*");
+		posting.attachmentSpoiler = true;
 		return posting;
 	}
 

@@ -135,11 +135,18 @@ public class LainchanChanPerformer extends ChanPerformer {
 		entity.add("subject", data.subject);
 		entity.add("body", StringUtils.emptyIfNull(data.comment));
 		entity.add("password", data.password);
+		boolean spoiler = false;
 		if (data.attachments != null) {
 			for (int i = 0; i < data.attachments.length; i++) {
 				SendPostData.Attachment attachment = data.attachments[i];
 				attachment.addToEntity(entity, "file" + (i > 0 ? i + 1 : ""));
+				if (attachment.optionSpoiler) {
+					spoiler = true;
+				}
 			}
+		}
+		if (spoiler) {
+			entity.add("spoiler", "on");
 		}
 		entity.add("json_response", "1");
 
