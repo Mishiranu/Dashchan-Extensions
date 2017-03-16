@@ -331,10 +331,20 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
-		if ("report".equals(data.requirement)) {
-			captchaData.put(CAPTCHA_TYPE, data.captchaType);
+		String captchaType = data.captchaType;
+		if (data.threadNumber == null && data.requirement == null) {
+			// Threads can be created only using reCAPTCHA 2
+			captchaType = FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
 		}
-		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
+		if ("report".equals(data.requirement)) {
+			captchaData.put(CAPTCHA_TYPE, captchaType);
+		}
+		ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
+				.setValidity(ChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
+		if (!StringUtils.equals(data.captchaType, captchaType)) {
+			result.setCaptchaType(captchaType);
+		}
+		return result;
 	}
 
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
