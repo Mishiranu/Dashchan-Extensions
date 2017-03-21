@@ -427,7 +427,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 					errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
 				} else if (errorMessage.contains("Duplicate file exists")) {
 					errorType = ApiException.SEND_ERROR_FILE_EXISTS;
-				} else if (errorMessage.contains("has been blocked due to abuse")) {
+				} else if (errorMessage.contains("has been blocked due to abuse") || errorMessage.contains("banned")) {
 					errorType = ApiException.SEND_ERROR_BANNED;
 				} else if (errorMessage.contains("image replies has been reached")) {
 					errorType = ApiException.SEND_ERROR_FILES_LIMIT;
