@@ -35,10 +35,29 @@ public class OnechancaChanPerformer extends ChanPerformer {
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		OnechancaChanLocator locator = OnechancaChanLocator.get(this);
+		int boardSpeed = 0;
+		if ("news-all".equals(data.boardName)) {
+			Uri uri = locator.buildPath("service", "getGlobalStats", "");
+			try {
+				JSONObject jsonObject = new HttpRequest(uri, data.holder)
+						.addHeader("X-Requested-With", "XMLHttpRequest")
+						.read().getJsonObject();
+				if (jsonObject != null) {
+					boardSpeed = jsonObject.getInt("global_speed");
+				}
+			} catch (JSONException e) {
+				// Ignore exception
+			} catch (HttpException e) {
+				if (!e.isHttpException() || !e.isSocketException()) {
+					throw e;
+				}
+			}
+		}
 		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
 		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
 		try {
-			return new ReadThreadsResult(new OnechancaPostsParser(responseText, this).convertThreads());
+			return new ReadThreadsResult(new OnechancaPostsParser(responseText, this).convertThreads())
+					.setBoardSpeed(boardSpeed);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		}
