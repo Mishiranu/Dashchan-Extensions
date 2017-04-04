@@ -14,7 +14,8 @@ public class NulldvachinChanLocator extends ChanLocator {
 
 	public NulldvachinChanLocator() {
 		addChanHost("02ch.in");
-		addChanHost("02ch.info");
+		addChanHost("buttflaps.pp.ua");
+		addConvertableChanHost("02ch.info");
 		addConvertableChanHost("www.02ch.in");
 		addConvertableChanHost("www.02ch.info");
 		setHttpsMode(HttpsMode.CONFIGURABLE);

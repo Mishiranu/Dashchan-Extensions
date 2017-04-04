@@ -29,6 +29,7 @@
 				<data android:scheme="http" />
 				<data android:scheme="https" />
 				<data android:host="02ch.in" />
+				<data android:host="buttflaps.pp.ua" />
 				<data android:host="02ch.info" />
 				<data android:host="www.02ch.in" />
 				<data android:host="www.02ch.info" />
