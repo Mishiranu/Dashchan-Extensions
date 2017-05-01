@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import chan.content.model.FileAttachment;
 import chan.content.model.Post;
 import chan.content.model.Posts;
-import chan.text.GroupParser;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
@@ -88,7 +87,7 @@ public class TaimaPostsParser {
 		}
 	}
 
-	private static final TemplateParser<TaimaPostsParser> PARSER = new TemplateParser<TaimaPostsParser>()
+	private static final TemplateParser<TaimaPostsParser> PARSER = TemplateParser.<TaimaPostsParser>builder()
 			.equals("div", "class", "thread_header").open((instance, holder, tagName, attributes) -> {
 		holder.parent = null;
 		holder.post = new Post();
