@@ -244,10 +244,11 @@ public class TaimaChanPerformer extends ChanPerformer {
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		TaimaChanLocator locator = TaimaChanLocator.get(this);
 		Uri uri = locator.createSpecialBoardUriHttps("bunker", "");
-		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(new UrlEncodedEntity("b", "0"))
+		JSONObject jsonObject = new HttpRequest(uri, data)
+				.setPostMethod(new UrlEncodedEntity("t", Integer.toString((int) (Math.random() * 15000 + 5000))))
 				.addHeader("X-Requested-With", "XMLHttpRequest").read().getJsonObject();
-		String banana = jsonObject != null ? CommonUtils.optJsonString(jsonObject, "response") : null;
-		if (banana == null) {
+		String fart = jsonObject != null ? CommonUtils.optJsonString(jsonObject, "response") : null;
+		if (fart == null) {
 			throw new ApiException(ApiException.SEND_ERROR_NO_ACCESS);
 		}
 
@@ -268,7 +269,7 @@ public class TaimaChanPerformer extends ChanPerformer {
 		} else {
 			entity.add("nofile", "on");
 		}
-		entity.add("banana", banana);
+		entity.add("fart", fart);
 
 		uri = locator.createSpecialBoardUriHttps(data.boardName, "taimaba.pl");
 		String responseText;
