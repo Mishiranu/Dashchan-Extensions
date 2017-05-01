@@ -17,6 +17,7 @@ public class TaimaChanLocator extends ChanLocator {
 
 	public TaimaChanLocator() {
 		addChanHost("420chan.org");
+		addConvertableChanHost("www.420chan.org");
 		addSpecialChanHost(HOST_BOARDS);
 		addSpecialChanHost(HOST_API);
 		setHttpsMode(HttpsMode.CONFIGURABLE);
