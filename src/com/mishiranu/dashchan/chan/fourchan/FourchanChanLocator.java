@@ -87,6 +87,10 @@ public class FourchanChanLocator extends ChanLocator {
 		return buildPathWithHost(HOST_BOARDS, boardName, "thread", threadNumber);
 	}
 
+	public Uri createBoardsRootUri() {
+		return buildPathWithHost(HOST_BOARDS);
+	}
+
 	@Override
 	public Uri createPostUri(String boardName, String threadNumber, String postNumber) {
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment("p" + postNumber).build();

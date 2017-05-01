@@ -329,8 +329,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 			return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
 					.setValidity(ChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 		}
+		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
+		captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri().toString());
 		String captchaType = data.captchaType;
 		if (data.threadNumber == null && data.requirement == null) {
 			// Threads can be created only using reCAPTCHA 2
