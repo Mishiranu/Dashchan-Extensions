@@ -234,7 +234,9 @@ public class TaimaChanPerformer extends ChanPerformer {
 	@Override
 	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException {
 		HttpResponse response = new HttpRequest(data.uri, data).read();
-		checkResponse(response.getString());
+		if (response != null) {
+			checkResponse(response.getString());
+		}
 		return new ReadContentResult(response);
 	}
 
