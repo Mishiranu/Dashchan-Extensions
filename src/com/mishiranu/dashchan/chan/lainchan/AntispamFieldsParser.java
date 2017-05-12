@@ -31,7 +31,7 @@ public class AntispamFieldsParser {
 		new AntispamFieldsParser(source, entity, ignoreFields);
 	}
 
-	private static final TemplateParser<AntispamFieldsParser> PARSER = new TemplateParser<AntispamFieldsParser>()
+	private static final TemplateParser<AntispamFieldsParser> PARSER = TemplateParser.<AntispamFieldsParser>builder()
 			.equals("form", "name", "post").open((instance, holder, tagName, attributes) -> {
 		holder.formParsing = true;
 		return false;

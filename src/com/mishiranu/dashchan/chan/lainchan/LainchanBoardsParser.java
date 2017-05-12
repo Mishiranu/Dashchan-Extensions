@@ -36,7 +36,7 @@ public class LainchanBoardsParser {
 		}
 	}
 
-	private static final TemplateParser<LainchanBoardsParser> PARSER = new TemplateParser<LainchanBoardsParser>()
+	private static final TemplateParser<LainchanBoardsParser> PARSER = TemplateParser.<LainchanBoardsParser>builder()
 			.equals("div", "class", "boardlist").open((i, holder, t, a) -> !(holder.boardListParsing = true))
 			.name("div").close((instance, holder, tagName) -> {
 		if (holder.boardListParsing) {
