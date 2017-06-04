@@ -212,8 +212,7 @@ public class BrchanChanPerformer extends ChanPerformer {
 		throw new InvalidResponseException();
 	}
 
-	private static final Pattern PATTERN_CAPTCHA = Pattern.compile("<image src=\"data:image/png;base64,(.*?)\">" +
-			"(?:.*?value=['\"]([^'\"]+?)['\"])?");
+	private static final Pattern PATTERN_CAPTCHA = Pattern.compile("<img src=\"data:image/png;base64,(.*?)\"");
 
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
@@ -230,10 +229,12 @@ public class BrchanChanPerformer extends ChanPerformer {
 				String extra = CommonUtils.getJsonString(jsonObject, "extra");
 				Uri providerUri = Uri.parse(CommonUtils.getJsonString(jsonObject, "provider_get"));
 				uri = providerUri.buildUpon().scheme(uri.getScheme()).authority(uri.getAuthority())
-						.appendQueryParameter("mode", "get").appendQueryParameter("extra", extra).build();
-				jsonObject = new HttpRequest(uri, data).read().getJsonObject();
-				Matcher matcher = PATTERN_CAPTCHA.matcher(CommonUtils.getJsonString(jsonObject, "captchahtml"));
-				if (matcher.matches()) {
+						.appendQueryParameter("mode", "get").appendQueryParameter("extra", extra)
+						.appendQueryParameter("board", data.boardName).build();
+				String responseText = new HttpRequest(uri, data).read().getString();
+				String challenge = data.holder.getCookieValue("captcha_" + data.boardName);
+				Matcher matcher = PATTERN_CAPTCHA.matcher(responseText);
+				if (matcher.find() && challenge != null) {
 					String base64 = matcher.group(1);
 					byte[] imageArray = Base64.decode(base64, Base64.DEFAULT);
 					Bitmap image = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
@@ -247,7 +248,7 @@ public class BrchanChanPerformer extends ChanPerformer {
 						new Canvas(newImage).drawBitmap(image, 0f, 0f, paint);
 						image.recycle();
 						CaptchaData captchaData = new CaptchaData();
-						captchaData.put(CaptchaData.CHALLENGE, CommonUtils.getJsonString(jsonObject, "cookie"));
+						captchaData.put(CaptchaData.CHALLENGE, challenge);
 						return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage)
 								.setValidity(BrchanChanConfiguration.Captcha.Validity.SHORT_LIFETIME);
 					}
@@ -286,8 +287,9 @@ public class BrchanChanPerformer extends ChanPerformer {
 		if (hasSpoilers) {
 			entity.add("spoiler", "on");
 		}
+		String captchaCookie = null;
 		if (data.captchaData != null && data.captchaData.get(CaptchaData.CHALLENGE) != null) {
-			entity.add("captcha_cookie", StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.CHALLENGE)));
+			captchaCookie = StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.CHALLENGE));
 			entity.add("captcha_text", StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.INPUT)));
 		}
 		entity.add("json_response", "1");
@@ -297,6 +299,7 @@ public class BrchanChanPerformer extends ChanPerformer {
 		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.addHeader("Referer", (data.threadNumber == null ? locator.createBoardUri(data.boardName, 0)
 				: locator.createThreadUri(data.boardName, data.threadNumber)).toString())
+				.addCookie("captcha_" + data.boardName, captchaCookie)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
