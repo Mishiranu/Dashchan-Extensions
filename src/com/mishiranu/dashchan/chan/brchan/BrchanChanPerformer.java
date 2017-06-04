@@ -32,108 +32,85 @@ import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class BrchanChanPerformer extends ChanPerformer
-{
+public class BrchanChanPerformer extends ChanPerformer {
 	@Override
-	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
-	{
+	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
-		if (data.isCatalog())
-		{
+		if (data.isCatalog()) {
 			Uri uri = locator.buildPath(data.boardName, "catalog.json");
-			JSONArray jsonArray = new HttpRequest(uri, data.holder, data).read().getJsonArray();
-			if (jsonArray == null) throw new InvalidResponseException();
-			if (jsonArray.length() == 1)
-			{
-				try
-				{
+			JSONArray jsonArray = new HttpRequest(uri, data).read().getJsonArray();
+			if (jsonArray == null) {
+				throw new InvalidResponseException();
+			}
+			if (jsonArray.length() == 1) {
+				try {
 					JSONObject jsonObject = jsonArray.getJSONObject(0);
-					if (!jsonObject.has("threads")) return null;
-				}
-				catch (JSONException e)
-				{
+					if (!jsonObject.has("threads")) {
+						return null;
+					}
+				} catch (JSONException e) {
 					throw new InvalidResponseException(e);
 				}
 			}
-			try
-			{
+			try {
 				ArrayList<Posts> threads = new ArrayList<>();
-				for (int i = 0; i < jsonArray.length(); i++)
-				{
+				for (int i = 0; i < jsonArray.length(); i++) {
 					JSONArray threadsArray = jsonArray.getJSONObject(i).getJSONArray("threads");
-					for (int j = 0; j < threadsArray.length(); j++)
-					{
+					for (int j = 0; j < threadsArray.length(); j++) {
 						threads.add(BrchanModelMapper.createThread(threadsArray.getJSONObject(j),
 								locator, data.boardName, true));
 					}
 				}
 				return new ReadThreadsResult(threads);
-			}
-			catch (JSONException e)
-			{
+			} catch (JSONException e) {
 				throw new InvalidResponseException(e);
 			}
-		}
-		else
-		{
+		} else {
 			Uri uri = locator.buildPath(data.boardName, data.pageNumber + ".json");
-			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-					.read().getJsonObject();
-			if (jsonObject == null) throw new InvalidResponseException();
-			if (data.pageNumber == 0)
-			{
+			JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
+			if (jsonObject == null) {
+				throw new InvalidResponseException();
+			}
+			if (data.pageNumber == 0) {
 				uri = locator.buildQuery("settings.php", "board", data.boardName);
-				JSONObject boardConfigObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
-				if (boardConfigObject != null)
-				{
+				JSONObject boardConfigObject = new HttpRequest(uri, data).read().getJsonObject();
+				if (boardConfigObject != null) {
 					BrchanChanConfiguration configuration = BrchanChanConfiguration.get(this);
 					configuration.updateFromBoardJson(data.boardName, boardConfigObject, true);
 				}
 			}
-			try
-			{
+			try {
 				JSONArray threadsArray = jsonObject.getJSONArray("threads");
 				Posts[] threads = new Posts[threadsArray.length()];
-				for (int i = 0; i < threads.length; i++)
-				{
+				for (int i = 0; i < threads.length; i++) {
 					threads[i] = BrchanModelMapper.createThread(threadsArray.getJSONObject(i),
 							locator, data.boardName, false);
 				}
 				return new ReadThreadsResult(threads);
-			}
-			catch (JSONException e)
-			{
+			} catch (JSONException e) {
 				throw new InvalidResponseException(e);
 			}
 		}
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException
-	{
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonObject();
-		if (jsonObject != null)
-		{
-			try
-			{
+		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
+		if (jsonObject != null) {
+			try {
 				JSONArray jsonArray = jsonObject.getJSONArray("posts");
-				if (jsonArray.length() > 0)
-				{
+				if (jsonArray.length() > 0) {
 					Post[] posts = new Post[jsonArray.length()];
-					for (int i = 0; i < posts.length; i++)
-					{
+					for (int i = 0; i < posts.length; i++) {
 						posts[i] = BrchanModelMapper.createPost(jsonArray.getJSONObject(i),
 								locator, data.boardName);
 					}
 					return new ReadPostsResult(posts);
 				}
 				return null;
-			}
-			catch (JSONException e)
-			{
+			} catch (JSONException e) {
 				throw new InvalidResponseException(e);
 			}
 		}
@@ -142,57 +119,48 @@ public class BrchanChanPerformer extends ChanPerformer
 
 	@Override
 	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
-			InvalidResponseException
-	{
+			InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("search.php", "board", data.boardName, "search", data.searchQuery);
-		String responseText = new HttpRequest(uri, data.holder, data).read().getString();
-		try
-		{
+		String responseText = new HttpRequest(uri, data).read().getString();
+		try {
 			return new ReadSearchPostsResult(new BrchanSearchParser(responseText, this).convertPosts());
-		}
-		catch (ParseException e)
-		{
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		}
 	}
 
 	private ArrayList<BoardCategory> readBoards(HttpRequest.Preset preset, boolean user)
-			throws HttpException, InvalidResponseException
-	{
+			throws HttpException, InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildPath("");
 		String responseText = new HttpRequest(uri, preset).read().getString();
 		LinkedHashMap<String, String> officialBoards;
-		try
-		{
+		try {
 			officialBoards = new BrchanBoardsParser(responseText).convertMap();
-		}
-		catch (ParseException e)
-		{
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		}
 		uri = locator.buildPath("boards.json");
 		JSONArray jsonArray = new HttpRequest(uri, preset).read().getJsonArray();
-		if (jsonArray == null) throw new InvalidResponseException();
-		try
-		{
+		if (jsonArray == null) {
+			throw new InvalidResponseException();
+		}
+		try {
 			LinkedHashMap<String, ArrayList<Board>> boards = new LinkedHashMap<>();
-			if (!user)
-			{
+			if (!user) {
 				// Set boards map order
-				for (String category : officialBoards.values()) boards.put(category, null);
+				for (String category : officialBoards.values()) {
+					boards.put(category, null);
+				}
 			}
-			for (int i = 0; i < jsonArray.length(); i++)
-			{
+			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonObject = jsonArray.getJSONObject(i);
 				String boardName = CommonUtils.getJsonString(jsonObject, "uri");
-				if (officialBoards.containsKey(boardName) != user)
-				{
+				if (officialBoards.containsKey(boardName) != user) {
 					String category = user ? null : officialBoards.get(boardName);
 					ArrayList<Board> boardList = boards.get(category);
-					if (boardList == null)
-					{
+					if (boardList == null) {
 						boardList = new ArrayList<>();
 						boards.put(category, boardList);
 					}
@@ -202,47 +170,42 @@ public class BrchanChanPerformer extends ChanPerformer
 				}
 			}
 			ArrayList<BoardCategory> categories = new ArrayList<>();
-			for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boards.entrySet())
-			{
-				if (entry.getValue() != null) categories.add(new BoardCategory(entry.getKey(), entry.getValue()));
+			for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boards.entrySet()) {
+				if (entry.getValue() != null) {
+					categories.add(new BoardCategory(entry.getKey(), entry.getValue()));
+				}
 			}
 			return categories;
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 	}
 
 	@Override
-	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
-	{
+	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		return new ReadBoardsResult(readBoards(data, false));
 	}
 
 	@Override
-	public ReadUserBoardsResult onReadUserBoards(ReadUserBoardsData data) throws HttpException, InvalidResponseException
-	{
+	public ReadUserBoardsResult onReadUserBoards(ReadUserBoardsData data) throws HttpException,
+			InvalidResponseException {
 		ArrayList<BoardCategory> categories = readBoards(data, true);
-		if (categories.size() >= 1) return new ReadUserBoardsResult(categories.get(0).getBoards());
+		if (categories.size() >= 1) {
+			return new ReadUserBoardsResult(categories.get(0).getBoards());
+		}
 		return null;
 	}
 
 	@Override
-	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
-	{
+	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
+			InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonObject();
-		if (jsonObject != null)
-		{
-			try
-			{
+		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
+		if (jsonObject != null) {
+			try {
 				return new ReadPostsCountResult(jsonObject.getJSONArray("posts").length());
-			}
-			catch (JSONException e)
-			{
+			} catch (JSONException e) {
 				throw new InvalidResponseException(e);
 			}
 		}
@@ -253,31 +216,28 @@ public class BrchanChanPerformer extends ChanPerformer
 			"(?:.*?value=['\"]([^'\"]+?)['\"])?");
 
 	@Override
-	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException
-	{
+	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("settings.php", "board", data.boardName);
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
-		if (jsonObject == null) throw new InvalidResponseException();
-		try
-		{
+		JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
+		try {
 			boolean newThreadCaptcha = jsonObject.optBoolean("new_thread_capt");
 			jsonObject = jsonObject.getJSONObject("captcha");
-			if (jsonObject.getBoolean("enabled") || data.threadNumber == null && newThreadCaptcha)
-			{
+			if (jsonObject.getBoolean("enabled") || data.threadNumber == null && newThreadCaptcha) {
 				String extra = CommonUtils.getJsonString(jsonObject, "extra");
 				Uri providerUri = Uri.parse(CommonUtils.getJsonString(jsonObject, "provider_get"));
 				uri = providerUri.buildUpon().scheme(uri.getScheme()).authority(uri.getAuthority())
 						.appendQueryParameter("mode", "get").appendQueryParameter("extra", extra).build();
-				jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
+				jsonObject = new HttpRequest(uri, data).read().getJsonObject();
 				Matcher matcher = PATTERN_CAPTCHA.matcher(CommonUtils.getJsonString(jsonObject, "captchahtml"));
-				if (matcher.matches())
-				{
+				if (matcher.matches()) {
 					String base64 = matcher.group(1);
 					byte[] imageArray = Base64.decode(base64, Base64.DEFAULT);
 					Bitmap image = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
-					if (image != null)
-					{
+					if (image != null) {
 						Bitmap newImage = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
 								Bitmap.Config.ARGB_8888);
 						Paint paint = new Paint();
@@ -294,17 +254,14 @@ public class BrchanChanPerformer extends ChanPerformer
 				}
 				throw new InvalidResponseException();
 			}
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 		return new ReadCaptchaResult(CaptchaState.SKIP, null);
 	}
 
 	@Override
-	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
-	{
+	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		MultipartEntity entity = new MultipartEntity();
 		entity.add("post", "on");
 		entity.add("board", data.boardName);
@@ -314,21 +271,22 @@ public class BrchanChanPerformer extends ChanPerformer
 		entity.add("name", data.name);
 		entity.add("email", data.email);
 		entity.add("password", data.password);
-		if (data.optionSage) entity.add("no-bump", "on");
+		if (data.optionSage) {
+			entity.add("no-bump", "on");
+		}
 		entity.add("user_flag", data.userIcon);
 		boolean hasSpoilers = false;
-		if (data.attachments != null)
-		{
-			for (int i = 0; i < data.attachments.length; i++)
-			{
+		if (data.attachments != null) {
+			for (int i = 0; i < data.attachments.length; i++) {
 				SendPostData.Attachment attachment = data.attachments[i];
 				attachment.addToEntity(entity, "file" + (i > 0 ? i + 1 : ""));
 				hasSpoilers |= attachment.optionSpoiler;
 			}
 		}
-		if (hasSpoilers) entity.add("spoiler", "on");
-		if (data.captchaData != null && data.captchaData.get(CaptchaData.CHALLENGE) != null)
-		{
+		if (hasSpoilers) {
+			entity.add("spoiler", "on");
+		}
+		if (data.captchaData != null && data.captchaData.get(CaptchaData.CHALLENGE) != null) {
 			entity.add("captcha_cookie", StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.CHALLENGE)));
 			entity.add("captcha_text", StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.INPUT)));
 		}
@@ -336,73 +294,52 @@ public class BrchanChanPerformer extends ChanPerformer
 
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		Uri uri = locator.buildPath("post.php");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.addHeader("Referer", (data.threadNumber == null ? locator.createBoardUri(data.boardName, 0)
 				: locator.createThreadUri(data.boardName, data.threadNumber)).toString())
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
-		if (jsonObject == null) throw new InvalidResponseException();
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
 
 		String redirect = jsonObject.optString("redirect");
-		if (!StringUtils.isEmpty(redirect))
-		{
+		if (!StringUtils.isEmpty(redirect)) {
 			uri = locator.buildPath(redirect);
 			String threadNumber = locator.getThreadNumber(uri);
 			String postNumber = locator.getPostNumber(uri);
 			return new SendPostResult(threadNumber, postNumber);
 		}
 		String errorMessage = jsonObject.optString("error");
-		if (errorMessage != null)
-		{
+		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("CAPTCHA") || errorMessage.contains("Você errou o codigo de verificação"))
-			{
+			if (errorMessage.contains("CAPTCHA") || errorMessage.contains("Você errou o codigo de verificação")) {
 				errorType = ApiException.SEND_ERROR_CAPTCHA;
-			}
-			else if (errorMessage.contains("O corpo do texto"))
-			{
+			} else if (errorMessage.contains("O corpo do texto")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
-			}
-			else if (errorMessage.contains("Você deve postar com uma imagem"))
-			{
+			} else if (errorMessage.contains("Você deve postar com uma imagem")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_FILE;
-			}
-			else if (errorMessage.contains("Seu arquivo é grande demais") || errorMessage.contains("é maior que"))
-			{
+			} else if (errorMessage.contains("Seu arquivo é grande demais") || errorMessage.contains("é maior que")) {
 				errorType = ApiException.SEND_ERROR_FILE_TOO_BIG;
-			}
-			else if (errorMessage.contains("Você tentou fazer upload de muitas"))
-			{
+			} else if (errorMessage.contains("Você tentou fazer upload de muitas")) {
 				errorType = ApiException.SEND_ERROR_FILES_TOO_MANY;
-			}
-			else if (errorMessage.contains("longo demais"))
-			{
+			} else if (errorMessage.contains("longo demais")) {
 				errorType = ApiException.SEND_ERROR_FIELD_TOO_LONG;
-			}
-			else if (errorMessage.contains("Tópico trancado"))
-			{
+			} else if (errorMessage.contains("Tópico trancado")) {
 				errorType = ApiException.SEND_ERROR_CLOSED;
-			}
-			else if (errorMessage.contains("Board inválida"))
-			{
+			} else if (errorMessage.contains("Board inválida")) {
 				errorType = ApiException.SEND_ERROR_NO_BOARD;
-			}
-			else if (errorMessage.contains("O tópico especificado não existe"))
-			{
+			} else if (errorMessage.contains("O tópico especificado não existe")) {
 				errorType = ApiException.SEND_ERROR_NO_THREAD;
-			}
-			else if (errorMessage.contains("Formato de arquivo não aceito"))
-			{
+			} else if (errorMessage.contains("Formato de arquivo não aceito")) {
 				errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
-			}
-			else if (errorMessage.contains("O arquivo"))
-			{
+			} else if (errorMessage.contains("O arquivo")) {
 				errorType = ApiException.SEND_ERROR_FILE_EXISTS;
-			}
-			else if (errorMessage.contains("Flood detectado"))
-			{
+			} else if (errorMessage.contains("Flood detectado")) {
 				errorType = ApiException.SEND_ERROR_TOO_FAST;
 			}
-			if (errorType != 0) throw new ApiException(errorType);
+			if (errorType != 0) {
+				throw new ApiException(errorType);
+			}
 			CommonUtils.writeLog("brchan send message", errorMessage);
 			throw new ApiException(errorMessage);
 		}
@@ -411,32 +348,37 @@ public class BrchanChanPerformer extends ChanPerformer
 
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
-			InvalidResponseException
-	{
+			InvalidResponseException {
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("delete", "on", "board", data.boardName,
 				"password", data.password, "json_response", "1");
-		for (String postNumber : data.postNumbers) entity.add("delete_" + postNumber, "on");
-		if (data.optionFilesOnly) entity.add("file", "on");
+		for (String postNumber : data.postNumbers) {
+			entity.add("delete_" + postNumber, "on");
+		}
+		if (data.optionFilesOnly) {
+			entity.add("file", "on");
+		}
 		Uri uri = locator.buildPath("post.php");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).setSuccessOnly(false)
 				.read().getJsonObject();
-		if (jsonObject == null) throw new InvalidResponseException();
-		if (jsonObject.optBoolean("success")) return null;
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
+		if (jsonObject.optBoolean("success")) {
+			return null;
+		}
 		String errorMessage = jsonObject.optString("error");
-		if (errorMessage != null)
-		{
+		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("Senha incorreta"))
-			{
+			if (errorMessage.contains("Senha incorreta")) {
 				errorType = ApiException.DELETE_ERROR_PASSWORD;
-			}
-			else if (errorMessage.contains("antes de apagar isso"))
-			{
+			} else if (errorMessage.contains("antes de apagar isso")) {
 				errorType = ApiException.DELETE_ERROR_TOO_NEW;
 			}
-			if (errorType != 0) throw new ApiException(errorType);
+			if (errorType != 0) {
+				throw new ApiException(errorType);
+			}
 			CommonUtils.writeLog("brchan delete message", errorMessage);
 			throw new ApiException(errorMessage);
 		}
@@ -447,24 +389,23 @@ public class BrchanChanPerformer extends ChanPerformer
 
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
-			InvalidResponseException
-	{
+			InvalidResponseException {
 		String postNumber = data.postNumbers.get(0);
 		BrchanChanLocator locator = BrchanChanLocator.get(this);
 		UrlEncodedEntity entity = new UrlEncodedEntity("report", "1", "board", data.boardName);
 		entity.add("delete_" + postNumber, "1");
 		entity.add("reason", StringUtils.emptyIfNull(data.comment));
-		if (data.options.contains("global")) entity.add("global", "1");
+		if (data.options.contains("global")) {
+			entity.add("global", "1");
+		}
 		Uri uri = locator.buildPath("post.php");
-		String responseText = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+		String responseText = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).setSuccessOnly(false)
 				.read().getString();
 		Matcher matcher = PATTERN_REPORT.matcher(responseText);
-		if (matcher.find())
-		{
+		if (matcher.find()) {
 			String errorMessage = matcher.group(1);
-			if (errorMessage != null)
-			{
+			if (errorMessage != null) {
 				CommonUtils.writeLog("brchan report message", errorMessage);
 				throw new ApiException(errorMessage);
 			}

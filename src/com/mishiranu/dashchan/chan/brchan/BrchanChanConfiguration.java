@@ -12,8 +12,7 @@ import chan.content.ChanConfiguration;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class BrchanChanConfiguration extends ChanConfiguration
-{
+public class BrchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_ICONS = "icons";
 	private static final String KEY_IMAGES_ENABLED = "images_enabled";
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
@@ -21,8 +20,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 	private static final String KEY_DELETE_ENABLED = "delete_enabled";
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 
-	public BrchanChanConfiguration()
-	{
+	public BrchanChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		request(OPTION_READ_USER_BOARDS);
 		setDefaultName("Anônimo");
@@ -32,8 +30,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Board obtainBoardConfiguration(String boardName)
-	{
+	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
 		board.allowSearch = true;
 		board.allowCatalog = true;
@@ -44,10 +41,8 @@ public class BrchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType)
-	{
-		if ("infinite".equals(captchaType))
-		{
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if ("infinite".equals(captchaType)) {
 			Captcha captcha = new Captcha();
 			captcha.title = "BRCHAN";
 			captcha.input = Captcha.Input.ALL;
@@ -58,8 +53,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Posting obtainPostingConfiguration(String boardName, boolean newThread)
-	{
+	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
 		Posting posting = new Posting();
 		posting.allowName = posting.allowTripcode = get(boardName, KEY_NAMES_ENABLED, true);
 		posting.allowSubject = true;
@@ -69,28 +63,23 @@ public class BrchanChanConfiguration extends ChanConfiguration
 		posting.attachmentMimeTypes.add("video/*");
 		posting.attachmentMimeTypes.add("audio/*");
 		posting.attachmentSpoiler = true;
-		try
-		{
+		try {
 			JSONObject jsonObject = new JSONObject(get(boardName, KEY_ICONS, "[]"));
 			Iterator<String> keys = jsonObject.keys();
-			while (keys.hasNext())
-			{
+			while (keys.hasNext()) {
 				String key = keys.next();
 				String name = StringUtils.clearHtml(CommonUtils.getJsonString(jsonObject, key));
 				posting.userIcons.add(new Pair<>(key, name));
 			}
-		}
-		catch (Exception e)
-		{
-
+		} catch (Exception e) {
+			// Ignore exception
 		}
 		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
 		return posting;
 	}
 
 	@Override
-	public Deleting obtainDeletingConfiguration(String boardName)
-	{
+	public Deleting obtainDeletingConfiguration(String boardName) {
 		Deleting deleting = new Deleting();
 		deleting.password = true;
 		deleting.multiplePosts = true;
@@ -99,8 +88,7 @@ public class BrchanChanConfiguration extends ChanConfiguration
 	}
 
 	@Override
-	public Reporting obtainReportingConfiguration(String boardName)
-	{
+	public Reporting obtainReportingConfiguration(String boardName) {
 		Resources resources = getResources();
 		Reporting reporting = new Reporting();
 		reporting.comment = true;
@@ -108,26 +96,22 @@ public class BrchanChanConfiguration extends ChanConfiguration
 		return reporting;
 	}
 
-	public boolean isTagSupported(String boardName, int tag)
-	{
-		if (tag == BrchanChanMarkup.TAG_CODE) return get(boardName, KEY_CODE_ENABLED, false);
+	public boolean isTagSupported(String boardName, int tag) {
+		if (tag == BrchanChanMarkup.TAG_CODE) {
+			return get(boardName, KEY_CODE_ENABLED, false);
+		}
 		return false;
 	}
 
-	public void updateFromBoardJson(String boardName, JSONObject jsonObject, boolean updateTitle)
-	{
-		if (updateTitle)
-		{
-			try
-			{
+	public void updateFromBoardJson(String boardName, JSONObject jsonObject, boolean updateTitle) {
+		if (updateTitle) {
+			try {
 				String title = CommonUtils.getJsonString(jsonObject, "title");
 				String description = CommonUtils.optJsonString(jsonObject, "subtitle");
 				storeBoardTitle(boardName, title);
 				storeBoardDescription(boardName, description);
-			}
-			catch (JSONException e)
-			{
-
+			} catch (JSONException e) {
+				// Ignore exception
 			}
 		}
 		String defaultName = CommonUtils.optJsonString(jsonObject, "anonymous");
@@ -138,8 +122,12 @@ public class BrchanChanConfiguration extends ChanConfiguration
 		boolean deleteEnabled = jsonObject.optBoolean("allow_delete");
 		boolean codeEnabled = jsonObject.optBoolean("code_tags");
 		JSONObject userFlags = jsonObject.optJSONObject("user_flags");
-		if (!StringUtils.isEmpty(defaultName)) storeDefaultName(boardName, defaultName);
-		if (bumpLimit != 0) storeBumpLimit(boardName, bumpLimit);
+		if (!StringUtils.isEmpty(defaultName)) {
+			storeDefaultName(boardName, defaultName);
+		}
+		if (bumpLimit != 0) {
+			storeBumpLimit(boardName, bumpLimit);
+		}
 		set(boardName, KEY_IMAGES_ENABLED, imagesEnabled);
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 		set(boardName, KEY_FLAGS_ENABLED, flagsEnabled);

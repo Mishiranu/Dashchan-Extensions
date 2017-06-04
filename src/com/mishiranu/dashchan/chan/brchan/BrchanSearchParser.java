@@ -13,97 +13,80 @@ import chan.text.TemplateParser;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class BrchanSearchParser
-{
-	private final String mSource;
-	private final BrchanChanLocator mLocator;
+public class BrchanSearchParser {
+	private final String source;
+	private final BrchanChanLocator locator;
 
-	private Post mPost;
-	private final ArrayList<Post> mPosts = new ArrayList<>();
+	private Post post;
+	private final ArrayList<Post> posts = new ArrayList<>();
 
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
-	static
-	{
+	static {
 		DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT-2"));
 	}
 
-	public BrchanSearchParser(String source, Object linked)
-	{
-		mSource = source;
-		mLocator = BrchanChanLocator.get(linked);
+	public BrchanSearchParser(String source, Object linked) {
+		this.source = source;
+		locator = BrchanChanLocator.get(linked);
 	}
 
-	public ArrayList<Post> convertPosts() throws ParseException
-	{
-		PARSER.parse(mSource, this);
-		return mPosts;
+	public ArrayList<Post> convertPosts() throws ParseException {
+		PARSER.parse(source, this);
+		return posts;
 	}
 
 	private static final TemplateParser<BrchanSearchParser> PARSER = new TemplateParser<BrchanSearchParser>()
-			.starts("div", "id", "reply_").starts("div", "id", "op_").open((instance, holder, tagName, attributes) ->
-	{
+			.starts("div", "id", "reply_").starts("div", "id", "op_").open((instance, holder, tagName, attributes) -> {
 		String id = attributes.get("id");
-		holder.mPost = new Post().setPostNumber(id.substring(id.indexOf('_') + 1, id.length()));
+		holder.post = new Post().setPostNumber(id.substring(id.indexOf('_') + 1, id.length()));
 		return false;
-
-	}).equals("a", "class", "post_no").open((instance, holder, tagName, attributes) ->
-	{
-		String resto = holder.mLocator.getThreadNumber(Uri.parse(attributes.get("href")));
-		if (!holder.mPost.getPostNumber().equals(resto)) holder.mPost.setParentPostNumber(resto);
+	}).equals("a", "class", "post_no").open((instance, holder, tagName, attributes) -> {
+		String resto = holder.locator.getThreadNumber(Uri.parse(attributes.get("href")));
+		if (!holder.post.getPostNumber().equals(resto)) {
+			holder.post.setParentPostNumber(resto);
+		}
 		return false;
-
-	}).equals("span", "class", "subject").content((instance, holder, text) ->
-	{
-		holder.mPost.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-
-	}).equals("span", "class", "name").content((instance, holder, text) ->
-	{
-		holder.mPost.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-
-	}).equals("span", "class", "tripcode").content((instance, holder, text) ->
-	{
-		holder.mPost.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
-
-	}).equals("span", "class", "capcode").content((instance, holder, text) ->
-	{
+	}).equals("span", "class", "subject").content((instance, holder, text) -> {
+		holder.post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "name").content((instance, holder, text) -> {
+		holder.post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "tripcode").content((instance, holder, text) -> {
+		holder.post.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim()));
+	}).equals("span", "class", "capcode").content((instance, holder, text) -> {
 		String capcode = StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim());
-		if (capcode != null && capcode.startsWith("## ")) holder.mPost.setCapcode(capcode.substring(3));
-
-	}).equals("a", "class", "email").open((instance, holder, tagName, attributes) ->
-	{
+		if (capcode != null && capcode.startsWith("## ")) {
+			holder.post.setCapcode(capcode.substring(3));
+		}
+	}).equals("a", "class", "email").open((instance, holder, tagName, attributes) -> {
 		String email = attributes.get("href");
-		if (email != null)
-		{
+		if (email != null) {
 			email = StringUtils.clearHtml(email);
 			email = CommonUtils.restoreCloudFlareProtectedEmails("<a href=\"" + email + "\"></a>");
 			email = email.substring(9, email.length() - 6);
-			if (email.startsWith("mailto:")) email = email.substring(7);
-			if (email.equalsIgnoreCase("sage")) holder.mPost.setSage(true); else holder.mPost.setEmail(email);
-		}
-		return false;
-
-	}).contains("time", "datetime", "").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mPost != null)
-		{
-			try
-			{
-				holder.mPost.setTimestamp(DATE_FORMAT.parse(attributes.get("datetime")).getTime());
+			if (email.startsWith("mailto:")) {
+				email = email.substring(7);
 			}
-			catch (java.text.ParseException e)
-			{
-
+			if (email.equalsIgnoreCase("sage")) {
+				holder.post.setSage(true);
+			} else {
+				holder.post.setEmail(email);
 			}
 		}
 		return false;
-
-	}).equals("div", "class", "body").content((instance, holder, text) ->
-	{
+	}).contains("time", "datetime", "").open((instance, holder, tagName, attributes) -> {
+		if (holder.post != null) {
+			try {
+				holder.post.setTimestamp(DATE_FORMAT.parse(attributes.get("datetime")).getTime());
+			} catch (java.text.ParseException e) {
+				// Ignore exception
+			}
+		}
+		return false;
+	}).equals("div", "class", "body").content((instance, holder, text) -> {
 		text = CommonUtils.restoreCloudFlareProtectedEmails(text);
-		holder.mPost.setComment(text);
-		holder.mPosts.add(holder.mPost);
-		holder.mPost = null;
-
+		holder.post.setComment(text);
+		holder.posts.add(holder.post);
+		holder.post = null;
 	}).prepare();
 }

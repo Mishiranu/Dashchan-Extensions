@@ -8,44 +8,38 @@ import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class BrchanBoardsParser
-{
-	private final String mSource;
+public class BrchanBoardsParser {
+	private final String source;
 
-	private String mCategory;
-	private final LinkedHashMap<String, String> mBoards = new LinkedHashMap<>();
+	private String category;
+	private final LinkedHashMap<String, String> boards = new LinkedHashMap<>();
 
 	private static final Pattern PATTERN_LINK = Pattern.compile("/(.*?)/");
 
-	public BrchanBoardsParser(String source)
-	{
-		mSource = source;
+	public BrchanBoardsParser(String source) {
+		this.source = source;
 	}
 
-	public LinkedHashMap<String, String> convertMap() throws ParseException
-	{
-		PARSER.parse(mSource, this);
-		return mBoards;
+	public LinkedHashMap<String, String> convertMap() throws ParseException {
+		PARSER.parse(source, this);
+		return boards;
 	}
 
 	private static final TemplateParser<BrchanBoardsParser> PARSER = new TemplateParser<BrchanBoardsParser>()
-			.name("li").open((i, h, t, a) -> a.get("title") == null).content((instance, holder, text) ->
-	{
-		holder.mCategory = StringUtils.clearHtml(text);
-
-	}).name("a").open((instance, holder, tagName, attributes) ->
-	{
-		if (holder.mCategory != null)
-		{
+			.name("li").open((i, h, t, a) -> a.get("title") == null).content((instance, holder, text) -> {
+		holder.category = StringUtils.clearHtml(text);
+	}).name("a").open((instance, holder, tagName, attributes) -> {
+		if (holder.category != null) {
 			String link = attributes.get("href");
 			Matcher matcher = PATTERN_LINK.matcher(link);
-			if (matcher.matches()) holder.mBoards.put(matcher.group(1), holder.mCategory);
+			if (matcher.matches()) {
+				holder.boards.put(matcher.group(1), holder.category);
+			}
 		}
 		return false;
-
-	}).name("div").close((instance, holder, tagName) ->
-	{
-		if (holder.mCategory != null) instance.finish();
-
+	}).name("div").close((instance, holder, tagName) -> {
+		if (holder.category != null) {
+			instance.finish();
+		}
 	}).prepare();
 }
