@@ -25,7 +25,7 @@ public class BrchanBoardsParser {
 		return boards;
 	}
 
-	private static final TemplateParser<BrchanBoardsParser> PARSER = new TemplateParser<BrchanBoardsParser>()
+	private static final TemplateParser<BrchanBoardsParser> PARSER = TemplateParser.<BrchanBoardsParser>builder()
 			.name("li").open((i, h, t, a) -> a.get("title") == null).content((instance, holder, text) -> {
 		holder.category = StringUtils.clearHtml(text);
 	}).name("a").open((instance, holder, tagName, attributes) -> {

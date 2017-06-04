@@ -36,7 +36,7 @@ public class BrchanSearchParser {
 		return posts;
 	}
 
-	private static final TemplateParser<BrchanSearchParser> PARSER = new TemplateParser<BrchanSearchParser>()
+	private static final TemplateParser<BrchanSearchParser> PARSER = TemplateParser.<BrchanSearchParser>builder()
 			.starts("div", "id", "reply_").starts("div", "id", "op_").open((instance, holder, tagName, attributes) -> {
 		String id = attributes.get("id");
 		holder.post = new Post().setPostNumber(id.substring(id.indexOf('_') + 1, id.length()));
