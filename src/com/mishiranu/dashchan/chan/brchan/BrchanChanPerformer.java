@@ -315,29 +315,54 @@ public class BrchanChanPerformer extends ChanPerformer {
 		String errorMessage = jsonObject.optString("error");
 		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("CAPTCHA") || errorMessage.contains("Você errou o codigo de verificação")) {
+			if (errorMessage.contains("CAPTCHA") ||
+					errorMessage.contains("You seem to have mistyped the verification") ||
+					errorMessage.contains("Você errou o codigo de verificação") ||
+					errorMessage.contains("Вы ошиблись при вводе капчи")) {
 				errorType = ApiException.SEND_ERROR_CAPTCHA;
-			} else if (errorMessage.contains("O corpo do texto")) {
+			} else if (errorMessage.contains("The body was too short or empty") ||
+					errorMessage.contains("O corpo do texto") ||
+					errorMessage.contains("Вы ничего не ввели в сообщении")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
-			} else if (errorMessage.contains("Você deve postar com uma imagem")) {
+			} else if (errorMessage.contains("You must upload an image") ||
+					errorMessage.contains("Você deve postar com uma imagem") ||
+					errorMessage.contains("Вы должны загрузить изображение")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_FILE;
-			} else if (errorMessage.contains("Seu arquivo é grande demais") || errorMessage.contains("é maior que")) {
+			} else if (errorMessage.contains("The file was too big") || errorMessage.contains("is longer than") ||
+					errorMessage.contains("Seu arquivo é grande demais") || errorMessage.contains("é maior que") ||
+					errorMessage.contains("Этот файл слишком большой") || errorMessage.contains("не дольше чем")) {
 				errorType = ApiException.SEND_ERROR_FILE_TOO_BIG;
-			} else if (errorMessage.contains("Você tentou fazer upload de muitas")) {
+			} else if (errorMessage.contains("attempted to upload too many images") ||
+					errorMessage.contains("Você tentou fazer upload de muitas") ||
+					errorMessage.contains("загрузить слишком много изображений")) {
 				errorType = ApiException.SEND_ERROR_FILES_TOO_MANY;
-			} else if (errorMessage.contains("longo demais")) {
+			} else if (errorMessage.contains("was too long") ||
+					errorMessage.contains("longo demais") ||
+					errorMessage.contains("слишком длинное") || errorMessage.contains("очень большое")) {
 				errorType = ApiException.SEND_ERROR_FIELD_TOO_LONG;
-			} else if (errorMessage.contains("Tópico trancado")) {
+			} else if (errorMessage.contains("Thread locked") ||
+					errorMessage.contains("Tópico trancado") ||
+					errorMessage.contains("Тред закрыт")) {
 				errorType = ApiException.SEND_ERROR_CLOSED;
-			} else if (errorMessage.contains("Board inválida")) {
+			} else if (errorMessage.contains("Invalid board") ||
+					errorMessage.contains("Board inválida") ||
+					errorMessage.contains("Неверная доска")) {
 				errorType = ApiException.SEND_ERROR_NO_BOARD;
-			} else if (errorMessage.contains("O tópico especificado não existe")) {
+			} else if (errorMessage.contains("Thread specified does not exist") ||
+					errorMessage.contains("O tópico especificado não existe") ||
+					errorMessage.contains("Данного треда не существует")) {
 				errorType = ApiException.SEND_ERROR_NO_THREAD;
-			} else if (errorMessage.contains("Formato de arquivo não aceito")) {
+			} else if (errorMessage.contains("Unsupported file format") ||
+					errorMessage.contains("Formato de arquivo não aceito") ||
+					errorMessage.contains("Формат файла не поддерживается")) {
 				errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
-			} else if (errorMessage.contains("O arquivo")) {
+			} else if (errorMessage.contains("That file") ||
+					errorMessage.contains("O arquivo") ||
+					errorMessage.contains("Этот файл")) {
 				errorType = ApiException.SEND_ERROR_FILE_EXISTS;
-			} else if (errorMessage.contains("Flood detectado")) {
+			} else if (errorMessage.contains("Flood detected") ||
+					errorMessage.contains("Flood detectado") ||
+					errorMessage.contains("Обнаружен флуд")) {
 				errorType = ApiException.SEND_ERROR_TOO_FAST;
 			}
 			if (errorType != 0) {
@@ -374,9 +399,13 @@ public class BrchanChanPerformer extends ChanPerformer {
 		String errorMessage = jsonObject.optString("error");
 		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("Senha incorreta")) {
+			if (errorMessage.contains("Wrong password") ||
+					errorMessage.contains("Senha incorreta") ||
+					errorMessage.contains("Неверный пароль")) {
 				errorType = ApiException.DELETE_ERROR_PASSWORD;
-			} else if (errorMessage.contains("antes de apagar isso")) {
+			} else if (errorMessage.contains("before deleting that") ||
+					errorMessage.contains("antes de apagar isso") ||
+					errorMessage.contains("перед удалением сообщения")) {
 				errorType = ApiException.DELETE_ERROR_TOO_NEW;
 			}
 			if (errorType != 0) {
