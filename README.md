@@ -1,6 +1,6 @@
-# Dashchan Extension: lainchan
+# Dashchan Extension: twentyseven
 
-Extension for lainchan.org.
+Extension for 27chan.org.
 
 ## License
 

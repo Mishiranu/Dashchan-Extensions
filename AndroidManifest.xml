@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.mishiranu.dashchan.chan.lainchan"
+	package="com.mishiranu.dashchan.chan.twentyseven"
 	android:versionCode="1"
 	android:versionName="1.5">
 
@@ -10,14 +10,14 @@
 
 	<application android:icon="@null" android:allowBackup="false" android:label="@string/text_app_name">
 
-		<meta-data android:name="chan.extension.name" android:value="lainchan" />
+		<meta-data android:name="chan.extension.name" android:value="twentyseven" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
-		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_lainchan_white" />
+		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_twentyseven_white" />
 		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
-		<meta-data android:name="chan.extension.class.configuration" android:value=".LainchanChanConfiguration" />
-		<meta-data android:name="chan.extension.class.performer" android:value=".LainchanChanPerformer" />
-		<meta-data android:name="chan.extension.class.locator" android:value=".LainchanChanLocator" />
-		<meta-data android:name="chan.extension.class.markup" android:value=".LainchanChanMarkup" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".TwentySevenChanConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".TwentySevenChanPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".TwentySevenChanLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".TwentySevenChanMarkup" />
 
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
 		    android:theme="@android:style/Theme.NoDisplay">
@@ -28,8 +28,8 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="http" />
 				<data android:scheme="https" />
-				<data android:host="lainchan.org" />
-				<data android:host="www.lainchan.org" />
+				<data android:host="27chan.org" />
+				<data android:host="www.27chan.org" />
 			</intent-filter>
 
 		</activity>
