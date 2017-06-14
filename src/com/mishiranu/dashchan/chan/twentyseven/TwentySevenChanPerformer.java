@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.Uri;
-import android.util.Log;
 
 import chan.content.ApiException;
 import chan.content.ChanPerformer;

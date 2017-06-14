@@ -72,28 +72,29 @@ public class TwentySevenModelMapper {
 			post.setComment(com);
 		}
 		// Add embedded atachments
-        String embed = StringUtils.nullIfEmpty(CommonUtils.optJsonString(jsonObject, "embed"));
-        if(embed != null) {
-            EmbeddedAttachment attachment = EmbeddedAttachment.obtain(embed);
-            if(attachment != null) post.setAttachments(attachment);
-        }
-        else {
-            try {
-                ArrayList<FileAttachment> attachments = new ArrayList<>();
-                attachments.add(createFileAttachment(jsonObject, locator, boardName));
-                JSONArray filesArray = jsonObject.optJSONArray("extra_files");
-                if (filesArray != null) {
-                    for (int i = 0; i < filesArray.length(); i++) {
-                        JSONObject fileObject = filesArray.getJSONObject(i);
-                        FileAttachment attachment = createFileAttachment(fileObject, locator, boardName);
-                        attachments.add(attachment);
-                    }
-                }
-                post.setAttachments(attachments);
-            } catch (JSONException e) {
-                // Ignore exception
-            }
-        }
+		String embed = StringUtils.nullIfEmpty(CommonUtils.optJsonString(jsonObject, "embed"));
+		if (embed != null) {
+			EmbeddedAttachment attachment = EmbeddedAttachment.obtain(embed);
+			if (attachment != null) {
+				post.setAttachments(attachment);
+			}
+		} else {
+			try {
+				ArrayList<FileAttachment> attachments = new ArrayList<>();
+				attachments.add(createFileAttachment(jsonObject, locator, boardName));
+				JSONArray filesArray = jsonObject.optJSONArray("extra_files");
+				if (filesArray != null) {
+					for (int i = 0; i < filesArray.length(); i++) {
+						JSONObject fileObject = filesArray.getJSONObject(i);
+						FileAttachment attachment = createFileAttachment(fileObject, locator, boardName);
+						attachments.add(attachment);
+					}
+				}
+				post.setAttachments(attachments);
+			} catch (JSONException e) {
+				// Ignore exception
+			}
+		}
 		return post;
 	}
 

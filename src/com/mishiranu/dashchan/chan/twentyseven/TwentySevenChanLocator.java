@@ -38,7 +38,9 @@ public class TwentySevenChanLocator extends ChanLocator {
 	public String getBoardName(Uri uri) {
 		if (uri != null) {
 			List<String> segments = uri.getPathSegments();
-			if (segments.size() > 0) return segments.get(0);
+			if (segments.size() > 0) {
+				return segments.get(0);
+			}
 		}
 		return null;
 	}
@@ -51,7 +53,9 @@ public class TwentySevenChanLocator extends ChanLocator {
 	@Override
 	public String getPostNumber(Uri uri) {
 		String fragment = uri.getFragment();
-		if (fragment != null && fragment.startsWith("q")) return fragment.substring(1);
+		if (fragment != null && fragment.startsWith("q")) {
+			return fragment.substring(1);
+		}
 		return fragment;
 	}
 
