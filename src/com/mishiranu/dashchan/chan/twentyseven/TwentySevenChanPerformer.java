@@ -176,29 +176,17 @@ public class TwentySevenChanPerformer extends ChanPerformer {
 		String errorMessage = jsonObject.optString("error");
 		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("The body was") || errorMessage.contains("must be at least")) {
+			if (errorMessage.contains("O corpo do texto")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
-			} else if (errorMessage.contains("You must upload an image")) {
+			} else if (errorMessage.contains("Você deve postar com uma imagem")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_FILE;
-			} else if (errorMessage.contains("was too long")) {
+			} else if (errorMessage.contains("longo demais")) {
 				errorType = ApiException.SEND_ERROR_FIELD_TOO_LONG;
-			} else if (errorMessage.contains("The file was too big") || errorMessage.contains("is longer than")) {
-				errorType = ApiException.SEND_ERROR_FILE_TOO_BIG;
-			} else if (errorMessage.contains("Thread locked")) {
-				errorType = ApiException.SEND_ERROR_CLOSED;
-			} else if (errorMessage.contains("Invalid board")) {
+			} else if (errorMessage.contains("Board inválida")) {
 				errorType = ApiException.SEND_ERROR_NO_BOARD;
-			} else if (errorMessage.contains("Thread specified does not exist")) {
+			} else if (errorMessage.contains("O tópico especificado não existe")) {
 				errorType = ApiException.SEND_ERROR_NO_THREAD;
-			} else if (errorMessage.contains("Unsupported image format")) {
-				errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
-			} else if (errorMessage.contains("Maximum file size")) {
-				errorType = ApiException.SEND_ERROR_FILE_TOO_BIG;
-			} else if (errorMessage.contains("Your IP address")) {
-				errorType = ApiException.SEND_ERROR_BANNED;
-			} else if (errorMessage.contains("That file")) {
-				errorType = ApiException.SEND_ERROR_FILE_EXISTS;
-			} else if (errorMessage.contains("Flood detected")) {
+			} else if (errorMessage.contains("Flood detectado")) {
 				errorType = ApiException.SEND_ERROR_TOO_FAST;
 			}
 			if (errorType != 0) {
@@ -234,9 +222,9 @@ public class TwentySevenChanPerformer extends ChanPerformer {
 		String errorMessage = jsonObject.optString("error");
 		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("Wrong password")) {
+			if (errorMessage.contains("Senha incorreta")) {
 				errorType = ApiException.DELETE_ERROR_PASSWORD;
-			} else if (errorMessage.contains("before deleting that")) {
+			} else if (errorMessage.contains("antes de apagar isso")) {
 				errorType = ApiException.DELETE_ERROR_TOO_NEW;
 			}
 			if (errorType != 0) {
