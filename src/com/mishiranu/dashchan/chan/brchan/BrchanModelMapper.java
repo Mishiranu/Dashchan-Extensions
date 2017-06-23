@@ -32,14 +32,7 @@ public class BrchanModelMapper {
 		attachment.setWidth(jsonObject.optInt("w"));
 		attachment.setHeight(jsonObject.optInt("h"));
 		attachment.setFileUri(locator, locator.buildPath(boardName, "src", tim + ext));
-		if (time >= 1475971200000L) {
-			// first png 08/10/16 22:53:13 (1475974393000)
-			attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb",
-					tim + (locator.isImageExtension(ext) ? ".png" : ".jpg")));
-		} else {
-			attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb",
-					tim + (locator.isImageExtension(ext) ? ext : ".jpg")));
-		}
+		attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb", tim));
 		attachment.setOriginalName(filename);
 		return attachment;
 	}
