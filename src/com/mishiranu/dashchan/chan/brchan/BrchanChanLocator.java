@@ -13,7 +13,9 @@ public class BrchanChanLocator extends ChanLocator {
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/\\w+/src/\\d+(?:-\\d+)?\\.\\w+");
 
 	public BrchanChanLocator() {
-		addChanHost("brchan.org");
+		addChanHost("lolifox.org");
+		addChanHost("www.lolifox.org");
+		addConvertableChanHost("brchan.org");
 		addConvertableChanHost("www.brchan.org");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}

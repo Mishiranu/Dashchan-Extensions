@@ -28,6 +28,8 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="http" />
 				<data android:scheme="https" />
+				<data android:host="lolifox.org" />
+				<data android:host="www.lolifox.org" />
 				<data android:host="brchan.org" />
 				<data android:host="www.brchan.org" />
 			</intent-filter>
