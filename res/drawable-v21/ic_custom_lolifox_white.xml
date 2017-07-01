@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:viewportWidth="42"
+	android:viewportHeight="42">
+
+	<path
+		android:fillColor="#ffffffff"
+		android:pathData="M28 18C25.875 19.437 20.562 20.562 18 23C12.312 27.625 14 38 14 38C14 38-2.062 24.5 11 13
+			C21.25 3.875 36.125 8.5 38 9C34.937 11.187 30.125 16.562 28 18ZM20 10C20.719 10.312 22 11.062 24 11C23.187
+			12.25 22.562 12.937 22 14C23 14.125 26.25 14.25 27 14C27.187 14.875 26.25 16 27 17C29.375 15.437 31.75
+			12.875 34 10C30 9.062 28.25 8.437 20 10Z" />
+
+</vector>
