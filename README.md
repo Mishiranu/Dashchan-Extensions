@@ -1,6 +1,6 @@
 # Dashchan Extension: brchan
 
-Extension for lolifox.org.
+Extension for brchan.org.
 
 ## License
 
