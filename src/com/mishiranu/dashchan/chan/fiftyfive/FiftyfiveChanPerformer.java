@@ -19,7 +19,6 @@ import chan.content.InvalidResponseException;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.HttpValidator;
@@ -168,39 +167,15 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 	}
 
-	private void readAndApplyTinyboardAntispamFields(HttpHolder holder, HttpRequest.Preset preset,
-			MultipartEntity entity, String boardName, String threadNumber) throws HttpException,
-			InvalidResponseException {
-		FiftyfiveChanLocator locator = FiftyfiveChanLocator.get(this);
-		Uri uri = threadNumber != null ? locator.createThreadUri(boardName, threadNumber)
-				: locator.createBoardUri(boardName, 0);
-		String responseText = new HttpRequest(uri, holder, preset).read().getString();
-		int start = responseText.indexOf("<form name=\"post\"");
-		if (start == -1) {
-			throw new InvalidResponseException();
-		}
-		responseText = responseText.substring(start, responseText.indexOf("</form>") + 7);
-		ArrayList<Pair<String, String>> fields;
-		try {
-			fields = new TinyboardAntispamFieldsParser(responseText).convert();
-		} catch (ParseException e) {
-			throw new InvalidResponseException();
-		}
-		for (Pair<String, String> field : fields) {
-			entity.add(field.first, field.second);
-		}
-	}
-
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		MultipartEntity entity = new MultipartEntity();
-		entity.add("post", data.threadNumber == null ? "Novo tópico" : "Responder");
 		entity.add("board", data.boardName);
 		entity.add("thread", data.threadNumber);
-		entity.add("subject", data.subject);
-		entity.add("body", StringUtils.emptyIfNull(data.comment));
 		entity.add("name", data.name);
 		entity.add("email", data.optionSage ? "sage" : data.email);
+		entity.add("subject", data.subject);
+		entity.add("body", StringUtils.emptyIfNull(data.comment));
 		entity.add("password", data.password);
 		boolean hasSpoilers = false;
 		if (data.attachments != null) {
@@ -216,9 +191,17 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		entity.add("g-recaptcha-response", StringUtils.emptyIfNull(data.captchaData != null
 				? data.captchaData.get(CaptchaData.INPUT) : null));
 		entity.add("json_response", "1");
-		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
 
 		FiftyfiveChanLocator locator = FiftyfiveChanLocator.get(this);
+		Uri contentUri = data.threadNumber != null ? locator.createThreadUri(data.boardName, data.threadNumber)
+				: locator.createBoardUri(data.boardName, 0);
+		String responseText = new HttpRequest(contentUri, data.holder).read().getString();
+		try {
+			AntispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
+					"subject", "body", "password", "file", "spoiler", "g-recaptcha-response", "json_response");
+		} catch (ParseException e) {
+			throw new InvalidResponseException();
+		}
 		Uri uri = locator.buildPath("altpost.php");
 		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.addHeader("Referer", (data.threadNumber == null ? locator.createBoardUri(data.boardName, 0)
