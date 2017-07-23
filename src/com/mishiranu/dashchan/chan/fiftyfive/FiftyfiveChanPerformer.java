@@ -10,15 +10,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.net.Uri;
+import android.util.Base64;
 import android.util.Pair;
 
 import chan.content.ApiException;
+import chan.content.ChanConfiguration;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
+import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.HttpValidator;
@@ -129,8 +137,13 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		throw new InvalidResponseException();
 	}
 
+	private static final Pattern PATTERN_CAPTCHA = Pattern.compile("<image src=\"data:image/png;base64,(.*?)\">" +
+			"(?:.*?value=['\"]([^'\"]+?)['\"])?");
+
 	private static final Pattern PATTERN_CAPTCHA_API_KEY = Pattern.compile("<div class=\"g-recaptcha\" "
 			+ "data-sitekey=\"(.*?)\">");
+
+	private static final String REQUIREMENT_DNSBLS = "dnsbls";
 
 	private final HashMap<String, Pair<HttpValidator, Boolean>> readCaptchaValidators = new HashMap<>();
 	private String captchaApiKey;
@@ -138,6 +151,35 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		FiftyfiveChanLocator locator = FiftyfiveChanLocator.get(this);
+		if (REQUIREMENT_DNSBLS.equals(data.requirement)) {
+			String responseText = new HttpRequest(locator.buildPath("dose_diaria.php"), data.holder, data)
+					.read().getString();
+			Matcher matcher = PATTERN_CAPTCHA.matcher(responseText);
+			Bitmap image = null;
+			String challenge = null;
+			if (matcher.find()) {
+				String base64 = matcher.group(1);
+				challenge = matcher.group(2);
+				byte[] imageArray = Base64.decode(base64, Base64.DEFAULT);
+				image = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
+			}
+			if (image == null) {
+				throw new InvalidResponseException();
+			}
+			Bitmap newImage = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+			Paint paint = new Paint();
+			float[] colorMatrixArray = {0.3f, 0.3f, 0.3f, 0f, 48f, 0.3f, 0.3f, 0.3f, 0f, 48f,
+					0.3f, 0.3f, 0.3f, 0f, 48f, 0f, 0f, 0f, 1f, 0f};
+			paint.setColorFilter(new ColorMatrixColorFilter(colorMatrixArray));
+			new Canvas(newImage).drawBitmap(image, 0f, 0f, paint);
+			image.recycle();
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CaptchaData.CHALLENGE, challenge);
+			return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage)
+					.setCaptchaType("dbsbls").setInput(ChanConfiguration.Captcha.Input.LATIN)
+					.setValidity(ChanConfiguration.Captcha.Validity.SHORT_LIFETIME);
+		}
+
 		String captchaApiKey = null;
 		Pair<HttpValidator, Boolean> pair = readCaptchaValidators.get(data.boardName);
 		try {
@@ -165,6 +207,29 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, captchaApiKey);
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
+	}
+
+	private boolean checkDnsBlsCaptcha(HttpHolder holder) throws HttpException {
+		FiftyfiveChanLocator locator = FiftyfiveChanLocator.get(this);
+		Uri uri = locator.buildPath("dose_diaria.php");
+		boolean retry = false;
+		while (true) {
+			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_DNSBLS, null, null, retry);
+			if (captchaData == null) {
+				return false;
+			}
+			retry = true;
+			String responseText = new HttpRequest(uri, holder).setPostMethod(new UrlEncodedEntity("captcha_cookie",
+					captchaData.get(CaptchaData.CHALLENGE), "captcha_text", captchaData.get(CaptchaData.INPUT)))
+					.setSuccessOnly(false).read().getString();
+			if (holder.getResponseCode() != HttpURLConnection.HTTP_BAD_REQUEST) {
+				holder.checkResponseCode();
+			}
+			if (responseText == null || !responseText.contains("<h1>Sucesso!</h1>")) {
+				continue;
+			}
+			return true;
+		}
 	}
 
 	@Override
@@ -221,7 +286,14 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		String errorMessage = jsonObject.optString("error");
 		if (errorMessage != null) {
 			int errorType = 0;
-			if (errorMessage.contains("Você errou o codigo de verificação")) {
+			if (errorMessage.contains("/dose_diaria.php")) {
+				boolean success = checkDnsBlsCaptcha(data.holder);
+				if (success) {
+					return onSendPost(data);
+				} else {
+					errorType = ApiException.SEND_ERROR_NO_ACCESS;
+				}
+			} else if (errorMessage.contains("Você errou o codigo de verificação")) {
 				errorType = ApiException.SEND_ERROR_CAPTCHA;
 			} else if (errorMessage.contains("O corpo do texto")) {
 				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
