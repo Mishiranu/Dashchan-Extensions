@@ -253,7 +253,7 @@ public class FiftyfiveChanPerformer extends ChanPerformer
 		readAndApplyTinyboardAntispamFields(data.holder, data, entity, data.boardName, data.threadNumber);
 
 		FiftyfiveChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.buildPath("post.php");
+		Uri uri = locator.buildPath("altpost.php");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
 				.addHeader("Referer", (data.threadNumber == null ? locator.createBoardUri(data.boardName, 0)
 				: locator.createThreadUri(data.boardName, data.threadNumber)).toString())
