@@ -6,11 +6,11 @@ import java.util.regex.Pattern;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class FiftyfiveBoardsParser implements GroupParser.Callback {
+public class FiftyfiveBoardsParser {
 	private final String source;
 
 	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
@@ -26,7 +26,7 @@ public class FiftyfiveBoardsParser implements GroupParser.Callback {
 	}
 
 	public ArrayList<BoardCategory> convert() throws ParseException {
-		GroupParser.parse(source, this);
+		PARSER.parse(source, this);
 		closeCategory();
 		return boardCategories;
 	}
@@ -39,39 +39,26 @@ public class FiftyfiveBoardsParser implements GroupParser.Callback {
 		}
 	}
 
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs) {
-		if ("div".equals(tagName)) {
-			String cssClass = parser.getAttr(attrs, "class");
-			if ("fav_category_div".equals(cssClass)) {
-				closeCategory();
-				boardCategoryTitle = StringUtils.clearHtml(parser.getAttr(attrs, "id"));
-			}
-		} else if ("a".equals(tagName)) {
-			String href = parser.getAttr(attrs, "href");
-			Matcher matcher = PATTERN_BOARD_URI.matcher(href);
-			if (matcher.matches()) {
-				boardName = matcher.group(1);
-			}
+	private static final TemplateParser<FiftyfiveBoardsParser> PARSER = TemplateParser.<FiftyfiveBoardsParser>builder()
+			.equals("div", "class", "fav_category_div").open((instance, holder, tagName, attributes) -> {
+		holder.closeCategory();
+		holder.boardCategoryTitle = StringUtils.clearHtml(attributes.get("id"));
+		return false;
+	}).name("a").open((instance, holder, tagName, attributes) -> {
+		String href = attributes.get("href");
+		Matcher matcher = PATTERN_BOARD_URI.matcher(href);
+		if (matcher.matches()) {
+			holder.boardName = matcher.group(1);
 		}
 		return false;
-	}
-
-	@Override
-	public void onEndElement(GroupParser parser, String tagName) {}
-
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end) {
-		if (boardName != null) {
+	}).text((instance, holder, source, start, end) -> {
+		if (holder.boardName != null) {
 			String text = StringUtils.clearHtml(source.substring(start, end));
-			if (text.startsWith("/" + boardName + "/ - ")) {
-				text = text.substring(boardName.length() + 5);
+			if (text.startsWith("/" + holder.boardName + "/ - ")) {
+				text = text.substring(holder.boardName.length() + 5);
 			}
-			boards.add(new Board(boardName, text));
-			boardName = null;
+			holder.boards.add(new Board(holder.boardName, text));
+			holder.boardName = null;
 		}
-	}
-
-	@Override
-	public void onGroupComplete(GroupParser parser, String text) {}
+	}).prepare();
 }
