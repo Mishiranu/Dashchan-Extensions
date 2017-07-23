@@ -259,7 +259,7 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		if (data.optionFilesOnly) {
 			entity.add("file", "on");
 		}
-		Uri uri = locator.buildPath("post.php");
+		Uri uri = locator.buildPath("altpost.php");
 		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
@@ -294,7 +294,7 @@ public class FiftyfiveChanPerformer extends ChanPerformer {
 		for (String postNumber : data.postNumbers) {
 			entity.add("delete_" + postNumber, "1");
 		}
-		Uri uri = locator.buildPath("post.php");
+		Uri uri = locator.buildPath("altpost.php");
 		JSONObject jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
 		if (jsonObject == null) {
