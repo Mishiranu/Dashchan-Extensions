@@ -10,13 +10,12 @@ import chan.text.GroupParser;
 import chan.text.ParseException;
 import chan.util.StringUtils;
 
-public class TinyboardAntispamFieldsParser implements GroupParser.Callback
-{
-	private final String mSource;
-	private final ArrayList<Pair<String, String>> mFields = new ArrayList<>();
+public class TinyboardAntispamFieldsParser implements GroupParser.Callback {
+	private final String source;
+	private final ArrayList<Pair<String, String>> fields = new ArrayList<>();
 	
-	private boolean mFormParsing;
-	private String mFieldName;
+	private boolean formParsing;
+	private String fieldName;
 	
 	/*
 	 * This is array of real fields. Other fields are fake and can have hash values from server.
@@ -25,58 +24,42 @@ public class TinyboardAntispamFieldsParser implements GroupParser.Callback
 	private static final List<String> VALID_FIELDS = Arrays.asList(new String[] {"board", "thread", "name", "email",
 			"subject", "post", "body", "file", "password", "spoiler", "json_response"});
 	
-	public TinyboardAntispamFieldsParser(String source)
-	{
-		mSource = source;
+	public TinyboardAntispamFieldsParser(String source) {
+		this.source = source;
 	}
 	
-	public ArrayList<Pair<String, String>> convert() throws ParseException
-	{
-		try
-		{
-			GroupParser.parse(mSource, this);
+	public ArrayList<Pair<String, String>> convert() throws ParseException {
+		try {
+			GroupParser.parse(source, this);
+		} catch (FinishedException e) {
+			// Ignore exception
 		}
-		catch (FinishedException e)
-		{
-			
-		}
-		return mFields;
+		return fields;
 	}
 	
-	private static class FinishedException extends ParseException
-	{
+	private static class FinishedException extends ParseException {
 		private static final long serialVersionUID = 1L;
 	}
 	
 	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
-	{
-		if ("form".equals(tagName))
-		{
+	public boolean onStartElement(GroupParser parser, String tagName, String attrs) {
+		if ("form".equals(tagName)) {
 			String name = parser.getAttr(attrs, "name");
-			if ("post".equals(name))
-			{
-				mFormParsing = true;
+			if ("post".equals(name)) {
+				formParsing = true;
 			}
-		}
-		else if (mFormParsing)
-		{
+		} else if (formParsing) {
 			boolean input = "input".equals(tagName);
 			boolean textarea = "textarea".equals(tagName);
-			if (input || textarea)
-			{
+			if (input || textarea) {
 				String fieldName = StringUtils.unescapeHtml(parser.getAttr(attrs, "name"));
-				if (!VALID_FIELDS.contains(fieldName))
-				{
-					if (textarea)
-					{
-						mFieldName = fieldName;
+				if (!VALID_FIELDS.contains(fieldName)) {
+					if (textarea) {
+						this.fieldName = fieldName;
 						return true;
-					}
-					else
-					{
+					} else {
 						String value = StringUtils.unescapeHtml(parser.getAttr(attrs, "value"));
-						mFields.add(new Pair<>(fieldName, value));
+						fields.add(new Pair<>(fieldName, value));
 					}
 				}
 			}
@@ -85,21 +68,18 @@ public class TinyboardAntispamFieldsParser implements GroupParser.Callback
 	}
 	
 	@Override
-	public void onEndElement(GroupParser parser, String tagName) throws ParseException
-	{
-		if ("form".equals(tagName) && mFormParsing) throw new FinishedException();
+	public void onEndElement(GroupParser parser, String tagName) throws ParseException {
+		if ("form".equals(tagName) && formParsing) {
+			throw new FinishedException();
+		}
 	}
 	
 	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
-	{
-		
-	}
+	public void onText(GroupParser parser, String source, int start, int end) {}
 	
 	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
+	public void onGroupComplete(GroupParser parser, String text) {
 		String value = StringUtils.unescapeHtml(text);
-		mFields.add(new Pair<>(mFieldName, value));
+		fields.add(new Pair<>(fieldName, value));
 	}
 }

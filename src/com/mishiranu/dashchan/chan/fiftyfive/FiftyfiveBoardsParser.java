@@ -10,82 +10,68 @@ import chan.text.GroupParser;
 import chan.text.ParseException;
 import chan.util.StringUtils;
 
-public class FiftyfiveBoardsParser implements GroupParser.Callback
-{
-	private final String mSource;
-	
-	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
-	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
-	private String mBoardCategoryTitle;
-	private String mBoardName;
-	
+public class FiftyfiveBoardsParser implements GroupParser.Callback {
+	private final String source;
+
+	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+	private final ArrayList<Board> boards = new ArrayList<>();
+
+	private String boardCategoryTitle;
+	private String boardName;
+
 	private static final Pattern PATTERN_BOARD_URI = Pattern.compile("([^/]*)/");
-	
-	public FiftyfiveBoardsParser(String source)
-	{
-		mSource = source;
+
+	public FiftyfiveBoardsParser(String source) {
+		this.source = source;
 	}
-	
-	public ArrayList<BoardCategory> convert() throws ParseException
-	{
-		GroupParser.parse(mSource, this);
+
+	public ArrayList<BoardCategory> convert() throws ParseException {
+		GroupParser.parse(source, this);
 		closeCategory();
-		return mBoardCategories;
+		return boardCategories;
 	}
-	
-	private void closeCategory()
-	{
-		ArrayList<Board> boards = mBoards;
-		if (boards.size() > 0)
-		{
-			mBoardCategories.add(new BoardCategory(mBoardCategoryTitle, boards));
-			mBoards.clear();
+
+	private void closeCategory() {
+		ArrayList<Board> boards = this.boards;
+		if (boards.size() > 0) {
+			boardCategories.add(new BoardCategory(boardCategoryTitle, boards));
+			boards.clear();
 		}
 	}
-	
+
 	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
-	{
-		if ("div".equals(tagName))
-		{
+	public boolean onStartElement(GroupParser parser, String tagName, String attrs) {
+		if ("div".equals(tagName)) {
 			String cssClass = parser.getAttr(attrs, "class");
-			if ("fav_category_div".equals(cssClass))
-			{
+			if ("fav_category_div".equals(cssClass)) {
 				closeCategory();
-				mBoardCategoryTitle = StringUtils.clearHtml(parser.getAttr(attrs, "id"));
+				boardCategoryTitle = StringUtils.clearHtml(parser.getAttr(attrs, "id"));
 			}
-		}
-		else if ("a".equals(tagName))
-		{
+		} else if ("a".equals(tagName)) {
 			String href = parser.getAttr(attrs, "href");
 			Matcher matcher = PATTERN_BOARD_URI.matcher(href);
-			if (matcher.matches()) mBoardName = matcher.group(1);
+			if (matcher.matches()) {
+				boardName = matcher.group(1);
+			}
 		}
 		return false;
 	}
-	
+
 	@Override
-	public void onEndElement(GroupParser parser, String tagName)
-	{
-		
-	}
-	
+	public void onEndElement(GroupParser parser, String tagName) {}
+
 	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
-	{
-		if (mBoardName != null)
-		{
+	public void onText(GroupParser parser, String source, int start, int end) {
+		if (boardName != null) {
 			String text = StringUtils.clearHtml(source.substring(start, end));
-			if (text.startsWith("/" + mBoardName + "/ - ")) text = text.substring(mBoardName.length() + 5);
-			mBoards.add(new Board(mBoardName, text));
-			mBoardName = null;
+			if (text.startsWith("/" + boardName + "/ - ")) {
+				text = text.substring(boardName.length() + 5);
+			}
+			boards.add(new Board(boardName, text));
+			boardName = null;
 		}
 	}
-	
+
 	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		
-	}
+	public void onGroupComplete(GroupParser parser, String text) {}
 }
