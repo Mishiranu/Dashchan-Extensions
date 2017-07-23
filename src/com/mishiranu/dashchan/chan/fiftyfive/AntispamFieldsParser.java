@@ -38,7 +38,7 @@ public class AntispamFieldsParser {
 	}).name("input").open((instance, holder, tagName, attributes) -> {
 		if (holder.formParsing) {
 			String name = attributes.get("name");
-			if (!holder.ignoreFields.contains(name)) {
+			if (name != null && !holder.ignoreFields.contains(name)) {
 				String value = StringUtils.unescapeHtml(attributes.get("value"));
 				holder.fields.add(new Pair<>(name, value));
 			}
