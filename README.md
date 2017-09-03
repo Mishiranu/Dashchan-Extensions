@@ -1,6 +1,6 @@
-# Dashchan Extension: fourchan
+# Dashchan Extension: awoo
 
-Extension for 4chan.org.
+Extension for dangeru.us
 
 ## License
 
