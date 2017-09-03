@@ -156,10 +156,12 @@ public class AwooPerformer extends ChanPerformer {
         return new CheckAuthorizationResult(true);
     }
 
+    /*
     @Override
     public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
         return null;
     }
+    */
 
     @Override
     public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {

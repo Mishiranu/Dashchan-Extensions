@@ -9,8 +9,11 @@ import chan.content.model.Posts;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class AwooModelMapper {
-	public static Post createPost(JSONObject jsonObject)
+public final class AwooModelMapper {
+    private AwooModelMapper() {
+    }
+
+    public static Post createPost(JSONObject jsonObject)
 			throws JSONException {
 		Post post = new Post();
 		post.setSticky(jsonObject.optBoolean("is_sticky", false));
