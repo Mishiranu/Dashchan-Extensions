@@ -73,11 +73,13 @@ public class AwooLocator extends ChanLocator {
 
 	@Override
 	public Uri createThreadUri(String boardName, String threadNumber) {
+		// probably wrong
 		return buildPathWithHost(HOST_BOARDS, boardName, "thread", threadNumber);
 	}
 
 	@Override
 	public Uri createPostUri(String boardName, String threadNumber, String postNumber) {
+		// probably wrong
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment("p" + postNumber).build();
 	}
 
@@ -90,7 +92,7 @@ public class AwooLocator extends ChanLocator {
 	}
 
 	public Uri createSysUri(String... segments) {
-		return buildPathWithSchemeHost(true, HOST_POST, segments);
+		return buildPathWithHost(HOST_API, segments);
 	}
 
 	@Override

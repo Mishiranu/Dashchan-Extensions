@@ -166,12 +166,18 @@ public class AwooPerformer extends ChanPerformer {
     @Override
     public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
         RequestEntity entity = new MultipartEntity();
-        entity.add("parent", data.threadNumber);
-        entity.add("title", data.subject);
-        entity.add("comment", data.comment);
-        entity.add("content", data.comment);
+        entity.add("board", data.boardName);
+        Uri uri;
         AwooLocator locator = ChanLocator.get(this);
-        Uri uri = locator.createSysUri(data.boardName, "post");
+        if (data.optionOriginalPoster) {
+            uri = locator.createSysUri(data.boardName, "post");
+            entity.add("title", data.subject);
+            entity.add("content", data.comment);
+        } else {
+            uri = locator.createSysUri(data.boardName, "reply");
+            entity.add("parent", data.threadNumber);
+            entity.add("content", data.comment);
+        }
         String responseText = new HttpRequest(uri, data.holder, data)
                 .setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 
