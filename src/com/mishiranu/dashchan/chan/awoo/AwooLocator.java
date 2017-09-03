@@ -1,9 +1,6 @@
-package com.mishiranu.dashchan.chan.fourchan;
+package com.mishiranu.dashchan.chan.awoo;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 import android.net.Uri;
@@ -11,27 +8,17 @@ import android.net.Uri;
 import chan.content.ChanLocator;
 import chan.util.StringUtils;
 
-public class FourchanChanLocator extends ChanLocator {
-	private static final String HOST_WWW = "www.4chan.org";
-	private static final String HOST_BOARDS = "boards.4chan.org";
-	private static final String HOST_POST = "sys.4chan.org";
-	private static final String HOST_API = "a.4cdn.org";
-	private static final String HOST_IMAGES = "i.4cdn.org";
-	private static final String HOST_STATIC = "s.4cdn.org";
+public class AwooLocator extends ChanLocator {
+	private static final String HOST_BOARDS = "dangeru.us";
+	private static final String HOST_POST = HOST_BOARDS;
+	private static final String HOST_API = HOST_BOARDS;
 
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:\\d+|catalog)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
-	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/\\w+/\\d+\\.\\w+");
 
-	public FourchanChanLocator() {
-		addChanHost("4chan.org");
-		addConvertableChanHost(HOST_WWW);
-		addSpecialChanHost(HOST_BOARDS);
-		addSpecialChanHost(HOST_POST);
-		addSpecialChanHost(HOST_API);
-		addSpecialChanHost(HOST_IMAGES);
-		addSpecialChanHost(HOST_STATIC);
-		setHttpsMode(HttpsMode.CONFIGURABLE);
+	public AwooLocator() {
+		addChanHost(HOST_BOARDS);
+		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
 
 	@Override
@@ -50,13 +37,13 @@ public class FourchanChanLocator extends ChanLocator {
 
 	@Override
 	public boolean isAttachmentUri(Uri uri) {
-		return isChanHostOrRelative(uri) && (isPathMatches(uri, ATTACHMENT_PATH) || extractMathData(uri) != null);
+		return false;
 	}
 
 	@Override
 	public String getBoardName(Uri uri) {
 		List<String> segments = uri.getPathSegments();
-		if (segments.size() > 0) {
+		if (!segments.isEmpty()) {
 			return segments.get(0);
 		}
 		return null;
@@ -64,11 +51,13 @@ public class FourchanChanLocator extends ChanLocator {
 
 	@Override
 	public String getThreadNumber(Uri uri) {
+        // TODO
 		return getGroupValue(uri.getPath(), THREAD_PATH, 1);
 	}
 
 	@Override
 	public String getPostNumber(Uri uri) {
+		// TODO
 		String fragment = uri.getFragment();
 		if (fragment != null && fragment.startsWith("p")) {
 			fragment = fragment.substring(1);
@@ -87,54 +76,26 @@ public class FourchanChanLocator extends ChanLocator {
 		return buildPathWithHost(HOST_BOARDS, boardName, "thread", threadNumber);
 	}
 
-	public Uri createBoardsRootUri() {
-		return buildPathWithHost(HOST_BOARDS);
-	}
-
 	@Override
 	public Uri createPostUri(String boardName, String threadNumber, String postNumber) {
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment("p" + postNumber).build();
 	}
 
-	public Uri buildAttachmentPath(String... segments) {
-		return buildPathWithSchemeHost(true, HOST_IMAGES, segments);
-	}
-
 	public Uri createApiUri(String... segments) {
-		return buildPathWithHost(HOST_API, segments);
-	}
-
-	public Uri createIconUri(String country) {
-		return buildPathWithSchemeHost(true, HOST_STATIC, "image", "country", country.toLowerCase(Locale.US) + ".gif");
+		String[] realsegments = new String[segments.length + 2];
+		realsegments[0] = "api";
+        realsegments[1] = "v2";
+		System.arraycopy(segments, 0, realsegments, 2, segments.length);
+		return buildPathWithHost(HOST_API, realsegments);
 	}
 
 	public Uri createSysUri(String... segments) {
 		return buildPathWithSchemeHost(true, HOST_POST, segments);
 	}
 
-	public Uri buildMathUri(String data) {
-		try {
-			return buildPathWithHost(HOST_IMAGES, "math-tag",
-					URLEncoder.encode(data, "UTF-8").replace("+", "%20") + ".png");
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public String extractMathData(Uri uri) {
-		List<String> segments = uri.getPathSegments();
-		if (segments.size() == 2 && "math-tag".equals(segments.get(0))) {
-			String result = segments.get(1);
-			if (result.endsWith(".png")) {
-				result = result.substring(0, result.length() - 4);
-			}
-			return result;
-		}
-		return null;
-	}
-
 	@Override
 	public NavigationData handleUriClickSpecial(Uri uri) {
+        /*
 		if (isBoardUriOrSearch(uri)) {
 			String query = uri.getFragment();
 			if (!StringUtils.isEmpty(query) && query.startsWith("s=")) {
@@ -142,6 +103,7 @@ public class FourchanChanLocator extends ChanLocator {
 						null, null, query.substring(2));
 			}
 		}
+		*/
 		return null;
 	}
 }

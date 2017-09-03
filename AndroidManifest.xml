@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.mishiranu.dashchan.chan.fourchan"
+	package="com.mishiranu.dashchan.chan.awoo"
 	android:versionCode="1"
 	android:versionName="1.15">
 
@@ -10,14 +10,14 @@
 
 	<application android:icon="@null" android:allowBackup="false" android:label="@string/text_app_name">
 
-		<meta-data android:name="chan.extension.name" android:value="fourchan" />
+		<meta-data android:name="chan.extension.name" android:value="dangeru" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_fourchan_white" />
 		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
-		<meta-data android:name="chan.extension.class.configuration" android:value=".FourchanChanConfiguration" />
-		<meta-data android:name="chan.extension.class.performer" android:value=".FourchanChanPerformer" />
-		<meta-data android:name="chan.extension.class.locator" android:value=".FourchanChanLocator" />
-		<meta-data android:name="chan.extension.class.markup" android:value=".FourchanChanMarkup" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".AwooConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".AwooPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".AwooLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".AwooMarkup" />
 
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
 		    android:theme="@android:style/Theme.NoDisplay">
@@ -28,10 +28,8 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="http" />
 				<data android:scheme="https" />
-				<data android:host="4chan.org" />
-				<data android:host="www.4chan.org" />
-				<data android:host="boards.4chan.org" />
-				<data android:host="i.4cdn.org" />
+				<data android:host="dangeru.us" />
+				<data android:host="boards.dangeru.us" />
 			</intent-filter>
 
 		</activity>

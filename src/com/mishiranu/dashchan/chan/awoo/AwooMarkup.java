@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.fourchan;
+package com.mishiranu.dashchan.chan.awoo;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,12 +9,9 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanMarkup;
 import chan.text.CommentEditor;
 
-public class FourchanChanMarkup extends ChanMarkup {
-	public FourchanChanMarkup() {
-		addTag("s", TAG_SPOILER);
-		addTag("pre", TAG_CODE);
-		addTag("span", "quote", TAG_QUOTE);
-		addColorable("span");
+public class AwooMarkup extends ChanMarkup {
+	public AwooMarkup() {
+		addTag("span", "redtext", TAG_QUOTE);
 	}
 
 	@Override
@@ -24,10 +21,6 @@ public class FourchanChanMarkup extends ChanMarkup {
 
 	@Override
 	public boolean isTagSupported(String boardName, int tag) {
-		if (tag == TAG_SPOILER || tag == TAG_CODE) {
-			FourchanChanConfiguration configuration = ChanConfiguration.get(this);
-			return configuration.isTagSupported(boardName, tag);
-		}
 		return false;
 	}
 
