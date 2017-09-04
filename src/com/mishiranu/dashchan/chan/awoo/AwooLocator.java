@@ -14,7 +14,7 @@ public class AwooLocator extends ChanLocator {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:\\d+|catalog)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
 
-    public static final boolean debug = true;
+    public static final boolean debug = false;
 	public AwooLocator() {
 		addChanHost(HOST_BOARDS);
 		if (debug) {
