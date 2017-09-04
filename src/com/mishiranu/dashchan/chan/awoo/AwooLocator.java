@@ -9,16 +9,20 @@ import chan.content.ChanLocator;
 import chan.util.StringUtils;
 
 public class AwooLocator extends ChanLocator {
-	private static final String HOST_BOARDS = "dangeru.us";
-	private static final String HOST_POST = HOST_BOARDS;
-	private static final String HOST_API = HOST_BOARDS;
+	private static String HOST_BOARDS = "dangeru.us";
 
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:\\d+|catalog)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
 
+    public static final boolean debug = true;
 	public AwooLocator() {
 		addChanHost(HOST_BOARDS);
-		setHttpsMode(HttpsMode.HTTPS_ONLY);
+		if (debug) {
+			HOST_BOARDS = "172.24.10.27:8080";
+			setHttpsMode(HttpsMode.NO_HTTPS);
+		} else {
+			setHttpsMode(HttpsMode.HTTPS_ONLY);
+		}
 	}
 
 	@Override
@@ -88,11 +92,11 @@ public class AwooLocator extends ChanLocator {
 		realsegments[0] = "api";
         realsegments[1] = "v2";
 		System.arraycopy(segments, 0, realsegments, 2, segments.length);
-		return buildPathWithHost(HOST_API, realsegments);
+		return buildPathWithHost(HOST_BOARDS, realsegments);
 	}
 
 	public Uri createSysUri(String... segments) {
-		return buildPathWithHost(HOST_API, segments);
+		return buildPathWithHost(HOST_BOARDS, segments);
 	}
 
 	@Override

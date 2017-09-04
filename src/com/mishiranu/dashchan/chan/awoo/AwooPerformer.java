@@ -32,7 +32,7 @@ import chan.util.CommonUtils;
 public class AwooPerformer extends ChanPerformer {
     private static final String[] PREFERRED_BOARDS_ORDER = {"all"};
 
-    private static final String[][] PREFERRED_BOARDS_MAPPING = {{"u", "test"}};
+    private static final String[][] PREFERRED_BOARDS_MAPPING = {{"test"}};
     private static final Pattern PATTERN_POST_SUCCESS = Pattern.compile("Thread (\\d+) on danger");
     private static final Pattern PATTERN_REPLY_SUCCESS = Pattern.compile("OK/(\\d+)");
 
@@ -169,7 +169,7 @@ public class AwooPerformer extends ChanPerformer {
         entity.add("board", data.boardName);
         Uri uri;
         AwooLocator locator = ChanLocator.get(this);
-        if (data.optionOriginalPoster) {
+        if (data.subject != null) {
             uri = locator.createSysUri("post");
             entity.add("title", data.subject);
             entity.add("comment", data.comment);
