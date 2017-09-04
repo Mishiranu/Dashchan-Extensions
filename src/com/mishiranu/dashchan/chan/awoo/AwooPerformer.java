@@ -170,11 +170,11 @@ public class AwooPerformer extends ChanPerformer {
         Uri uri;
         AwooLocator locator = ChanLocator.get(this);
         if (data.optionOriginalPoster) {
-            uri = locator.createSysUri(data.boardName, "post");
+            uri = locator.createSysUri("post");
             entity.add("title", data.subject);
-            entity.add("content", data.comment);
+            entity.add("comment", data.comment);
         } else {
-            uri = locator.createSysUri(data.boardName, "reply");
+            uri = locator.createSysUri("reply");
             entity.add("parent", data.threadNumber);
             entity.add("content", data.comment);
         }
