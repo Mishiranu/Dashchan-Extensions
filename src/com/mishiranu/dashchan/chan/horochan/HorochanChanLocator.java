@@ -17,7 +17,7 @@ public class HorochanChanLocator extends ChanLocator {
 		addSpecialChanHost("api.horochan.ru");
 		addSpecialChanHost("static.horochan.ru");
 		addSpecialChanHost("static2.horochan.ru");
-		setHttpsMode(HttpsMode.CONFIGURABLE);
+		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
 
 	@Override
