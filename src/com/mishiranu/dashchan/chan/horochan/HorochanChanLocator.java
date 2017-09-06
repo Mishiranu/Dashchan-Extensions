@@ -16,6 +16,7 @@ public class HorochanChanLocator extends ChanLocator {
 		addChanHost("horochan.ru");
 		addSpecialChanHost("api.horochan.ru");
 		addSpecialChanHost("static.horochan.ru");
+		addSpecialChanHost("static2.horochan.ru");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 
@@ -79,8 +80,8 @@ public class HorochanChanLocator extends ChanLocator {
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment(postNumber).build();
 	}
 
-	public Uri buildStaticPath(String... segments) {
-		return buildPathWithHost("static.horochan.ru", segments);
+	public Uri buildStaticPath(String storage, String... segments) {
+		return buildPathWithHost(String.format("%s.horochan.ru", storage), segments);
 	}
 
 	public Uri buildApiPath(String... segments) {

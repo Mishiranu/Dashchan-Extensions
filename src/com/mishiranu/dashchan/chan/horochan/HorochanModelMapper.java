@@ -26,8 +26,9 @@ public class HorochanModelMapper {
 		FileAttachment attachment = new FileAttachment();
 		String name = CommonUtils.getJsonString(jsonObject, "name");
 		String ext = CommonUtils.getJsonString(jsonObject, "ext");
-		attachment.setFileUri(locator, locator.buildStaticPath("src", name + "." + ext));
-		attachment.setThumbnailUri(locator, locator.buildStaticPath("thumb", "t" + name + ".jpeg"));
+		String storage = CommonUtils.getJsonString(jsonObject, "storage");
+		attachment.setFileUri(locator, locator.buildStaticPath(storage, "src", name + "." + ext));
+		attachment.setThumbnailUri(locator, locator.buildStaticPath(storage, "thumb", "t" + name + ".jpeg"));
 		attachment.setSize(jsonObject.optInt("size"));
 		attachment.setWidth(jsonObject.optInt("width"));
 		attachment.setHeight(jsonObject.optInt("height"));
