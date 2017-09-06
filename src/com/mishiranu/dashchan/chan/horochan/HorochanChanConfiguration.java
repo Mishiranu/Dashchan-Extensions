@@ -30,6 +30,8 @@ public class HorochanChanConfiguration extends ChanConfiguration {
 		posting.attachmentCount = 4;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/webm");
+		posting.attachmentMimeTypes.add("video/mp4");
+		posting.attachmentMimeTypes.add("audio/mpeg");
 		return posting;
 	}
 
