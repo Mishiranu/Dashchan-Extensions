@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import chan.content.ChanLocator;
-import chan.util.StringUtils;
 
 public class AwooLocator extends ChanLocator {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+/?");
