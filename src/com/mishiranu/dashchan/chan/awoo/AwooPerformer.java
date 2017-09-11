@@ -17,6 +17,7 @@ import chan.content.ApiException;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
+import chan.content.RedirectException;
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.content.model.Posts;
@@ -26,6 +27,7 @@ import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
 import chan.http.RequestEntity;
 import chan.util.CommonUtils;
+import chan.util.StringUtils;
 
 public class AwooPerformer extends ChanPerformer {
 	private static final String[] PREFERRED_BOARDS_ORDER = {"all"};
@@ -67,11 +69,16 @@ public class AwooPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
+			RedirectException {
 		AwooLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "replies");
 		JSONArray jsonArray = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonArray();
 		try {
+			String boardName = jsonArray.getJSONObject(0).getString("board");
+			if (!StringUtils.equals(data.boardName, boardName)) {
+				throw RedirectException.toThread(boardName, data.threadNumber, null);
+			}
 			return new ReadPostsResult(AwooModelMapper.createThreadFromReplies(jsonArray));
 		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
