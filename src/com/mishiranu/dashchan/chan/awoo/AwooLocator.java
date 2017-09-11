@@ -48,7 +48,7 @@ public class AwooLocator extends ChanLocator {
 
 	@Override
 	public String getPostNumber(Uri uri) {
-		return null;
+		return uri.getFragment();
 	}
 
 	@Override
@@ -63,6 +63,6 @@ public class AwooLocator extends ChanLocator {
 
 	@Override
 	public Uri createPostUri(String boardName, String threadNumber, String postNumber) {
-		return createThreadUri(boardName, threadNumber);
+		return createThreadUri(boardName, threadNumber).buildUpon().fragment(postNumber).build();
 	}
 }

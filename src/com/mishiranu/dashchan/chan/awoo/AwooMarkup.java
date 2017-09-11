@@ -6,10 +6,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import chan.content.ChanMarkup;
-import chan.text.CommentEditor;
 
 public class AwooMarkup extends ChanMarkup {
-	private static final Pattern THREAD_LINK = Pattern.compile("(?:^|thread/(\\d+))(?:#p(\\d+))?$");
+	private static final Pattern THREAD_LINK = Pattern.compile("/thread/(\\d+)(?:#(\\d+))?$");
 
 	public AwooMarkup() {
 		addTag("span", "redtext", TAG_QUOTE);

@@ -4,19 +4,29 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.regex.Pattern;
+
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 public final class AwooModelMapper {
-	public static Post createPost(JSONObject jsonObject) throws JSONException {
+	private static final Pattern PATTERN_LINK = Pattern.compile(">>(\\d+)");
+	private static final Pattern PATTERN_QUOTE = Pattern.compile("(?<=^|<br />)>(.*?)(?=$|<br />)");
+
+	private static Post createPost(JSONObject jsonObject, String boardName) throws JSONException {
 		Post post = new Post();
+		if (boardName == null) {
+			boardName = CommonUtils.getJsonString(jsonObject, "board");
+		}
+		String parent = String.valueOf(jsonObject.getInt("post_id"));
 		post.setSticky(jsonObject.optBoolean("is_sticky", false));
 		post.setClosed(jsonObject.optBoolean("locked", false));
-		post.setPostNumber(String.valueOf(jsonObject.getInt("post_id")));
+		post.setPostNumber(parent);
 		if (jsonObject.has("parent")) {
-			post.setParentPostNumber(String.valueOf(jsonObject.getInt("parent")));
+			parent = String.valueOf(jsonObject.getInt("parent"));
+			post.setParentPostNumber(parent);
 		}
 		post.setTimestamp(jsonObject.getLong("date_posted"));
 		post.setTripcode(CommonUtils.optJsonString(jsonObject, "hash"));
@@ -25,7 +35,17 @@ public final class AwooModelMapper {
 		if (!StringUtils.isEmpty(title)) {
 			post.setSubject(StringUtils.clearHtml(title).trim());
 		}
-		post.setComment(StringUtils.linkify(CommonUtils.optJsonString(jsonObject, "comment")));
+		final String finalParent = parent;
+		final String finalBoardName = boardName;
+		String comment = StringUtils.emptyIfNull(CommonUtils.optJsonString(jsonObject, "comment"));
+		comment = comment.replace("\n\r", "<br />").replace("\n", "<br />");
+		comment = StringUtils.replaceAll(comment, PATTERN_LINK, matcher ->
+				"<a href=\"/" + finalBoardName + "/thread/" + finalParent + "#" + matcher.group(1) +"\">&gt;&gt;"  +
+				matcher.group(1) + "</a>");
+		comment = StringUtils.replaceAll(comment, PATTERN_QUOTE, matcher ->
+				"<span class=\"redtext\">&gt;" + matcher.group(1) + "</span>");
+		comment = StringUtils.linkify(comment);
+		post.setComment(comment);
 		return post;
 	}
 
@@ -33,8 +53,9 @@ public final class AwooModelMapper {
 		Post[] posts = new Post[jsonObject.length()];
 		int postsWithFilesCount = 0;
 		int postsCount = jsonObject.getJSONObject(0).getInt("number_of_replies");
+		String boardName = CommonUtils.getJsonString (jsonObject.getJSONObject(0), "board");
 		for (int i = 0; i < posts.length; i++) {
-			posts[i] = createPost(jsonObject.getJSONObject(i));
+			posts[i] = createPost(jsonObject.getJSONObject(i), boardName);
 		}
 		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
 	}
@@ -43,7 +64,7 @@ public final class AwooModelMapper {
 		Post[] posts = new Post[1];
 		int postsWithFilesCount = 0;
 		int postsCount = jsonObject.getInt("number_of_replies");
-		Post originalPost = createPost(jsonObject);
+		Post originalPost = createPost(jsonObject, null);
 		posts[0] = originalPost;
 		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
 	}
