@@ -14,14 +14,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import chan.content.ApiException;
-import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.content.model.Posts;
-import chan.http.CookieBuilder;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
@@ -51,10 +49,13 @@ public class AwooPerformer extends ChanPerformer {
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		AwooLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createApiUri("board", data.boardName);
-		HttpResponse response = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read();
+		Uri uri = locator.buildQuery("api/v2/board/" + data.boardName, "page", Integer.toString(data.pageNumber));
+		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).read();
 		JSONArray jsonArray = response.getJsonArray();
 		try {
+			if (jsonArray.length() == 0) {
+				throw HttpException.createNotFoundException();
+			}
 			Posts[] threads = new Posts[jsonArray.length()];
 			for (int i = 0; i < threads.length; i++) {
 				threads[i] = AwooModelMapper.createThreadFromCatalog(jsonArray.getJSONObject(i));
@@ -83,7 +84,6 @@ public class AwooPerformer extends ChanPerformer {
 		AwooLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri("boards");
 		JSONArray jsonArray = new HttpRequest(uri, data.holder, data).read().getJsonArray();
-		AwooConfiguration configuration = ChanConfiguration.get(this);
 		Map<String, ArrayList<Board>> boardsMap = new LinkedHashMap<>();
 		for (String title : PREFERRED_BOARDS_ORDER) {
 			boardsMap.put(title, new ArrayList<>());

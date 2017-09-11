@@ -15,7 +15,6 @@ public class AwooConfiguration extends ChanConfiguration {
 	@Override
 	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
-		board.allowCatalog = true;
 		board.allowPosting = true;
 		return board;
 	}
