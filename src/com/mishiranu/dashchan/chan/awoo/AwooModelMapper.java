@@ -21,8 +21,8 @@ public final class AwooModelMapper {
 			boardName = CommonUtils.getJsonString(jsonObject, "board");
 		}
 		String parent = String.valueOf(jsonObject.getInt("post_id"));
-		post.setSticky(jsonObject.optBoolean("is_sticky", false));
-		post.setClosed(jsonObject.optBoolean("locked", false));
+		post.setSticky(jsonObject.optBoolean("sticky", false));
+		post.setClosed(jsonObject.optBoolean("is_locked", false));
 		post.setPostNumber(parent);
 		if (jsonObject.has("parent")) {
 			parent = String.valueOf(jsonObject.getInt("parent"));
