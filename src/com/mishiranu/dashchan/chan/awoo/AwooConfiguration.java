@@ -1,8 +1,5 @@
 package com.mishiranu.dashchan.chan.awoo;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import chan.content.ChanConfiguration;
 
 public class AwooConfiguration extends ChanConfiguration {
@@ -28,11 +25,11 @@ public class AwooConfiguration extends ChanConfiguration {
 		return posting;
 	}
 
-	@Override
+	/* @Override
 	public Authorization obtainCaptchaPassConfiguration() {
 		Authorization authorization = new Authorization();
 		authorization.fieldsCount = 2;
 		authorization.hints = new String[] {"Token", "PIN"};
 		return authorization;
-	}
+	}*/
 }

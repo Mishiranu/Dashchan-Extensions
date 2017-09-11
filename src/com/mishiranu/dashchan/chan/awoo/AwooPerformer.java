@@ -135,13 +135,6 @@ public class AwooPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
-			InvalidResponseException {
-		// TODO what?
-		return new CheckAuthorizationResult(true);
-	}
-
-	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		RequestEntity entity = new MultipartEntity();
 		entity.add("board", data.boardName);
