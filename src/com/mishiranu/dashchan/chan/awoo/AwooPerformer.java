@@ -69,9 +69,8 @@ public class AwooPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		AwooLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createApiUri("thread", data.threadNumber, "replies");
-		JSONArray jsonArray = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonArray();
+		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "replies");
+		JSONArray jsonArray = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonArray();
 		try {
 			return new ReadPostsResult(AwooModelMapper.createThreadFromReplies(jsonArray));
 		} catch (JSONException e) {
@@ -82,8 +81,8 @@ public class AwooPerformer extends ChanPerformer {
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		AwooLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createApiUri("boards");
-		JSONArray jsonArray = new HttpRequest(uri, data.holder, data).read().getJsonArray();
+		Uri uri = locator.buildPath("api", "v2", "boards");
+		JSONArray jsonArray = new HttpRequest(uri, data).read().getJsonArray();
 		Map<String, ArrayList<Board>> boardsMap = new LinkedHashMap<>();
 		for (String title : PREFERRED_BOARDS_ORDER) {
 			boardsMap.put(title, new ArrayList<>());
@@ -116,9 +115,8 @@ public class AwooPerformer extends ChanPerformer {
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
 		AwooLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createApiUri("thread", data.threadNumber, "metadata");
-		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setValidator(data.validator)
-				.read().getJsonObject();
+		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "metadata");
+		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
 		if (jsonObject != null) {
 			try {
 				return new ReadPostsCountResult(jsonObject.getInt("number_of_replies"));
@@ -143,15 +141,15 @@ public class AwooPerformer extends ChanPerformer {
 		Uri uri;
 		AwooLocator locator = ChanLocator.get(this);
 		if (data.subject != null) {
-			uri = locator.createSysUri("post");
+			uri = locator.buildPath("post");
 			entity.add("title", data.subject);
 			entity.add("comment", data.comment);
 		} else {
-			uri = locator.createSysUri("reply");
+			uri = locator.buildPath("reply");
 			entity.add("parent", data.threadNumber);
 			entity.add("content", data.comment);
 		}
-		String responseText = new HttpRequest(uri, data.holder, data)
+		String responseText = new HttpRequest(uri, data)
 				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
 
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);

@@ -77,16 +77,4 @@ public class AwooLocator extends ChanLocator {
 		// probably wrong
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment("p" + postNumber).build();
 	}
-
-	public Uri createApiUri(String... segments) {
-		String[] realsegments = new String[segments.length + 2];
-		realsegments[0] = "api";
-		realsegments[1] = "v2";
-		System.arraycopy(segments, 0, realsegments, 2, segments.length);
-		return buildPath(realsegments);
-	}
-
-	public Uri createSysUri(String... segments) {
-		return buildPath(segments);
-	}
 }
