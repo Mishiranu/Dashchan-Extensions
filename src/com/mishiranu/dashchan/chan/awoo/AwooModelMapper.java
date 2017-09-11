@@ -16,20 +16,14 @@ public final class AwooModelMapper {
 		post.setClosed(jsonObject.optBoolean("locked", false));
 		post.setPostNumber(String.valueOf(jsonObject.getInt("post_id")));
 		if (jsonObject.has("parent")) {
-			String resto = String.valueOf(jsonObject.getInt("parent"));
-			post.setParentPostNumber(resto);
+			post.setParentPostNumber(String.valueOf(jsonObject.getInt("parent")));
 		}
 		post.setTimestamp(jsonObject.getLong("date_posted"));
-		String name = CommonUtils.optJsonString(jsonObject, "hash");
-		if (name != null) {
-			post.setName(StringUtils.clearHtml(name).trim());
-		}
 		post.setTripcode(CommonUtils.optJsonString(jsonObject, "hash"));
-		//post.setIdentifier(CommonUtils.optJsonString(jsonObject, "id"));
 		post.setCapcode(CommonUtils.optJsonString(jsonObject, "capcode"));
-		String sub = CommonUtils.optJsonString(jsonObject, "title");
-		if (sub != null) {
-			post.setSubject(StringUtils.clearHtml(sub).trim());
+		String title = CommonUtils.optJsonString(jsonObject, "title");
+		if (!StringUtils.isEmpty(title)) {
+			post.setSubject(StringUtils.clearHtml(title).trim());
 		}
 		post.setComment(StringUtils.linkify(CommonUtils.optJsonString(jsonObject, "comment")));
 		return post;
