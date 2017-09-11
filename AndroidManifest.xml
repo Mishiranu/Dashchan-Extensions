@@ -14,10 +14,10 @@
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_awoo_white" />
 		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
-		<meta-data android:name="chan.extension.class.configuration" android:value=".AwooConfiguration" />
-		<meta-data android:name="chan.extension.class.performer" android:value=".AwooPerformer" />
-		<meta-data android:name="chan.extension.class.locator" android:value=".AwooLocator" />
-		<meta-data android:name="chan.extension.class.markup" android:value=".AwooMarkup" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".AwooChanConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".AwooChanPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".AwooChanLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".AwooChanMarkup" />
 
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
 		    android:theme="@android:style/Theme.NoDisplay">
@@ -29,7 +29,6 @@
 				<data android:scheme="http" />
 				<data android:scheme="https" />
 				<data android:host="dangeru.us" />
-				<data android:host="boards.dangeru.us" />
 			</intent-filter>
 
 		</activity>

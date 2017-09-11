@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import chan.content.ApiException;
-import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.content.RedirectException;
@@ -24,10 +23,10 @@ import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class AwooPerformer extends ChanPerformer {
+public class AwooChanPerformer extends ChanPerformer {
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
-		AwooLocator locator = ChanLocator.get(this);
+		AwooChanLocator locator = AwooChanLocator.get(this);
 		Uri uri = locator.buildQuery("api/v2/board/" + data.boardName, "page", Integer.toString(data.pageNumber));
 		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).read();
 		JSONArray jsonArray = response.getJsonArray();
@@ -48,7 +47,7 @@ public class AwooPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
 			RedirectException {
-		AwooLocator locator = ChanLocator.get(this);
+		AwooChanLocator locator = AwooChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "replies");
 		JSONArray jsonArray = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonArray();
 		try {
@@ -64,7 +63,7 @@ public class AwooPerformer extends ChanPerformer {
 
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
-		AwooLocator locator = ChanLocator.get(this);
+		AwooChanLocator locator = AwooChanLocator.get(this);
 		Uri uri = locator.buildPath("");
 		String responseText = new HttpRequest(uri, data).read().getString();
 		try {
@@ -77,7 +76,7 @@ public class AwooPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
-		AwooLocator locator = ChanLocator.get(this);
+		AwooChanLocator locator = AwooChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "metadata");
 		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
 		if (jsonObject != null) {
@@ -98,7 +97,7 @@ public class AwooPerformer extends ChanPerformer {
 		RequestEntity entity = new MultipartEntity();
 		entity.add("board", data.boardName);
 		Uri uri;
-		AwooLocator locator = ChanLocator.get(this);
+		AwooChanLocator locator = AwooChanLocator.get(this);
 		if (data.subject != null) {
 			uri = locator.buildPath("post");
 			entity.add("title", data.subject);

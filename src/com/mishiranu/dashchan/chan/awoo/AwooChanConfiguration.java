@@ -2,8 +2,8 @@ package com.mishiranu.dashchan.chan.awoo;
 
 import chan.content.ChanConfiguration;
 
-public class AwooConfiguration extends ChanConfiguration {
-	public AwooConfiguration() {
+public class AwooChanConfiguration extends ChanConfiguration {
+	public AwooChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 		setBumpLimit(250);

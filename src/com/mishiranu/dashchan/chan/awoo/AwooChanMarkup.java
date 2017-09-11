@@ -7,10 +7,10 @@ import java.util.regex.Pattern;
 
 import chan.content.ChanMarkup;
 
-public class AwooMarkup extends ChanMarkup {
+public class AwooChanMarkup extends ChanMarkup {
 	private static final Pattern THREAD_LINK = Pattern.compile("/thread/(\\d+)(?:#(\\d+))?$");
 
-	public AwooMarkup() {
+	public AwooChanMarkup() {
 		addTag("span", "redtext", TAG_QUOTE);
 	}
 

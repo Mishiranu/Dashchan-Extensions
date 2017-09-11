@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 import chan.content.ChanLocator;
 
-public class AwooLocator extends ChanLocator {
+public class AwooChanLocator extends ChanLocator {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+/?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
 
-	public AwooLocator() {
+	public AwooChanLocator() {
 		addChanHost("dangeru.us");
 		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
