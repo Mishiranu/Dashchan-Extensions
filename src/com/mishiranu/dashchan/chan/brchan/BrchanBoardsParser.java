@@ -1,9 +1,9 @@
 package com.mishiranu.dashchan.chan.brchan;
 
-import java.util.LinkedHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
 
+import chan.content.model.Board;
+import chan.content.model.BoardCategory;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
@@ -11,34 +11,33 @@ import chan.util.StringUtils;
 public class BrchanBoardsParser {
 	private final String source;
 
-	private String category;
-	private final LinkedHashMap<String, String> boards = new LinkedHashMap<>();
+	private final ArrayList<Board> boards = new ArrayList<>();
 
-	private static final Pattern PATTERN_LINK = Pattern.compile("/(.*?)/");
+	private boolean boardListParsing = false;
 
 	public BrchanBoardsParser(String source) {
 		this.source = source;
 	}
 
-	public LinkedHashMap<String, String> convertMap() throws ParseException {
+	public BoardCategory convert() throws ParseException {
 		PARSER.parse(source, this);
-		return boards;
+		return new BoardCategory(null, boards);
 	}
 
 	private static final TemplateParser<BrchanBoardsParser> PARSER = TemplateParser.<BrchanBoardsParser>builder()
-			.name("li").open((i, h, t, a) -> a.get("title") == null).content((instance, holder, text) -> {
-		holder.category = StringUtils.clearHtml(text);
-	}).name("a").open((instance, holder, tagName, attributes) -> {
-		if (holder.category != null) {
-			String link = attributes.get("href");
-			Matcher matcher = PATTERN_LINK.matcher(link);
-			if (matcher.matches()) {
-				holder.boards.put(matcher.group(1), holder.category);
-			}
+			.equals("div", "class", "boardlist").open((instance, holder, tagName, attributes) -> {
+		holder.boardListParsing = true;
+		return false;
+	}).ends("a", "href", "/index.html").open((instance, holder, tagName, attributes) -> {
+		if (holder.boardListParsing) {
+			String href = attributes.get("href");
+			String boardName = href.substring(1, href.lastIndexOf('/'));
+			String title = StringUtils.clearHtml(attributes.get("title"));
+			holder.boards.add(new Board(boardName, title));
 		}
 		return false;
 	}).name("div").close((instance, holder, tagName) -> {
-		if (holder.category != null) {
+		if (holder.boardListParsing) {
 			instance.finish();
 		}
 	}).prepare();

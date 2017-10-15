@@ -9,7 +9,7 @@ import chan.content.ChanMarkup;
 import chan.text.CommentEditor;
 
 public class BrchanChanMarkup extends ChanMarkup {
-	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_SPOILER | TAG_ASCII_ART | TAG_HEADING;
+	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_SPOILER | TAG_HEADING;
 
 	public BrchanChanMarkup() {
 		addTag("strong", TAG_BOLD);
@@ -17,7 +17,6 @@ public class BrchanChanMarkup extends ChanMarkup {
 		addTag("pre", TAG_CODE);
 		addTag("span", "quote", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);
-		addTag("span", "aa", TAG_ASCII_ART);
 		addTag("span", "heading", TAG_HEADING);
 		addPreformatted("span", "aa", true);
 	}
@@ -29,17 +28,12 @@ public class BrchanChanMarkup extends ChanMarkup {
 		commentEditor.addTag(TAG_ITALIC, "''", "''", CommentEditor.FLAG_ONE_LINE);
 		commentEditor.addTag(TAG_SPOILER, "**", "**", CommentEditor.FLAG_ONE_LINE);
 		commentEditor.addTag(TAG_CODE, "[code]", "[/code]");
-		commentEditor.addTag(TAG_ASCII_ART, "[aa]", "[/aa]");
 		commentEditor.addTag(TAG_HEADING, "==", "==", CommentEditor.FLAG_ONE_LINE);
 		return commentEditor;
 	}
 
 	@Override
 	public boolean isTagSupported(String boardName, int tag) {
-		if (tag == TAG_CODE) {
-			BrchanChanConfiguration configuration = BrchanChanConfiguration.get(this);
-			return configuration.isTagSupported(boardName, tag);
-		}
 		return (SUPPORTED_TAGS & tag) == tag;
 	}
 

@@ -20,7 +20,7 @@ import chan.util.StringUtils;
 
 public class BrchanModelMapper {
 	public static FileAttachment createFileAttachment(JSONObject jsonObject, BrchanChanLocator locator,
-			String boardName, long time) throws JSONException {
+			String boardName) throws JSONException {
 		FileAttachment attachment = new FileAttachment();
 		String tim = CommonUtils.getJsonString(jsonObject, "tim");
 		if (StringUtils.isEmpty(tim)) {
@@ -48,17 +48,13 @@ public class BrchanModelMapper {
 		if (jsonObject.optInt("locked") != 0) {
 			post.setClosed(true);
 		}
-		if (jsonObject.optInt("cyclical") != 0) {
-			post.setCyclical(true);
-		}
 		String no = CommonUtils.getJsonString(jsonObject, "no");
 		String resto = CommonUtils.getJsonString(jsonObject, "resto");
 		post.setPostNumber(no);
 		if (!"0".equals(resto)) {
 			post.setParentPostNumber(resto);
 		}
-		long time = jsonObject.getLong("time") * 1000L - 60 * 60 * 1000;
-		post.setTimestamp(time);
+		post.setTimestamp(jsonObject.getLong("time") * 1000L - 60 * 60 * 1000);
 		String name = CommonUtils.optJsonString(jsonObject, "name");
 		if (name != null) {
 			name = StringUtils.nullIfEmpty(StringUtils.clearHtml(name).trim());
@@ -113,7 +109,7 @@ public class BrchanModelMapper {
 		} else {
 			try {
 				ArrayList<FileAttachment> attachments = new ArrayList<>();
-				FileAttachment attachment = createFileAttachment(jsonObject, locator, boardName, time);
+				FileAttachment attachment = createFileAttachment(jsonObject, locator, boardName);
 				if (attachment != null) {
 					attachments.add(attachment);
 				}
@@ -121,7 +117,7 @@ public class BrchanModelMapper {
 				if (filesArray != null) {
 					for (int i = 0; i < filesArray.length(); i++) {
 						JSONObject fileObject = filesArray.getJSONObject(i);
-						attachment = createFileAttachment(fileObject, locator, boardName, time);
+						attachment = createFileAttachment(fileObject, locator, boardName);
 						if (attachment != null) {
 							attachments.add(attachment);
 						}
