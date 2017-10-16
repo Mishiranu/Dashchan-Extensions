@@ -51,21 +51,19 @@ public final class AwooModelMapper {
 
 	public static Posts createThreadFromReplies(JSONArray jsonObject) throws JSONException {
 		Post[] posts = new Post[jsonObject.length()];
-		int postsWithFilesCount = 0;
 		int postsCount = jsonObject.getJSONObject(0).getInt("number_of_replies");
-		String boardName = CommonUtils.getJsonString (jsonObject.getJSONObject(0), "board");
+		String boardName = CommonUtils.getJsonString(jsonObject.getJSONObject(0), "board");
 		for (int i = 0; i < posts.length; i++) {
 			posts[i] = createPost(jsonObject.getJSONObject(i), boardName);
 		}
-		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
+		return new Posts(posts).addPostsCount(postsCount);
 	}
 
-	public static Posts createThreadFromCatalog(JSONObject jsonObject) throws JSONException {
+	public static Posts createThread(JSONObject jsonObject) throws JSONException {
 		Post[] posts = new Post[1];
-		int postsWithFilesCount = 0;
 		int postsCount = jsonObject.getInt("number_of_replies");
 		Post originalPost = createPost(jsonObject, null);
 		posts[0] = originalPost;
-		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
+		return new Posts(posts).addPostsCount(postsCount);
 	}
 }

@@ -36,7 +36,7 @@ public class AwooChanPerformer extends ChanPerformer {
 			}
 			Posts[] threads = new Posts[jsonArray.length()];
 			for (int i = 0; i < threads.length; i++) {
-				threads[i] = AwooModelMapper.createThreadFromCatalog(jsonArray.getJSONObject(i));
+				threads[i] = AwooModelMapper.createThread(jsonArray.getJSONObject(i));
 			}
 			return new ReadThreadsResult(threads);
 		} catch (JSONException e) {
