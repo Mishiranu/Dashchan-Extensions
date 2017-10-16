@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -10,14 +10,14 @@ import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class AwooBoardsParser {
+public class DangeruBoardsParser {
 	private final String source;
 
 	private final ArrayList<Board> boards = new ArrayList<>();
 
 	private String boardName;
 
-	public AwooBoardsParser(String source) {
+	public DangeruBoardsParser(String source) {
 		this.source = source;
 	}
 
@@ -26,7 +26,7 @@ public class AwooBoardsParser {
 		return new BoardCategory(null, boards);
 	}
 
-	private static final TemplateParser<AwooBoardsParser> PARSER = TemplateParser.<AwooBoardsParser>builder()
+	private static final TemplateParser<DangeruBoardsParser> PARSER = TemplateParser.<DangeruBoardsParser>builder()
 			.equals("a", "class", "boarda").open((instance, holder, tagName, attributes) -> {
 		holder.boardName = attributes.get("href").substring(1);
 		return true;

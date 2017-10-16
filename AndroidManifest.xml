@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.mishiranu.dashchan.chan.awoo"
+	package="com.mishiranu.dashchan.chan.dangeru"
 	android:versionCode="1"
 	android:versionName="1.1">
 
@@ -12,12 +12,12 @@
 
 		<meta-data android:name="chan.extension.name" android:value="dangeru" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
-		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_awoo_white" />
+		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_dangeru_white" />
 		<meta-data android:name="chan.extension.source" android:value="//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json" />
-		<meta-data android:name="chan.extension.class.configuration" android:value=".AwooChanConfiguration" />
-		<meta-data android:name="chan.extension.class.performer" android:value=".AwooChanPerformer" />
-		<meta-data android:name="chan.extension.class.locator" android:value=".AwooChanLocator" />
-		<meta-data android:name="chan.extension.class.markup" android:value=".AwooChanMarkup" />
+		<meta-data android:name="chan.extension.class.configuration" android:value=".DangeruChanConfiguration" />
+		<meta-data android:name="chan.extension.class.performer" android:value=".DangeruChanPerformer" />
+		<meta-data android:name="chan.extension.class.locator" android:value=".DangeruChanLocator" />
+		<meta-data android:name="chan.extension.class.markup" android:value=".DangeruChanMarkup" />
 
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
 		    android:theme="@android:style/Theme.NoDisplay">

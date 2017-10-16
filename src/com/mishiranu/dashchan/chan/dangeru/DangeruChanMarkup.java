@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import android.util.Pair;
 
@@ -7,10 +7,10 @@ import java.util.regex.Pattern;
 
 import chan.content.ChanMarkup;
 
-public class AwooChanMarkup extends ChanMarkup {
+public class DangeruChanMarkup extends ChanMarkup {
 	private static final Pattern THREAD_LINK = Pattern.compile("/thread/(\\d+)(?:#(\\d+))?$");
 
-	public AwooChanMarkup() {
+	public DangeruChanMarkup() {
 		addTag("span", "redtext", TAG_QUOTE);
 	}
 

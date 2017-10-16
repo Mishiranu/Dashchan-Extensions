@@ -1,9 +1,9 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import chan.content.ChanConfiguration;
 
-public class AwooChanConfiguration extends ChanConfiguration {
-	public AwooChanConfiguration() {
+public class DangeruChanConfiguration extends ChanConfiguration {
+	public DangeruChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
 		setBumpLimit(250);
@@ -24,12 +24,4 @@ public class AwooChanConfiguration extends ChanConfiguration {
 		posting.attachmentCount = 0;
 		return posting;
 	}
-
-	/* @Override
-	public Authorization obtainCaptchaPassConfiguration() {
-		Authorization authorization = new Authorization();
-		authorization.fieldsCount = 2;
-		authorization.hints = new String[] {"Token", "PIN"};
-		return authorization;
-	}*/
 }

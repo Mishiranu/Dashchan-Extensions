@@ -1,4 +1,4 @@
-# Dashchan Extension: awoo
+# Dashchan Extension: dangeru
 
 Extension for dangeru.us.
 

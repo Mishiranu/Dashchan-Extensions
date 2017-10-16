@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import android.net.Uri;
 
@@ -23,10 +23,10 @@ import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public class AwooChanPerformer extends ChanPerformer {
+public class DangeruChanPerformer extends ChanPerformer {
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
-		AwooChanLocator locator = AwooChanLocator.get(this);
+		DangeruChanLocator locator = DangeruChanLocator.get(this);
 		Uri uri = locator.buildQuery("api/v2/board/" + data.boardName, "page", Integer.toString(data.pageNumber));
 		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).read();
 		JSONArray jsonArray = response.getJsonArray();
@@ -36,7 +36,7 @@ public class AwooChanPerformer extends ChanPerformer {
 			}
 			Posts[] threads = new Posts[jsonArray.length()];
 			for (int i = 0; i < threads.length; i++) {
-				threads[i] = AwooModelMapper.createThread(jsonArray.getJSONObject(i));
+				threads[i] = DangeruModelMapper.createThread(jsonArray.getJSONObject(i));
 			}
 			return new ReadThreadsResult(threads);
 		} catch (JSONException e) {
@@ -47,7 +47,7 @@ public class AwooChanPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
 			RedirectException {
-		AwooChanLocator locator = AwooChanLocator.get(this);
+		DangeruChanLocator locator = DangeruChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "replies");
 		JSONArray jsonArray = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonArray();
 		try {
@@ -55,7 +55,7 @@ public class AwooChanPerformer extends ChanPerformer {
 			if (!StringUtils.equals(data.boardName, boardName)) {
 				throw RedirectException.toThread(boardName, data.threadNumber, null);
 			}
-			return new ReadPostsResult(AwooModelMapper.createThreadFromReplies(jsonArray));
+			return new ReadPostsResult(DangeruModelMapper.createThreadFromReplies(jsonArray));
 		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
@@ -63,11 +63,11 @@ public class AwooChanPerformer extends ChanPerformer {
 
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
-		AwooChanLocator locator = AwooChanLocator.get(this);
+		DangeruChanLocator locator = DangeruChanLocator.get(this);
 		Uri uri = locator.buildPath("");
 		String responseText = new HttpRequest(uri, data).read().getString();
 		try {
-			return new ReadBoardsResult(new AwooBoardsParser(responseText).convert());
+			return new ReadBoardsResult(new DangeruBoardsParser(responseText).convert());
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		}
@@ -76,7 +76,7 @@ public class AwooChanPerformer extends ChanPerformer {
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
-		AwooChanLocator locator = AwooChanLocator.get(this);
+		DangeruChanLocator locator = DangeruChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "v2", "thread", data.threadNumber, "metadata");
 		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
 		if (jsonObject != null) {
@@ -97,7 +97,7 @@ public class AwooChanPerformer extends ChanPerformer {
 		RequestEntity entity = new MultipartEntity();
 		entity.add("board", data.boardName);
 		Uri uri;
-		AwooChanLocator locator = AwooChanLocator.get(this);
+		DangeruChanLocator locator = DangeruChanLocator.get(this);
 		if (data.threadNumber == null) {
 			uri = locator.buildPath("post");
 			entity.add("title", StringUtils.emptyIfNull(data.subject));
@@ -137,7 +137,7 @@ public class AwooChanPerformer extends ChanPerformer {
 					throw new ApiException(errorType);
 				}
 			}
-			CommonUtils.writeLog("Awoo send message", errorMessage);
+			CommonUtils.writeLog("Dangeru send message", errorMessage);
 			throw new ApiException(errorMessage);
 		}
 		throw new InvalidResponseException();

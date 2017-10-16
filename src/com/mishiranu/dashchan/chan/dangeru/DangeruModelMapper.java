@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,7 +11,7 @@ import chan.content.model.Posts;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
-public final class AwooModelMapper {
+public final class DangeruModelMapper {
 	private static final Pattern PATTERN_LINK = Pattern.compile(">>(\\d+)");
 	private static final Pattern PATTERN_QUOTE = Pattern.compile("(?<=^|<br />)>(.*?)(?=$|<br />)");
 

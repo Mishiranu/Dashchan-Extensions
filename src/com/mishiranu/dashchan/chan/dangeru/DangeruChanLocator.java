@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.awoo;
+package com.mishiranu.dashchan.chan.dangeru;
 
 import android.net.Uri;
 
@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 import chan.content.ChanLocator;
 
-public class AwooChanLocator extends ChanLocator {
+public class DangeruChanLocator extends ChanLocator {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+/?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
 
-	public AwooChanLocator() {
+	public DangeruChanLocator() {
 		addChanHost("dangeru.us");
 		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
