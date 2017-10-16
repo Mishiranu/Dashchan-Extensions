@@ -98,14 +98,14 @@ public class AwooChanPerformer extends ChanPerformer {
 		entity.add("board", data.boardName);
 		Uri uri;
 		AwooChanLocator locator = AwooChanLocator.get(this);
-		if (data.subject != null) {
+		if (data.threadNumber == null) {
 			uri = locator.buildPath("post");
-			entity.add("title", data.subject);
-			entity.add("comment", data.comment);
+			entity.add("title", StringUtils.emptyIfNull(data.subject));
+			entity.add("comment", StringUtils.emptyIfNull(data.comment));
 		} else {
 			uri = locator.buildPath("reply");
 			entity.add("parent", data.threadNumber);
-			entity.add("content", data.comment);
+			entity.add("content", StringUtils.emptyIfNull(data.comment));
 		}
 		String responseText = new HttpRequest(uri, data)
 				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();
