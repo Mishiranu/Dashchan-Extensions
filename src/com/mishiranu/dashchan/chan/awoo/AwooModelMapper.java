@@ -28,7 +28,7 @@ public final class AwooModelMapper {
 			parent = String.valueOf(jsonObject.getInt("parent"));
 			post.setParentPostNumber(parent);
 		}
-		post.setTimestamp(jsonObject.getLong("date_posted"));
+		post.setTimestamp(jsonObject.getLong("date_posted") * 1000L);
 		post.setTripcode(CommonUtils.optJsonString(jsonObject, "hash"));
 		post.setCapcode(CommonUtils.optJsonString(jsonObject, "capcode"));
 		String title = CommonUtils.optJsonString(jsonObject, "title");
