@@ -6,11 +6,11 @@ import java.util.regex.Pattern;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class SynchBoardsParser implements GroupParser.Callback {
+public class SynchBoardsParser {
 	private final String source;
 
 	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
@@ -25,11 +25,7 @@ public class SynchBoardsParser implements GroupParser.Callback {
 	}
 
 	public ArrayList<BoardCategory> convert() throws ParseException {
-		try {
-			GroupParser.parse(source, this);
-		} catch (FinishedException e) {
-			// Ignore exception
-		}
+		PARSER.parse(source, this);
 		closeCategory();
 		return boardCategories;
 	}
@@ -41,45 +37,25 @@ public class SynchBoardsParser implements GroupParser.Callback {
 		}
 	}
 
-	private static class FinishedException extends ParseException {
-		private static final long serialVersionUID = 1L;
-	}
-
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs) {
-		if ("span".equals(tagName)) {
-			String description = parser.getAttr(attrs, "data-description");
-			if (description != null) {
-				closeCategory();
-				boardCategoryTitle = StringUtils.clearHtml(description);
-			}
-		} else if ("a".equals(tagName)) {
-			if (boardCategoryTitle != null) {
-				String href = parser.getAttr(attrs, "href");
-				String title = parser.getAttr(attrs, "title");
-				if (title != null) {
-					Matcher matcher = PATTERN_BOARD_URI.matcher(href);
-					if (matcher.matches()) {
-						String boardName = matcher.group(1);
-						title = StringUtils.clearHtml(title);
-						boards.add(new Board(boardName, title));
-					}
-				}
+	private static final TemplateParser<SynchBoardsParser> PARSER = TemplateParser.<SynchBoardsParser>builder()
+			.contains("span", "data-description", "").open((instance, holder, tagName, attributes) -> {
+		holder.closeCategory();
+		holder.boardCategoryTitle = StringUtils.clearHtml(attributes.get("data-description"));
+		return false;
+	}).contains("a", "title", "").open((instance, holder, tagName, attributes) -> {
+		if (holder.boardCategoryTitle != null) {
+			String href = attributes.get("href");
+			Matcher matcher = PATTERN_BOARD_URI.matcher(href);
+			if (matcher.matches()) {
+				String boardName = matcher.group(1);
+				String title = StringUtils.clearHtml(attributes.get("title"));
+				holder.boards.add(new Board(boardName, title));
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public void onEndElement(GroupParser parser, String tagName) throws FinishedException {
-		if ("div".equals(tagName) && boardCategoryTitle != null) {
-			throw new FinishedException();
+	}).name("div").close((instance, holder, tagName) -> {
+		if (holder.boardCategoryTitle != null) {
+			instance.finish();
 		}
-	}
-
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end) {}
-
-	@Override
-	public void onGroupComplete(GroupParser parser, String text) {}
+	}).prepare();
 }
