@@ -2,6 +2,7 @@ package com.mishiranu.dashchan.chan.synch;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.json.JSONArray;
@@ -10,6 +11,7 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 
+import chan.content.model.Attachment;
 import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
@@ -94,19 +96,25 @@ public class SynchModelMapper {
 			com = com.replace("<a  ", "<a ").replaceAll("href=\"\\?", "href=\"");
 			post.setComment(com);
 		}
+		ArrayList<Attachment> attachments = null;
+		try {
+			Attachment attachment = createFileAttachment(jsonObject, locator, boardName);
+			attachments = new ArrayList<>();
+			attachments.add(attachment);
+		} catch (JSONException e) {
+			// Ignore exception
+		}
 		String embed = StringUtils.nullIfEmpty(CommonUtils.optJsonString(jsonObject, "embed"));
 		if (embed != null) {
 			EmbeddedAttachment attachment = EmbeddedAttachment.obtain(embed);
 			if (attachment != null) {
-				post.setAttachments(attachment);
-			}
-		} else {
-			try {
-				post.setAttachments(createFileAttachment(jsonObject, locator, boardName));
-			} catch (JSONException e) {
-				// Ignore exception
+				if (attachments == null) {
+					attachments = new ArrayList<>();
+				}
+				attachments.add(attachment);
 			}
 		}
+		post.setAttachments(attachments);
 		return post;
 	}
 
