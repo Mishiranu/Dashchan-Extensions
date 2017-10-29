@@ -1,6 +1,7 @@
 package com.mishiranu.dashchan.chan.wizardchan;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +27,7 @@ import chan.util.StringUtils;
 
 public class WizardchanChanPerformer extends ChanPerformer {
 	private void checkResponse(HttpHolder holder) throws HttpException {
-		if (!"application/json".equals(holder.getHeaderFields().get("Content-Type"))) {
+		if (!Collections.singletonList("application/json").equals(holder.getHeaderFields().get("Content-Type"))) {
 			throw HttpException.createNotFoundException();
 		}
 	}
