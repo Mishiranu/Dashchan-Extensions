@@ -3,13 +3,13 @@
 	package="com.mishiranu.dashchan.chan.synch"
 	android:versionCode="1"
 	android:versionName="1.0">
-	
+
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
-	
+
 	<uses-feature android:name="chan.extension" />
-	
+
 	<application android:icon="@null" android:allowBackup="false" android:label="@string/text_app_name">
-		
+
 		<meta-data android:name="chan.extension.name" android:value="synch" />
 		<meta-data android:name="chan.extension.version" android:value="1" />
 		<meta-data android:name="chan.extension.icon" android:resource="@drawable/ic_custom_synch_white" />
@@ -18,10 +18,10 @@
 		<meta-data android:name="chan.extension.class.performer" android:value=".SynchChanPerformer" />
 		<meta-data android:name="chan.extension.class.locator" android:value=".SynchChanLocator" />
 		<meta-data android:name="chan.extension.class.markup" android:value=".SynchChanMarkup" />
-		
+
 		<activity android:name="chan.app.UriHandlerActivity" android:label="@string/text_activity_name"
-		    android:theme="@android:style/Theme.NoDisplay">
-			
+			android:theme="@android:style/Theme.NoDisplay">
+
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -34,9 +34,9 @@
 				<data android:host="syn-ch.ru" />
 				<data android:host="синч.рф" />
 			</intent-filter>
-			
+
 		</activity>
-		
+
 	</application>
-	
+
 </manifest>
