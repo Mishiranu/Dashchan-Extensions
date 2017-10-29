@@ -1,5 +1,6 @@
 package com.mishiranu.dashchan.chan.wizardchan;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -135,6 +136,29 @@ public class WizardchanChanPerformer extends ChanPerformer {
 		}
 		checkResponse(data.holder);
 		throw new InvalidResponseException();
+	}
+
+	@Override
+	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException {
+		if (data.uri.getPath().contains("/thumb/")) {
+			// Try all possible extensions for thumbnails
+			String path = data.uri.getEncodedPath();
+			Uri.Builder builder = data.uri.buildUpon();
+			String[] extensions = {".jpg", ".png", ".gif"};
+
+			for (String extension : extensions) {
+				try {
+					Uri uri = builder.encodedPath(path + extension).build();
+					return new ReadContentResult(new HttpRequest(uri, data).read());
+				} catch (HttpException e) {
+					if (e.getResponseCode() != HttpURLConnection.HTTP_NOT_FOUND) {
+						throw e;
+					}
+				}
+			}
+			throw HttpException.createNotFoundException();
+		}
+		return super.onReadContent(data);
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class WizardchanModelMapper {
 		attachment.setWidth(jsonObject.optInt("w"));
 		attachment.setHeight(jsonObject.optInt("h"));
 		attachment.setFileUri(locator, locator.buildPath(boardName, "src", tim + ext));
-		attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb", tim + ".gif"));
+		attachment.setThumbnailUri(locator, locator.buildPath(boardName, "thumb", tim));
 		attachment.setOriginalName(filename);
 		return attachment;
 	}
