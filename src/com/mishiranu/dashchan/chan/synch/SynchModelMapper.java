@@ -21,6 +21,18 @@ import chan.util.CommonUtils;
 import chan.util.StringUtils;
 
 public class SynchModelMapper {
+	private static String decodeUrl(String url) {
+		if (url.contains("%%")) {
+			return url.replace("%%", "%25%");
+		} else {
+			try {
+				return URLDecoder.decode(url, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	public static FileAttachment createFileAttachment(JSONObject jsonObject, SynchChanLocator locator, String boardName)
 			throws JSONException {
 		FileAttachment attachment = new FileAttachment();
@@ -72,11 +84,7 @@ public class SynchModelMapper {
 		if (!StringUtils.isEmpty(email) && email.equalsIgnoreCase("sage")) {
 			post.setSage(true);
 		} else {
-			try {
-				post.setEmail(URLDecoder.decode(StringUtils.clearHtml(email), "UTF-8").trim());
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException(e);
-			}
+			post.setEmail(decodeUrl(StringUtils.clearHtml(email)).trim());
 		}
 		String country = CommonUtils.optJsonString(jsonObject, "country");
 		String countryName = CommonUtils.optJsonString(jsonObject, "country_name");
