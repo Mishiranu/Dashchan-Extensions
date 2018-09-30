@@ -179,6 +179,7 @@ public class DiochanChanPerformer extends ChanPerformer
 		entity.add("postpassword", data.password);
 		entity.add("gotothread", "on");
 		entity.add("embed", ""); // Otherwise there will be a "Please enter an embed ID" error
+		entity.add("quote", "1"); // Otherwise there will be an "Invalid Server Response" error on /b/
 		if (data.attachments != null)
 		{
 			for (SendPostData.Attachment attachment : data.attachments)
