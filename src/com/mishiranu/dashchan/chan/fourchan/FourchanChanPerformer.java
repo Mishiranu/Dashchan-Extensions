@@ -247,7 +247,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		return message;
 	}
 
-	private static final Pattern PATTERN_AUTH_MESSAGE = Pattern.compile("<span.*?>(.*?)<(?:br|/span)>");
+	private static final Pattern PATTERN_AUTH_MESSAGE = Pattern.compile("<h2.*?>(.*?)<(?:br|/h2)>");
 
 	@Override
 	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
