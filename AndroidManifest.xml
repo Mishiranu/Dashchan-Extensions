@@ -3,9 +3,7 @@
 	package="com.mishiranu.dashchan.chan.diochan"
 	android:versionCode="1"
 	android:versionName="1.3">
-	
-	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
-	
+
 	<uses-feature android:name="chan.extension" />
 	
 	<application android:icon="@drawable/ic_launcher" android:allowBackup="false" android:label="@string/text_app_name">
@@ -26,6 +24,7 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
 				<data android:scheme="http" />
 				<data android:host="diochan.com" />
 				<data android:host="www.diochan.com" />

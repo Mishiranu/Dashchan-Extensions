@@ -13,7 +13,7 @@ import chan.content.ApiException;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
-import chan.content.ThreadRedirectException;
+import chan.content.RedirectException;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
@@ -28,7 +28,7 @@ public class DiochanChanPerformer extends ChanPerformer
 {
 	private static final Pattern PATTERN_CATALOG = Pattern.compile("(?s)<a href=\"/.*?/res/(\\d+).html\".*?</a><br />"
 			+ ".*?<small>(\\d+)</small>");
-	
+
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException
 	{
@@ -96,9 +96,9 @@ public class DiochanChanPerformer extends ChanPerformer
 			}
 		}
 	}
-	
+
 	@Override
-	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, ThreadRedirectException,
+	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, RedirectException,
 			InvalidResponseException
 	{
 		DiochanChanLocator locator = ChanLocator.get(this);
@@ -113,7 +113,7 @@ public class DiochanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException, InvalidResponseException
 	{
@@ -131,7 +131,7 @@ public class DiochanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException
 	{
@@ -147,7 +147,7 @@ public class DiochanChanPerformer extends ChanPerformer
 			throw new InvalidResponseException(e);
 		}
 	}
-	
+
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException, InvalidResponseException
 	{
@@ -163,22 +163,34 @@ public class DiochanChanPerformer extends ChanPerformer
 		}
 		return new ReadPostsCountResult(count);
 	}
-	
+
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("(?s)<h2.*?>(.*?)</h2>");
-	
+
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException
 	{
+		String message = StringUtils.emptyIfNull(data.comment);
+
+		String videoID = "";
+
+		boolean embedding = false;
+		if (message.toUpperCase().startsWith("**YT#")) {
+			videoID = message.substring(5, message.indexOf("**", 5));
+			message = message.substring(message.indexOf("**", 5)+2, message.length());
+			embedding = true;
+		}
 		MultipartEntity entity = new MultipartEntity();
 		entity.add("board", data.boardName);
 		entity.add("replythread", data.threadNumber == null ? "0" : data.threadNumber);
 		entity.add("name", data.name);
 		entity.add("em", data.optionSage ? "salvia" : data.email);
 		entity.add("subject", data.subject);
-		entity.add("message", StringUtils.emptyIfNull(data.comment));
+		entity.add("message", message);
 		entity.add("postpassword", data.password);
 		entity.add("gotothread", "on");
-		entity.add("embed", ""); // Otherwise there will be a "Please enter an embed ID" error
+		entity.add("embed", videoID); // Otherwise there will be a "Please enter an embed ID" error
+		entity.add("quote", "1"); // Otherwise there will be an "Invalid Server Response" error on /b/
+		if (embedding) entity.add("embedtype", "youtube");
 		if (data.attachments != null)
 		{
 			for (SendPostData.Attachment attachment : data.attachments)
@@ -188,9 +200,14 @@ public class DiochanChanPerformer extends ChanPerformer
 			}
 		}
 		else entity.add("nofile", "on");
-		
+
 		DiochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("board.php");
+//		--- 								Just in case										---
+//		--- (workaround no longer needed, enable HTTPS in Preferences > Forums > diochan.com)	---
+//		Uri.Builder builder = new Uri.Builder().scheme("https").authority("www.diochan.com");
+//		builder.appendEncodedPath("board.php".replaceFirst("^/+", ""));
+//		Uri uri = builder.build();
 		String responseText;
 		try
 		{
@@ -208,7 +225,7 @@ public class DiochanChanPerformer extends ChanPerformer
 		{
 			data.holder.disconnect();
 		}
-		
+
 		Matcher matcher = PATTERN_POST_ERROR.matcher(responseText);
 		if (matcher.find())
 		{
@@ -241,7 +258,7 @@ public class DiochanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException
@@ -271,7 +288,7 @@ public class DiochanChanPerformer extends ChanPerformer
 		}
 		throw new InvalidResponseException();
 	}
-	
+
 	@Override
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException

@@ -17,6 +17,7 @@ public class DiochanChanLocator extends ChanLocator
 	{
 		addConvertableChanHost("diochan.com");
 		addChanHost("www.diochan.com");
+		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 	
 	@Override
