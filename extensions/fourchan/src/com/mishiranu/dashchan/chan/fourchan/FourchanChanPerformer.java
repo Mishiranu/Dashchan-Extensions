@@ -374,12 +374,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 		String captchaPassCookie = null;
 		if (data.captchaData != null) {
-			if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(data.captchaType)) {
-				entity.add("recaptcha_challenge_field", data.captchaData.get(CaptchaData.CHALLENGE));
-				entity.add("recaptcha_response_field", data.captchaData.get(CaptchaData.INPUT));
-			} else if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType)) {
-				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
-			}
+			entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
 			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
 		}
 
@@ -442,8 +437,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
-			InvalidResponseException {
+	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException {
 		FourchanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "imgboard.php");
 		UrlEncodedEntity entity = new UrlEncodedEntity("mode", "usrdel", "pwd", data.password);
@@ -503,13 +497,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 			UrlEncodedEntity entity = new UrlEncodedEntity("mode", "report", "cat",
 					data.type, "board", data.boardName, "no", data.postNumbers.get(0));
-			String captchaType = captchaData.get(CAPTCHA_TYPE);
-			if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_1.equals(captchaType)) {
-				entity.add("recaptcha_challenge_field", captchaData.get(CaptchaData.CHALLENGE));
-				entity.add("recaptcha_response_field", captchaData.get(CaptchaData.INPUT));
-			} else if (ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
-				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
-			}
+			entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			String captchaPassCookie = captchaData.get(CAPTCHA_PASS_COOKIE);
 			String responseText = new HttpRequest(uri, data.holder, data).addCookie(buildCookies(captchaPassCookie))
 					.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getString();

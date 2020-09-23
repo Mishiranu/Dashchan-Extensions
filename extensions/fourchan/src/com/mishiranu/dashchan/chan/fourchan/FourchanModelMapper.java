@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class FourchanModelMapper {
-	private static final Pattern PATTERN_MATH = Pattern.compile("\\[(math|eqn)\\](.*?)\\[/\\1\\]");
+	private static final Pattern PATTERN_MATH = Pattern.compile("\\[(math|eqn)](.*?)\\[/\\1]");
 
 	public static Post createPost(JSONObject jsonObject, FourchanChanLocator locator, String boardName)
 			throws JSONException {
@@ -118,7 +118,7 @@ public class FourchanModelMapper {
 		} else {
 			JSONArray jsonArray = jsonObject.getJSONArray("posts");
 			posts = new Post[jsonArray.length()];
-			for (int i = 0; i <posts.length; i++) {
+			for (int i = 0; i < posts.length; i++) {
 				jsonObject = jsonArray.getJSONObject(i);
 				posts[i] = createPost(jsonObject, locator, boardName);
 				if (i == 0) {

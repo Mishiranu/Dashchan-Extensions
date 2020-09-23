@@ -23,7 +23,6 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		setDefaultName("Anonymous");
 		setBumpLimit(300);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
-		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
 		addCustomPreference(KEY_MATH_TAGS, false);
 	}
 

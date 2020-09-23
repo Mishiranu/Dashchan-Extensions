@@ -3,6 +3,6 @@ apply plugin: 'com.android.application'
 android(rootProject.configureAndroid)
 
 dependencies {
-	compileOnly 'com.github.mishiranu:dashchan.library:1.6'
+	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
 	implementation 'com.github.mishiranu:dashchan.static:1.0'
 }
