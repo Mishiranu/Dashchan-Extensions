@@ -210,7 +210,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		FourchanChanLocator locator = ChanLocator.get(this);
 		String mathData = locator.extractMathData(data.uri);
 		if (mathData != null) {
-			Uri uri = locator.buildPathWithSchemeHost(false, "quicklatex.com", "latex3.f");
+			Uri uri = locator.buildPathWithHost("quicklatex.com", "latex3.f");
 			SimpleEntity entity = new SimpleEntity();
 			entity.setData("formula=" + mathData.replace("%", "%25").replace("&", "%26") + "&fsize=60px&" +
 					"fcolor=000000&mode=0&out=1&remhost=quicklatex.com&preamble=\\usepackage{amsmath}\n" +
