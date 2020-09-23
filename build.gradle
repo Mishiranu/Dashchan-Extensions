@@ -16,55 +16,129 @@ allprojects {
 	}
 }
 
-project.ext.set 'configureAndroid', {
-	compileSdkVersion 29
-	buildToolsVersion '29.0.3'
+class GenerateManifestTask extends DefaultTask {
+	@Input String manifestXml
+	@OutputFile File outputFile
 
-	defaultConfig {
-		minSdkVersion 16
-		targetSdkVersion 29
+	@TaskAction
+	def action() {
+		outputFile.write(manifestXml)
+	}
+}
+
+project.ext.set 'configureExtension', { project, data ->
+	def getKey = { key ->
+		def value = data[key]
+		if (value == null) {
+			throw new NullPointerException(key + ' is not defined')
+		}
+		return value
 	}
 
-	sourceSets.main {
-		manifest.srcFile 'AndroidManifest.xml'
-		java.srcDirs = ['src']
-		resources.srcDirs = ['src']
-		aidl.srcDirs = ['src']
-		renderscript.srcDirs = ['src']
-		res.srcDirs = ['res']
-		assets.srcDirs = ['assets']
+	def chanName = project.name
+	def chanNameUpper = getKey('chanNameUpper')
+	def versionName = getKey('versionName')
+	def apiVersion = getKey('apiVersion')
+	def icon = getKey('icon')
+	def updateUri = data['updateUri'] ?: '//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json'
+	def hosts = getKey('hosts')
+	def customFilter = data['customFilter']
+
+	def xml = '<?xml version="1.0" encoding="utf-8"?>\n' +
+			'<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
+			"package=\"com.mishiranu.dashchan.chan.$chanName\" " +
+			"android:versionCode=\"1\" android:versionName=\"$versionName\">\n"
+	xml += '<uses-feature android:name="chan.extension" />\n'
+	xml += '<application android:icon="@null" android:allowBackup="false" ' +
+			"android:label=\"Dashchan for ${hosts[0]}\">\n"
+	xml += "<meta-data android:name=\"chan.extension.name\" android:value=\"$chanName\" />\n"
+	xml += "<meta-data android:name=\"chan.extension.version\" android:value=\"$apiVersion\" />\n"
+	xml += "<meta-data android:name=\"chan.extension.icon\" android:resource=\"@drawable/$icon\" />\n"
+	xml += "<meta-data android:name=\"chan.extension.source\" android:value=\"$updateUri\" />\n"
+	xml += '<meta-data android:name="chan.extension.class.configuration" ' +
+			"android:value=\".${chanNameUpper}ChanConfiguration\" />\n"
+	xml += '<meta-data android:name="chan.extension.class.performer" ' +
+			"android:value=\".${chanNameUpper}ChanPerformer\" />\n"
+	xml += '<meta-data android:name="chan.extension.class.locator" ' +
+			"android:value=\".${chanNameUpper}ChanLocator\" />\n"
+	xml += '<meta-data android:name="chan.extension.class.markup" ' +
+			"android:value=\".${chanNameUpper}ChanMarkup\" />\n"
+	xml += '<activity android:name="chan.app.UriHandlerActivity" android:label="Dashchan" ' +
+			'android:theme="@android:style/Theme.NoDisplay">\n'
+	xml += '<intent-filter>\n' +
+			'<action android:name="android.intent.action.VIEW" />\n' +
+			'<category android:name="android.intent.category.DEFAULT" />\n' +
+			'<category android:name="android.intent.category.BROWSABLE" />\n'
+	if (customFilter != null) {
+		xml += customFilter
+	} else {
+		xml += '<data android:scheme="http" />\n' +
+				'<data android:scheme="https" />\n'
+		for (host in hosts) {
+			xml += "<data android:host=\"$host\" />\n"
+		}
 	}
+	xml += '</intent-filter>\n</activity>\n</application>\n</manifest>\n'
 
-	if (file('keystore.properties').exists()) {
-		def keystoreProperties = new Properties()
-		keystoreProperties.load(new FileInputStream(file('keystore.properties')))
+	def manifestFile = "${project.buildDir}/generated/AndroidManifest.xml"
 
-		signingConfigs {
-			general {
-				storeFile file(keystoreProperties['store.file'])
-				storePassword keystoreProperties['store.password']
-				keyAlias keystoreProperties['key.alias']
-				keyPassword keystoreProperties['key.password']
+	project.preBuild.dependsOn(project.task('generateManifest', type: GenerateManifestTask) {
+		manifestXml = xml
+		outputFile = file(manifestFile)
+	})
+
+	project.archivesBaseName = 'Dashchan' + chanNameUpper
+
+	project.android {
+		compileSdkVersion 29
+		buildToolsVersion '29.0.3'
+
+		defaultConfig {
+			minSdkVersion 16
+			targetSdkVersion 29
+		}
+
+		sourceSets.main {
+			manifest.srcFile manifestFile
+			java.srcDirs = ['src']
+			resources.srcDirs = []
+			aidl.srcDirs = ['src']
+			renderscript.srcDirs = ['src']
+			res.srcDirs = ['res']
+			assets.srcDirs = ['assets']
+		}
+
+		if (file('keystore.properties').exists()) {
+			def keystoreProperties = new Properties()
+			keystoreProperties.load(new FileInputStream(file('keystore.properties')))
+
+			signingConfigs {
+				general {
+					storeFile file(keystoreProperties['store.file'])
+					storePassword keystoreProperties['store.password']
+					keyAlias keystoreProperties['key.alias']
+					keyPassword keystoreProperties['key.password']
+				}
+			}
+
+			buildTypes.debug.signingConfig signingConfigs.general
+			buildTypes.release.signingConfig signingConfigs.general
+		}
+
+		buildTypes {
+			release {
+				minifyEnabled false
 			}
 		}
 
-		buildTypes.debug.signingConfig signingConfigs.general
-		buildTypes.release.signingConfig signingConfigs.general
-	}
-
-	buildTypes {
-		release {
-			minifyEnabled false
+		lintOptions {
+			abortOnError false
+			disable 'MissingTranslation'
 		}
-	}
 
-	lintOptions {
-		abortOnError false
-		disable 'MissingTranslation'
-	}
-
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
+		compileOptions {
+			sourceCompatibility JavaVersion.VERSION_1_8
+			targetCompatibility JavaVersion.VERSION_1_8
+		}
 	}
 }

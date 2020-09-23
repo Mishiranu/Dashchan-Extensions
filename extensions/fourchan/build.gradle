@@ -1,6 +1,13 @@
 apply plugin: 'com.android.application'
 
-android(rootProject.configureAndroid)
+rootProject.configureExtension(project, [
+		chanNameUpper: 'Fourchan',
+		versionName: '1.15',
+		apiVersion: 1,
+		icon: 'ic_custom_fourchan',
+		hosts: ['4chan.org', 'www.4chan.org', 'boards.4chan.org',
+				  '4channel.org', 'www.4channel.org', 'boards.4channel.org', 'i.4cdn.org']
+])
 
 dependencies {
 	compileOnly 'com.github.mishiranu:dashchan.library:1.7'

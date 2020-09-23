@@ -3,7 +3,6 @@
 !/build.gradle
 !/extensions
 /extensions/*/*
-!/extensions/*/AndroidManifest.xml
 !/extensions/*/build.gradle
 !/extensions/*/res
 !/extensions/*/src
