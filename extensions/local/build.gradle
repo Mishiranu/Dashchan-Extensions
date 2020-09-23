@@ -1,0 +1,7 @@
+apply plugin: 'com.android.application'
+
+android(rootProject.configureAndroid)
+
+dependencies {
+	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
+}
