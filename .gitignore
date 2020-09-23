@@ -1,0 +1,15 @@
+/*
+!/.gitignore
+!/build.gradle
+!/extensions
+/extensions/*/*
+!/extensions/*/AndroidManifest.xml
+!/extensions/*/build.gradle
+!/extensions/*/res
+!/extensions/*/src
+!/gradle
+!/gradlew
+!/gradlew.bat
+!/LICENSE
+!/README.md
+!/settings.gradle

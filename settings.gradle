@@ -1,0 +1,3 @@
+for (f in file('extensions').listFiles()) {
+    include ':extensions:' + f.getName()
+}
