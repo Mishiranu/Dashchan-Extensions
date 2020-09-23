@@ -59,6 +59,9 @@
 				<data android:host="4chan.org" />
 				<data android:host="www.4chan.org" />
 				<data android:host="boards.4chan.org" />
+				<data android:host="4channel.org" />
+				<data android:host="www.4channel.org" />
+				<data android:host="boards.4channel.org" />
 				<data android:host="i.4cdn.org" />
 			</intent-filter>
 

@@ -1,6 +1,7 @@
 package com.mishiranu.dashchan.chan.fourchan;
 
 import android.net.Uri;
+import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.util.StringUtils;
 import java.io.UnsupportedEncodingException;
@@ -10,8 +11,8 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class FourchanChanLocator extends ChanLocator {
-	private static final String HOST_WWW = "www.4chan.org";
 	private static final String HOST_BOARDS = "boards.4chan.org";
+	private static final String HOST_BOARDS_SAFE = "boards.4channel.org";
 	private static final String HOST_POST = "sys.4chan.org";
 	private static final String HOST_API = "a.4cdn.org";
 	private static final String HOST_IMAGES = "i.4cdn.org";
@@ -23,13 +24,21 @@ public class FourchanChanLocator extends ChanLocator {
 
 	public FourchanChanLocator() {
 		addChanHost("4chan.org");
-		addConvertableChanHost(HOST_WWW);
+		addConvertableChanHost("www.4chan.org");
+		addConvertableChanHost("4channel.org");
+		addConvertableChanHost("www.4channel.org");
 		addSpecialChanHost(HOST_BOARDS);
+		addSpecialChanHost(HOST_BOARDS_SAFE);
 		addSpecialChanHost(HOST_POST);
 		addSpecialChanHost(HOST_API);
 		addSpecialChanHost(HOST_IMAGES);
 		addSpecialChanHost(HOST_STATIC);
-		setHttpsMode(HttpsMode.CONFIGURABLE);
+		setHttpsMode(HttpsMode.HTTPS_ONLY);
+	}
+
+	private String getBoardsHost(String boardName) {
+		FourchanChanConfiguration configuration = ChanConfiguration.get(this);
+		return configuration.isSafeForWork(boardName) ? HOST_BOARDS_SAFE : HOST_BOARDS;
 	}
 
 	@Override
@@ -76,17 +85,17 @@ public class FourchanChanLocator extends ChanLocator {
 
 	@Override
 	public Uri createBoardUri(String boardName, int pageNumber) {
-		return pageNumber > 0 ? buildPathWithHost(HOST_BOARDS, boardName, (pageNumber + 1) + ".html")
-				: buildPathWithHost(HOST_BOARDS, boardName, "");
+		return pageNumber > 0 ? buildPathWithHost(getBoardsHost(boardName), boardName, (pageNumber + 1) + ".html")
+				: buildPathWithHost(getBoardsHost(boardName), boardName, "");
 	}
 
 	@Override
 	public Uri createThreadUri(String boardName, String threadNumber) {
-		return buildPathWithHost(HOST_BOARDS, boardName, "thread", threadNumber);
+		return buildPathWithHost(getBoardsHost(boardName), boardName, "thread", threadNumber);
 	}
 
-	public Uri createBoardsRootUri() {
-		return buildPathWithHost(HOST_BOARDS);
+	public Uri createBoardsRootUri(String boardName) {
+		return buildPathWithHost(getBoardsHost(boardName));
 	}
 
 	@Override

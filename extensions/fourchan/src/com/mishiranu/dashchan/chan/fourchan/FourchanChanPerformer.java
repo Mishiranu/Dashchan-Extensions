@@ -329,7 +329,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
-		captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri().toString());
+		captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
 		String captchaType = data.captchaType;
 		if (data.threadNumber == null && data.requirement == null) {
 			// Threads can be created only using reCAPTCHA 2

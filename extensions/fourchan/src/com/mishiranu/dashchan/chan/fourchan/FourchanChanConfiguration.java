@@ -14,6 +14,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_SPOILERS_ENABLED = "spoilers_enabled";
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
+	private static final String KEY_SAFE_FOR_WORK = "safe_for_work";
 
 	private static final String KEY_MATH_TAGS = "math_tags";
 
@@ -108,6 +109,10 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		return get(null, KEY_MATH_TAGS, false);
 	}
 
+	public boolean isSafeForWork(String boardName) {
+		return get(boardName, KEY_SAFE_FOR_WORK, false);
+	}
+
 	public void updateFromBoardsJson(JSONObject jsonObject) {
 		try {
 			JSONArray jsonArray = jsonObject.getJSONArray("boards");
@@ -119,6 +124,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 				boolean areFlagsEnabled = jsonObject.optInt("country_flags") != 0;
 				int bumpLimit = jsonObject.optInt("bump_limit");
 				int maxCommentLength = jsonObject.optInt("max_comment_chars");
+				boolean safeForWork = jsonObject.optInt("ws_board", 0) != 0;
 				set(boardName, KEY_SPOILERS_ENABLED, areSpoilersEnabled);
 				set(boardName, KEY_CODE_ENABLED, isCodeEnabled);
 				set(boardName, KEY_FLAGS_ENABLED, areFlagsEnabled);
@@ -128,6 +134,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 				if (maxCommentLength > 0) {
 					set(boardName, KEY_MAX_COMMENT_LENGTH, maxCommentLength);
 				}
+				set(boardName, KEY_SAFE_FOR_WORK, safeForWork);
 			}
 		} catch (JSONException e) {
 			// Ignore exception
