@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="text_violation">Нарушение правил</string>
+	<string name="text_illegal">Нелегальный контент</string>
+
+	<string name="preference_math_tags">Обработка [math] тегов</string>
+	<string name="preference_math_tags_summary">Показывать ссылки на изображения используя веб-сервис quicklatex.com
+		(только HTTP)</string>
+
+</resources>
