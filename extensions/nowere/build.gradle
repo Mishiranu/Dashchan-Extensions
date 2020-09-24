@@ -5,5 +5,5 @@ rootProject.configureExtension(project, [
 ])
 
 dependencies {
-	implementation project(':libraries:templateparser')
+	implementation project(':engines:wakaba')
 }

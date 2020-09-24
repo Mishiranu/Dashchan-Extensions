@@ -1,12 +1,10 @@
 package com.mishiranu.dashchan.chan.bunbunmaru;
 
-import chan.content.ChanConfiguration;
+import chan.content.WakabaChanConfiguration;
 
-public class BunbunmaruChanConfiguration extends ChanConfiguration {
+public class BunbunmaruChanConfiguration extends WakabaChanConfiguration {
 	public BunbunmaruChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Anonymous");
-		addCaptchaType("wakaba");
 	}
 
 	@Override
@@ -15,18 +13,6 @@ public class BunbunmaruChanConfiguration extends ChanConfiguration {
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
-	}
-
-	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if ("wakaba".equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "Wakaba";
-			captcha.input = Captcha.Input.LATIN;
-			captcha.validity = Captcha.Validity.IN_THREAD;
-			return captcha;
-		}
-		return null;
 	}
 
 	@Override

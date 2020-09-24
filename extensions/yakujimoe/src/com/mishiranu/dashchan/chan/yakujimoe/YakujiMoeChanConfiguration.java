@@ -1,10 +1,9 @@
 package com.mishiranu.dashchan.chan.yakujimoe;
 
-import chan.content.ChanConfiguration;
+import chan.content.WakabaChanConfiguration;
 
-public class YakujiMoeChanConfiguration extends ChanConfiguration {
+public class YakujiMoeChanConfiguration extends WakabaChanConfiguration {
 	public YakujiMoeChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		setDefaultName("an", "Кот Синкая");
 		setDefaultName("au", "Джереми Кларксон");
@@ -40,7 +39,6 @@ public class YakujiMoeChanConfiguration extends ChanConfiguration {
 		setDefaultName("to", "Нитори");
 		setDefaultName("vn", "Сэйбер");
 		setDefaultName("d", "Мод-тян");
-		addCaptchaType("wakaba");
 	}
 
 	@Override
@@ -49,18 +47,6 @@ public class YakujiMoeChanConfiguration extends ChanConfiguration {
 		board.allowPosting = "dev".equals(boardName);
 		board.allowDeleting = "dev".equals(boardName);
 		return board;
-	}
-
-	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if ("wakaba".equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "Wakaba";
-			captcha.input = Captcha.Input.LATIN;
-			captcha.validity = Captcha.Validity.IN_THREAD;
-			return captcha;
-		}
-		return null;
 	}
 
 	@Override

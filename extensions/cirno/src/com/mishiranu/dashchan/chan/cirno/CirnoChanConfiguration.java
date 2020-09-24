@@ -1,15 +1,14 @@
 package com.mishiranu.dashchan.chan.cirno;
 
-import chan.content.ChanConfiguration;
+import chan.content.WakabaChanConfiguration;
 
-public class CirnoChanConfiguration extends ChanConfiguration {
+public class CirnoChanConfiguration extends WakabaChanConfiguration {
 	private static final String KEY_IMAGES_ENABLED = "images_enabled";
 	private static final String KEY_EMAILS_ENABLED = "emails_enabled";
 	private static final String KEY_NAMES_ENABLED = "names_enabled";
 	private static final String KEY_IMAGE_SPOILERS_ENABLED = "image_spoilers_enabled";
 
 	public CirnoChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("Аноним");
 		setDefaultName("an", "Кот Синкая");
 		setDefaultName("au", "Джереми Кларксон");
@@ -46,7 +45,6 @@ public class CirnoChanConfiguration extends ChanConfiguration {
 		setDefaultName("vn", "Сэйбер");
 		setDefaultName("d", "Мод-тян");
 		setBumpLimit(500);
-		addCaptchaType("wakaba");
 	}
 
 	@Override
@@ -57,18 +55,6 @@ public class CirnoChanConfiguration extends ChanConfiguration {
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
-	}
-
-	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if ("wakaba".equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "Wakaba";
-			captcha.input = Captcha.Input.LATIN;
-			captcha.validity = Captcha.Validity.IN_THREAD;
-			return captcha;
-		}
-		return null;
 	}
 
 	@Override
@@ -92,8 +78,8 @@ public class CirnoChanConfiguration extends ChanConfiguration {
 		return deleting;
 	}
 
-	public void storeNamesEmailsImagesSpoilersEnabled(String boardName, boolean namesEnabled, boolean emailsEnabled,
-			boolean imagesEnabled, boolean imageSpoilersEnabled) {
+	public void storeNamesEmailsImagesSpoilersEnabled(String boardName,
+			boolean namesEnabled, boolean emailsEnabled, boolean imagesEnabled, boolean imageSpoilersEnabled) {
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 		set(boardName, KEY_EMAILS_ENABLED, emailsEnabled);
 		set(boardName, KEY_IMAGES_ENABLED, imagesEnabled);

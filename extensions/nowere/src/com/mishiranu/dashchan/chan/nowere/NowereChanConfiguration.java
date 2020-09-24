@@ -1,13 +1,11 @@
 package com.mishiranu.dashchan.chan.nowere;
 
-import chan.content.ChanConfiguration;
+import chan.content.WakabaChanConfiguration;
 
-public class NowereChanConfiguration extends ChanConfiguration {
+public class NowereChanConfiguration extends WakabaChanConfiguration {
 	public NowereChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		setDefaultName("anonymous");
 		setBumpLimit(500);
-		addCaptchaType("wakaba");
 	}
 
 	@Override
@@ -17,18 +15,6 @@ public class NowereChanConfiguration extends ChanConfiguration {
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
-	}
-
-	@Override
-	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if ("wakaba".equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "Wakaba";
-			captcha.input = Captcha.Input.LATIN;
-			captcha.validity = Captcha.Validity.IN_THREAD;
-			return captcha;
-		}
-		return null;
 	}
 
 	@Override
