@@ -3,6 +3,7 @@ package com.mishiranu.dashchan.chan.endchan;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.Base64;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
@@ -323,7 +324,7 @@ public class EndchanChanPerformer extends ChanPerformer {
 				threadNumber = postNumber;
 				postNumber = null;
 			}
-			CommonUtils.sleepMaxTime(System.currentTimeMillis(), 2000);
+			CommonUtils.sleepMaxRealtime(SystemClock.elapsedRealtime(), 2000);
 			return new SendPostResult(threadNumber, postNumber);
 		}
 		if (!"error".equals(status) && !"blank".equals(status)) {

@@ -13,9 +13,10 @@ public class EndchanChanLocator extends ChanLocator {
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/\\.media/.*");
 
 	public EndchanChanLocator() {
-		addChanHost("endchan.xyz");
-		addChanHost("endchan.pw");
 		addChanHost("endchan.net");
+		addChanHost("endchan.gg");
+		addChanHost("endchan.org");
+		addConvertableChanHost("endchan.xyz");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 
