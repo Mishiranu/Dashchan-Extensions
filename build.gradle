@@ -54,6 +54,8 @@ def configureCommon(project, manifestFile) {
 }
 
 project.ext.set 'configureLibrary', { project ->
+	project.apply plugin: 'com.android.library'
+
 	def packageName = 'chan.library.' + project.name
 	def xml = '<?xml version="1.0" encoding="utf-8"?>\n' +
 			'<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
@@ -75,6 +77,8 @@ project.ext.set 'configureLibrary', { project ->
 }
 
 project.ext.set 'configureExtension', { project, data ->
+	project.apply plugin: 'com.android.application'
+
 	def keyNotFound = { throw new NullPointerException(it + ' is not defined') }
 
 	def chanName = project.name

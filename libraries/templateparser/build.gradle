@@ -1,5 +1,3 @@
-apply plugin: 'com.android.library'
-
 rootProject.configureLibrary(project)
 
 dependencies {

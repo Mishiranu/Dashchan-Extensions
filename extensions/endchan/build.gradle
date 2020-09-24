@@ -1,5 +1,3 @@
-apply plugin: 'com.android.application'
-
 rootProject.configureExtension(project, [
 		versionName: '1.7',
 		apiVersion: 1,
