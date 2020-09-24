@@ -25,4 +25,4 @@ key.password=%KEY_PASSWORD%
 
 ## License
 
-Extensions are licensed under the [MIT License](LICENSE).
+Extensions and libraries are available under the [GNU General Public License, version 3 or later](COPYING).

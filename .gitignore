@@ -1,6 +1,7 @@
 /*
 !/.gitignore
 !/build.gradle
+!/COPYING
 !/extensions
 /extensions/*/*
 !/extensions/*/build.gradle
@@ -14,6 +15,5 @@
 !/libraries/*/build.gradle
 !/libraries/*/res
 !/libraries/*/src
-!/LICENSE
 !/README.md
 !/settings.gradle
