@@ -1,0 +1,14 @@
+apply plugin: 'com.android.application'
+
+rootProject.configureExtension(project, [
+		chanNameUpper: 'Endchan',
+		versionName: '1.6',
+		apiVersion: 1,
+		icon: 'ic_custom_endchan',
+		hosts: ['endchan.xyz', 'endchan.pw', 'endchan.net']
+])
+
+dependencies {
+	compileOnly 'com.github.mishiranu:dashchan.library:1.6'
+	implementation 'com.github.mishiranu:dashchan.static:1.0'
+}
