@@ -2,6 +2,11 @@
 !/.gitignore
 !/build.gradle
 !/COPYING
+!/engines
+/engines/*/*
+!/engines/*/build.gradle
+!/engines/*/res
+!/engines/*/src
 !/extensions
 /extensions/*/*
 !/extensions/*/build.gradle

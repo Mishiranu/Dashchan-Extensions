@@ -1,0 +1,6 @@
+rootProject.configureLibrary(project)
+
+dependencies {
+    compileOnly project(':libraries:api')
+    implementation project(':libraries:templateparser')
+}

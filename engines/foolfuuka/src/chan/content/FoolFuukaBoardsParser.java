@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.desustorage;
+package chan.content;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
@@ -7,13 +7,13 @@ import chan.text.TemplateParser;
 import chan.util.StringUtils;
 import java.util.ArrayList;
 
-public class DesustorageBoardsParser {
+public class FoolFuukaBoardsParser {
 	private final String source;
 	private final ArrayList<Board> boards = new ArrayList<>();
 
 	private String boardCategoryTitle;
 
-	public DesustorageBoardsParser(String source) {
+	public FoolFuukaBoardsParser(String source) {
 		this.source = source;
 	}
 
@@ -22,9 +22,10 @@ public class DesustorageBoardsParser {
 		return new BoardCategory("Archives", boards);
 	}
 
-	private static final TemplateParser<DesustorageBoardsParser> PARSER = TemplateParser
-			.<DesustorageBoardsParser>builder()
-			.name("h2").content((instance, holder, text) -> {
+	private static final TemplateParser<FoolFuukaBoardsParser> PARSER = TemplateParser
+			.<FoolFuukaBoardsParser>builder()
+			.name("h2")
+			.content((instance, holder, text) -> {
 				if ("Archives".equals(text)) {
 					holder.boardCategoryTitle = StringUtils.clearHtml(text);
 				} else {

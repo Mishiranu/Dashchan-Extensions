@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.desustorage;
+package chan.content;
 
 import android.net.Uri;
 import chan.content.model.FileAttachment;
@@ -13,9 +13,9 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DesustoragePostsParser {
+public class FoolFuukaPostsParser {
 	private final String source;
-	private final DesustorageChanLocator locator;
+	private final FoolFuukaChanLocator locator;
 
 	private boolean needResTo = false;
 
@@ -27,12 +27,11 @@ public class DesustoragePostsParser {
 	private final ArrayList<Post> posts = new ArrayList<>();
 
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
-
 	private static final Pattern PATTERN_FILE = Pattern.compile("(?:(.*), )?(\\d+)(\\w+), (\\d+)x(\\d+)(?:, (.*))?");
 
-	public DesustoragePostsParser(String source, Object linked) {
+	public FoolFuukaPostsParser(String source, Object linked) {
 		this.source = source;
-		locator = DesustorageChanLocator.get(linked);
+		locator = FoolFuukaChanLocator.get(linked);
 	}
 
 	private void closeThread() {
@@ -67,18 +66,10 @@ public class DesustoragePostsParser {
 		return posts;
 	}
 
-	private String convertImageUriString(String uriString) {
-		int index = uriString.indexOf("//");
-		if (index >= 0) {
-			index = uriString.indexOf("/", index + 2);
-			return index >= 0 ? uriString.substring(index) : null;
-		}
-		return uriString;
-	}
-
-	private static final TemplateParser<DesustoragePostsParser> PARSER = TemplateParser
-			.<DesustoragePostsParser>builder()
-			.contains("article", "class", "thread").contains("article", "class", "post")
+	private static final TemplateParser<FoolFuukaPostsParser> PARSER = TemplateParser
+			.<FoolFuukaPostsParser>builder()
+			.contains("article", "class", "thread")
+			.contains("article", "class", "post")
 			.open((instance, holder, tagName, attributes) -> {
 				String id = attributes.get("id");
 				if (id != null) {
@@ -109,8 +100,7 @@ public class DesustoragePostsParser {
 			.open((i, h, t, a) -> h.post != null)
 			.content((i, holder, text) -> holder.post
 					.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim())))
-			.equals("span", "class", "poster_hash")
-			.open((i, h, t, a) -> h.post != null)
+			.equals("span", "class", "poster_hash").open((i, h, t, a) -> h.post != null)
 			.content((i, holder, text) -> holder.post
 					.setIdentifier(StringUtils.clearHtml(text).trim().substring(3)))
 			.equals("h2", "class", "post_title")
@@ -135,11 +125,11 @@ public class DesustoragePostsParser {
 			})
 			.equals("a", "class", "thread_image_link")
 			.open((instance, holder, tagName, attributes) -> {
-				String path = holder.convertImageUriString(StringUtils.emptyIfNull(attributes.get("href")));
+				Uri uri = Uri.parse(attributes.get("href"));
 				if (holder.attachment == null) {
 					holder.attachment = new FileAttachment();
 				}
-				holder.attachment.setFileUri(holder.locator, holder.locator.createAttachmentUri(path));
+				holder.attachment.setFileUri(holder.locator, uri);
 				return false;
 			})
 			.equals("div", "class", "post_file")
@@ -177,8 +167,8 @@ public class DesustoragePostsParser {
 			.contains("img", "class", "thread_image")
 			.contains("img", "class", "post_image")
 			.open((instance, holder, tagName, attributes) -> {
-				String src = holder.convertImageUriString(StringUtils.emptyIfNull(attributes.get("src")));
-				holder.attachment.setThumbnailUri(holder.locator, holder.locator.createAttachmentUri(src));
+				Uri uri = Uri.parse(attributes.get("src"));
+				holder.attachment.setThumbnailUri(holder.locator, uri);
 				return false;
 			})
 			.equals("div", "class", "text")

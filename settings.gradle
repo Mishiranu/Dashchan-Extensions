@@ -1,3 +1,6 @@
+for (f in file('engines').listFiles()) {
+    include ':engines:' + f.getName()
+}
 for (f in file('extensions').listFiles()) {
     include ':extensions:' + f.getName()
 }
