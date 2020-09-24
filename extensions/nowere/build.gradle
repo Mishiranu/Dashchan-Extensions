@@ -1,0 +1,9 @@
+rootProject.configureExtension(project, [
+		versionName: '1.7',
+		apiVersion: 1,
+		hosts: ['nowere.net', 'sky.nowere.net', 'www.nowere.net']
+])
+
+dependencies {
+	implementation project(':libraries:templateparser')
+}
