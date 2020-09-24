@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 rootProject.configureExtension(project, [
 		chanNameUpper: 'Endchan',
-		versionName: '1.6',
+		versionName: '1.7',
 		apiVersion: 1,
 		icon: 'ic_custom_endchan',
 		hosts: ['endchan.net', 'endchan.gg', 'endchan.org', 'endchan.xyz']
