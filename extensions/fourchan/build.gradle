@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 rootProject.configureExtension(project, [
 		chanNameUpper: 'Fourchan',
-		versionName: '1.15',
+		versionName: '1.16',
 		apiVersion: 1,
 		icon: 'ic_custom_fourchan',
 		hosts: ['4chan.org', 'www.4chan.org', 'boards.4chan.org',
