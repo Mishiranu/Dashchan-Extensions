@@ -1,4 +1,4 @@
-package chan.app;
+package chan.application;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;

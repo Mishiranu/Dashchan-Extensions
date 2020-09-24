@@ -1,11 +1,8 @@
 # Dashchan Extensions
 
-This repository is used to store Dashchan extensions source code.
+Extensions and libraries.
 
 Old extensions are placed under their own specific branch. It's planned to move them all into master branch.
-
-General dependencies: [Public API](https://github.com/Mishiranu/Dashchan-Library),
-[Static Library](https://github.com/Mishiranu/Dashchan-Static).
 
 ## Building Guide
 
@@ -14,8 +11,6 @@ General dependencies: [Public API](https://github.com/Mishiranu/Dashchan-Library
 4. Run `./gradlew :extensions:%CHAN_NAME%:assembleRelease`
 
 The resulting APK file will appear in `extensions/%CHAN_NAME%/build/outputs/apk` directory.
-
-The API library may be updated. In this case, run `gradle --refresh-dependencies assembleRelease`.
 
 ### Build Signed Binary
 

@@ -5,8 +5,3 @@ rootProject.configureExtension(project, [
 		apiVersion: 1,
 		hosts: ['endchan.net', 'endchan.gg', 'endchan.org', 'endchan.xyz']
 ])
-
-dependencies {
-	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
-	implementation 'com.github.mishiranu:dashchan.static:1.0'
-}

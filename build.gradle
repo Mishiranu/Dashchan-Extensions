@@ -26,6 +26,54 @@ class GenerateFileTask extends DefaultTask {
 	}
 }
 
+def configureCommon(project, manifestFile) {
+	project.android {
+		compileSdkVersion 29
+		buildToolsVersion '29.0.3'
+
+		defaultConfig {
+			minSdkVersion 16
+			targetSdkVersion 29
+		}
+
+		sourceSets.main {
+			manifest.srcFile manifestFile
+			java.srcDirs = ['src']
+			resources.srcDirs = []
+			aidl.srcDirs = ['src']
+			renderscript.srcDirs = ['src']
+			res.srcDirs = ['res']
+			assets.srcDirs = ['assets']
+		}
+
+		compileOptions {
+			sourceCompatibility JavaVersion.VERSION_1_8
+			targetCompatibility JavaVersion.VERSION_1_8
+		}
+	}
+}
+
+project.ext.set 'configureLibrary', { project ->
+	def packageName = 'chan.library.' + project.name
+	def xml = '<?xml version="1.0" encoding="utf-8"?>\n' +
+			'<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
+			"package=\"$packageName\" />"
+
+	def manifestFile = new File(project.buildDir, 'generated/AndroidManifest.xml')
+	if (!manifestFile.exists()) {
+		// Fixes IntelliJ Android plugin error
+		manifestFile.parentFile.mkdirs()
+		manifestFile.write(xml)
+	}
+
+	project.preBuild.dependsOn(project.task('generateManifest', type: GenerateFileTask) {
+		inputText = xml
+		outputFile = manifestFile
+	})
+
+	configureCommon(project, manifestFile)
+}
+
 project.ext.set 'configureExtension', { project, data ->
 	def keyNotFound = { throw new NullPointerException(it + ' is not defined') }
 
@@ -37,6 +85,7 @@ project.ext.set 'configureExtension', { project, data ->
 	def icon = data['icon'] ?: 'ic_custom_' + chanName
 	def updateUri = data['updateUri'] ?: '//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json'
 	def hosts = data['hosts'] ?: keyNotFound('hosts')
+	def customUriHandler = data['customFilter'] ?: false
 	def customFilter = data['customFilter']
 
 	def requiredClasses = ['ChanConfiguration', 'ChanLocator', 'ChanMarkup', 'ChanPerformer']
@@ -60,8 +109,8 @@ project.ext.set 'configureExtension', { project, data ->
 			"android:value=\".${chanNameUpper}ChanLocator\" />\n"
 	xml += '<meta-data android:name="chan.extension.class.markup" ' +
 			"android:value=\".${chanNameUpper}ChanMarkup\" />\n"
-	xml += '<activity android:name="chan.app.UriHandlerActivity" android:label="Dashchan" ' +
-			'android:theme="@android:style/Theme.NoDisplay">\n'
+	xml += '<activity android:name="chan.application.UriHandlerActivity" ' +
+			'android:label="Dashchan" android:theme="@android:style/Theme.NoDisplay">\n'
 	xml += '<intent-filter>\n' +
 			'<action android:name="android.intent.action.VIEW" />\n' +
 			'<category android:name="android.intent.category.DEFAULT" />\n' +
@@ -100,28 +149,13 @@ project.ext.set 'configureExtension', { project, data ->
 	})
 
 	project.archivesBaseName = 'Dashchan' + chanNameUpper
+	configureCommon(project, manifestFile)
 
 	project.android {
-		compileSdkVersion 29
-		buildToolsVersion '29.0.3'
-
 		defaultConfig {
-			minSdkVersion 16
-			targetSdkVersion 29
-
 			// Don't warn about unused classes
 			buildConfigField 'Class[]', 'USED_CLASSES',
 					'{' + requiredClasses.collect { it + '.class' }.join(', ') + '}'
-		}
-
-		sourceSets.main {
-			manifest.srcFile manifestFile
-			java.srcDirs = ['src']
-			resources.srcDirs = []
-			aidl.srcDirs = ['src']
-			renderscript.srcDirs = ['src']
-			res.srcDirs = ['res']
-			assets.srcDirs = ['assets']
 		}
 
 		if (file('keystore.properties').exists()) {
@@ -158,10 +192,12 @@ project.ext.set 'configureExtension', { project, data ->
 			abortOnError false
 			disable 'MissingTranslation'
 		}
+	}
 
-		compileOptions {
-			sourceCompatibility JavaVersion.VERSION_1_8
-			targetCompatibility JavaVersion.VERSION_1_8
+	project.dependencies {
+		compileOnly project.project(':libraries:api')
+		if (!customUriHandler) {
+			implementation project.project(':libraries:urihandler')
 		}
 	}
 }

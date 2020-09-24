@@ -5,8 +5,3 @@ rootProject.configureExtension(project, [
 		apiVersion: 1,
 		hosts: ['2ch.hk', '2ch.pm', '2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so']
 ])
-
-dependencies {
-	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
-	implementation 'com.github.mishiranu:dashchan.static:1.0'
-}

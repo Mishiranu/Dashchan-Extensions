@@ -8,6 +8,5 @@ rootProject.configureExtension(project, [
 ])
 
 dependencies {
-	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
-	implementation 'com.github.mishiranu:dashchan.static:1.0'
+	implementation project(':libraries:templateparser')
 }

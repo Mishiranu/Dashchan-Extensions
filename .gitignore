@@ -9,6 +9,11 @@
 !/gradle
 !/gradlew
 !/gradlew.bat
+!/libraries
+/libraries/*/*
+!/libraries/*/build.gradle
+!/libraries/*/res
+!/libraries/*/src
 !/LICENSE
 !/README.md
 !/settings.gradle
