@@ -16,38 +16,35 @@ allprojects {
 	}
 }
 
-class GenerateManifestTask extends DefaultTask {
-	@Input String manifestXml
+class GenerateFileTask extends DefaultTask {
+	@Input String inputText
 	@OutputFile File outputFile
 
 	@TaskAction
 	def action() {
-		outputFile.write(manifestXml)
+		outputFile.write(inputText)
 	}
 }
 
 project.ext.set 'configureExtension', { project, data ->
-	def getKey = { key ->
-		def value = data[key]
-		if (value == null) {
-			throw new NullPointerException(key + ' is not defined')
-		}
-		return value
-	}
+	def keyNotFound = { throw new NullPointerException(it + ' is not defined') }
 
 	def chanName = project.name
-	def chanNameUpper = getKey('chanNameUpper')
-	def versionName = getKey('versionName')
-	def apiVersion = getKey('apiVersion')
-	def icon = getKey('icon')
+	def packageName = data['packageName'] ?: 'com.mishiranu.dashchan.chan.' + chanName
+	def chanNameUpper = data['chanNameUpper'] ?: chanName.take(1).toUpperCase() + chanName.substring(1)
+	def versionName = data['versionName'] ?: keyNotFound('versionName')
+	def apiVersion = data['apiVersion'] ?: keyNotFound('apiVersion')
+	def icon = data['icon'] ?: 'ic_custom_' + chanName
 	def updateUri = data['updateUri'] ?: '//raw.githubusercontent.com/Mishiranu/Dashchan/master/update/data.json'
-	def hosts = getKey('hosts')
+	def hosts = data['hosts'] ?: keyNotFound('hosts')
 	def customFilter = data['customFilter']
+
+	def requiredClasses = ['ChanConfiguration', 'ChanLocator', 'ChanMarkup', 'ChanPerformer']
+			.collect { packageName + '.' + chanNameUpper + it }
 
 	def xml = '<?xml version="1.0" encoding="utf-8"?>\n' +
 			'<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
-			"package=\"com.mishiranu.dashchan.chan.$chanName\" " +
-			"android:versionCode=\"1\" android:versionName=\"$versionName\">\n"
+			"package=\"$packageName\" android:versionCode=\"1\" android:versionName=\"$versionName\">\n"
 	xml += '<uses-feature android:name="chan.extension" />\n'
 	xml += '<application android:icon="@null" android:allowBackup="false" ' +
 			"android:label=\"Dashchan for ${hosts[0]}\">\n"
@@ -80,11 +77,26 @@ project.ext.set 'configureExtension', { project, data ->
 	}
 	xml += '</intent-filter>\n</activity>\n</application>\n</manifest>\n'
 
-	def manifestFile = "${project.buildDir}/generated/AndroidManifest.xml"
+	def proguard = '-dontobfuscate\n' + requiredClasses
+			.collect { '-keep class ' + it + ' { *; }\n' }.join()
 
-	project.preBuild.dependsOn(project.task('generateManifest', type: GenerateManifestTask) {
-		manifestXml = xml
-		outputFile = file(manifestFile)
+	def manifestFile = new File(project.buildDir, 'generated/AndroidManifest.xml')
+	def proguardFile = new File(project.buildDir, 'generated/proguard-rules.pro')
+	if (!manifestFile.exists()) {
+		// Fixes IntelliJ Android plugin error
+		manifestFile.parentFile.mkdirs()
+		manifestFile.write('<?xml version="1.0" encoding="utf-8"?>\n' +
+				'<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
+				"package=\"$packageName\" />")
+	}
+
+	project.preBuild.dependsOn(project.task('generateManifest', type: GenerateFileTask) {
+		inputText = xml
+		outputFile = manifestFile
+	})
+	project.preBuild.dependsOn(project.task('generateProguard', type: GenerateFileTask) {
+		inputText = proguard
+		outputFile = proguardFile
 	})
 
 	project.archivesBaseName = 'Dashchan' + chanNameUpper
@@ -96,6 +108,10 @@ project.ext.set 'configureExtension', { project, data ->
 		defaultConfig {
 			minSdkVersion 16
 			targetSdkVersion 29
+
+			// Don't warn about unused classes
+			buildConfigField 'Class[]', 'USED_CLASSES',
+					'{' + requiredClasses.collect { it + '.class' }.join(', ') + '}'
 		}
 
 		sourceSets.main {
@@ -126,8 +142,15 @@ project.ext.set 'configureExtension', { project, data ->
 		}
 
 		buildTypes {
-			release {
+			debug {
 				minifyEnabled false
+			}
+			release {
+				minifyEnabled true
+			}
+			all {
+				crunchPngs false
+				proguardFiles getDefaultProguardFile('proguard-android.txt'), proguardFile
 			}
 		}
 
