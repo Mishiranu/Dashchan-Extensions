@@ -1,0 +1,10 @@
+rootProject.configureExtension(project, [
+		chanNameUpper: 'ArchiveRbt',
+		versionName: '1.7',
+		apiVersion: 1,
+		hosts: ['rbt.asia', 'www.rbt.asia', 'archive.rebeccablacktech.com']
+])
+
+dependencies {
+	implementation project(':libraries:templateparser')
+}
