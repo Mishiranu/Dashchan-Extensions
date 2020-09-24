@@ -19,15 +19,18 @@ import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
 import chan.http.SimpleEntity;
 import chan.http.UrlEncodedEntity;
+import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
@@ -36,15 +39,6 @@ import org.json.JSONObject;
 
 public class FourchanChanPerformer extends ChanPerformer {
 	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
-
-	private static final String[] PREFERRED_BOARDS_ORDER = {"Misc", "Interests", "Creative", "Other",
-		"Japanese Culture", "Adult"};
-
-	private static final String[][] PREFERRED_BOARDS_MAPPING = {{"b", "r", "r9k", "pol", "soc", "s4s"},
-		{"v", "vg", "vr", "co", "g", "tv", "k", "o", "an", "tg", "sp", "asp", "sci", "int", "out", "toy", "biz"},
-		{"i", "po", "p", "ck", "ic", "wg", "mu", "fa", "3", "gd", "diy", "wsg"},
-		{"trv", "fit", "x", "lit", "adv", "lgbt", "mlp"}, {"a", "c", "w", "m", "cgl", "cm", "f", "n", "jp", "vp"},
-		{"s", "hc", "hm", "h", "e", "u", "d", "y", "t", "hr", "gif"}};
 
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
@@ -113,28 +107,47 @@ public class FourchanChanPerformer extends ChanPerformer {
 		throw new InvalidResponseException();
 	}
 
-	private static String getPreferredBoardCategory(String boardName) {
-		for (int i = 0; i < PREFERRED_BOARDS_ORDER.length; i++) {
-			String category = PREFERRED_BOARDS_ORDER[i];
-			for (int j = 0; j < PREFERRED_BOARDS_MAPPING[i].length; j++) {
-				if (PREFERRED_BOARDS_MAPPING[i][j].equals(boardName)) {
-					return category;
-				}
-			}
-		}
-		return PREFERRED_BOARDS_ORDER[0];
-	}
+//	private static String getPreferredBoardCategory(String boardName) {
+//		for (int i = 0; i < PREFERRED_BOARDS_ORDER.length; i++) {
+//			String category = PREFERRED_BOARDS_ORDER[i];
+//			for (int j = 0; j < PREFERRED_BOARDS_MAPPING[i].length; j++) {
+//				if (PREFERRED_BOARDS_MAPPING[i][j].equals(boardName)) {
+//					return category;
+//				}
+//			}
+//		}
+//		return PREFERRED_BOARDS_ORDER[0];
+//	}
 
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = ChanLocator.get(this);
-		Uri uri = locator.createApiUri("boards.json");
+		Uri uri = locator.buildPath();
+		String response = new HttpRequest(uri, data.holder, data).read().getString();
+		if (response == null) {
+			throw new InvalidResponseException();
+		}
+		Map<String, List<String>> categoryMap;
+		try {
+			categoryMap = new FourchanBoardsParser(ChanLocator.get(this), response).parse();
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		}
+		uri = locator.createApiUri("boards.json");
 		JSONObject jsonObject = new HttpRequest(uri, data.holder, data).read().getJsonObject();
 		if (jsonObject != null) {
+			String uncategorized = "Uncategorized";
 			FourchanChanConfiguration configuration = ChanConfiguration.get(this);
 			LinkedHashMap<String, ArrayList<Board>> boardsMap = new LinkedHashMap<>();
-			for (String title : PREFERRED_BOARDS_ORDER) {
+			for (String title : categoryMap.keySet()) {
 				boardsMap.put(title, new ArrayList<>());
+			}
+			boardsMap.put(uncategorized, new ArrayList<>());
+			HashMap<String, String> boardToCategory = new HashMap<>();
+			for (Map.Entry<String, List<String>> entry : categoryMap.entrySet()) {
+				for (String boardName : entry.getValue()) {
+					boardToCategory.put(boardName, entry.getKey());
+				}
 			}
 			try {
 				JSONArray jsonArray = jsonObject.getJSONArray("boards");
@@ -143,11 +156,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 					String boardName = CommonUtils.getJsonString(boardObject, "board");
 					String title = CommonUtils.getJsonString(boardObject, "title");
 					Board board = new Board(boardName, title);
-					String category = getPreferredBoardCategory(boardName);
+					String category = boardToCategory.get(boardName);
 					ArrayList<Board> boards = boardsMap.get(category);
-					if (boards != null) {
-						boards.add(board);
+					if (boards == null) {
+						boards = boardsMap.get(uncategorized);
 					}
+					boards.add(board);
 				}
 				ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 				for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boardsMap.entrySet()) {
