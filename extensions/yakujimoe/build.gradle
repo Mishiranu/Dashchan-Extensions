@@ -1,6 +1,6 @@
 rootProject.configureExtension(project, [
 		chanNameUpper: 'YakujiMoe',
-		versionName: '1.1',
+		versionName: '1.2',
 		apiVersion: 1,
 		hosts: ['ii.yakuji.moe']
 ])
