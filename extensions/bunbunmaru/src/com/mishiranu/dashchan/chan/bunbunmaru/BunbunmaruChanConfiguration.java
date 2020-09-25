@@ -10,6 +10,7 @@ public class BunbunmaruChanConfiguration extends WakabaChanConfiguration {
 	@Override
 	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
+		board.allowSearch = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;
 		return board;
@@ -20,6 +21,7 @@ public class BunbunmaruChanConfiguration extends WakabaChanConfiguration {
 		Posting posting = new Posting();
 		posting.allowEmail = true;
 		posting.allowSubject = true;
+		posting.optionSage = true;
 		posting.attachmentCount = 1;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentSpoiler = true;
