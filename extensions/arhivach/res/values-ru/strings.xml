@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="text_bytoken">Сохранить на Flickr аккаунт</string>
+	<string name="text_collapsed">Свернуть в ленте тредов</string>
+	<string name="text_password">Пароль</string>
+
+	<string name="message_tag_not_found_format">Тег не найден: %s</string>
+	<string name="message_list_of_found_tags">Список найденных тегов</string>
+
+</resources>

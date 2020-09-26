@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="text_bytoken">Save on Flickr account</string>
+	<string name="text_collapsed">Minimize in threads list</string>
+	<string name="text_password">Password</string>
+
+	<string name="message_tag_not_found_format">Tag not found: %s</string>
+	<string name="message_list_of_found_tags">List of found tags</string>
+
+</resources>
