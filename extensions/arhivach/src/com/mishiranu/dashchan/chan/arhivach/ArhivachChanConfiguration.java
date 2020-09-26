@@ -5,14 +5,15 @@ import android.util.Pair;
 import chan.content.ChanConfiguration;
 
 public class ArhivachChanConfiguration extends ChanConfiguration {
+	public static final String CAPTCHA_TYPE_ARHIVACH = "arhivach";
+
 	public ArhivachChanConfiguration() {
 		request(OPTION_SINGLE_BOARD_MODE);
 		request(OPTION_ALLOW_USER_AUTHORIZATION);
 		setSingleBoardName(null);
 		setBoardTitle(null, "Архивач");
 		setDefaultName("Аноним");
-		// TODO Fix captcha
-		// addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_1);
+		addCaptchaType(CAPTCHA_TYPE_ARHIVACH);
 	}
 
 	@Override
@@ -20,6 +21,18 @@ public class ArhivachChanConfiguration extends ChanConfiguration {
 		Board board = new Board();
 		board.allowSearch = true;
 		return board;
+	}
+
+	@Override
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if (CAPTCHA_TYPE_ARHIVACH.equals(captchaType)) {
+			Captcha captcha = new Captcha();
+			captcha.title = "Arhivach";
+			captcha.input = Captcha.Input.LATIN;
+			captcha.validity = Captcha.Validity.LONG_LIFETIME;
+			return captcha;
+		}
+		return null;
 	}
 
 	@Override
@@ -39,9 +52,7 @@ public class ArhivachChanConfiguration extends ChanConfiguration {
 		Archivation archivation = new Archivation();
 		archivation.hosts.add("2ch.hk");
 		archivation.hosts.add("iichan.hk");
-		archivation.hosts.add("brchan.org");
 		archivation.options.add(new Pair<>("collapsed", resources.getString(R.string.text_collapsed)));
-		archivation.options.add(new Pair<>("bytoken", resources.getString(R.string.text_bytoken)));
 		return archivation;
 	}
 

@@ -12,7 +12,6 @@ import chan.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -47,13 +46,6 @@ public class ArhivachPostsParser {
 			"августа", "сентября", "октября", "ноября", "декабря");
 	static final List<String> MONTHS_2 = Arrays.asList("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг",
 			"Сен", "Окт", "Ноя", "Дек");
-
-	private static final HashMap<String, Integer> TIME_ZONE_FIX = new HashMap<>();
-
-	static {
-		TIME_ZONE_FIX.put("brchan.org", +2);
-		TIME_ZONE_FIX.put("www.brchan.org", +2);
-	}
 
 	public ArhivachPostsParser(String source, Object linked, String threadNumber) {
 		this.source = source;
@@ -181,7 +173,7 @@ public class ArhivachPostsParser {
 		return null;
 	}
 
-	private static long parseTimestamp(String date, String host) {
+	private static long parseTimestamp(String date) {
 		Matcher matcher = PATTERN_DATE_1.matcher(date);
 		if (matcher.find()) {
 			int day = Integer.parseInt(matcher.group(1));
@@ -218,12 +210,7 @@ public class ArhivachPostsParser {
 		}
 		GregorianCalendar calendar = parseCommonTime(date);
 		if (calendar != null) {
-			Integer timeZoneFix = TIME_ZONE_FIX.get(host);
-			if (timeZoneFix != null) {
-				calendar.add(GregorianCalendar.HOUR, timeZoneFix);
-			} else {
-				calendar.add(GregorianCalendar.HOUR, -3);
-			}
+			calendar.add(GregorianCalendar.HOUR, -3);
 			return calendar.getTimeInMillis();
 		}
 		return 0L;
@@ -365,8 +352,7 @@ public class ArhivachPostsParser {
 				return false;
 			})
 			.equals("span", "class", "post_time")
-			.content((instance, holder, text) -> holder.post.setTimestamp(parseTimestamp(text.trim(),
-					holder.threadUri != null ? holder.threadUri.getHost() : null)))
+			.content((instance, holder, text) -> holder.post.setTimestamp(parseTimestamp(text.trim())))
 			.equals("span", "class", "label label-success")
 			.content((instance, holder, text) -> {
 				if ("OP".equals(text)) {

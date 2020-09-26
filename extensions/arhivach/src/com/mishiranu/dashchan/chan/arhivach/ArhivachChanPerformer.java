@@ -3,6 +3,7 @@ package com.mishiranu.dashchan.chan.arhivach;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
+import android.util.Pair;
 import chan.content.ApiException;
 import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
@@ -242,12 +243,11 @@ public class ArhivachChanPerformer extends ChanPerformer {
 		return super.onReadContent(data);
 	}
 
-	private String userEmailPassword;
-	private String userCaptchaKey;
+	private Pair<String, String> userEmailPassword;
 
 	private boolean checkEmailPassword(String email, String password) {
 		return email == null && password == null && userEmailPassword == null ||
-				(email + " " + password).equals(userEmailPassword);
+				new Pair<>(email, password).equals(userEmailPassword);
 	}
 
 	@Override
@@ -255,13 +255,27 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		String email = data.authorizationData[0];
 		String password = data.authorizationData[1];
-		return new CheckAuthorizationResult(authorizeUser(data.holder, data, email, password));
+		return new CheckAuthorizationResult(authorizeUser(data.holder, data, email, password) != null);
 	}
 
-	private boolean authorizeUser(HttpHolder holder, HttpRequest.Preset preset, String email, String password)
+	private Pair<String, String> authorizeUserFromConfiguration(HttpHolder holder, HttpRequest.Preset preset)
 			throws HttpException, InvalidResponseException {
+		String[] authorizationData = ChanConfiguration.get(this).getUserAuthorizationData();
+		String email = authorizationData[0];
+		String password = authorizationData[1];
+		if (!checkEmailPassword(email, password)) {
+			if (email != null && password != null) {
+				return authorizeUser(holder, preset, email, password);
+			} else {
+				userEmailPassword = null;
+			}
+		}
+		return userEmailPassword;
+	}
+
+	private Pair<String, String> authorizeUser(HttpHolder holder, HttpRequest.Preset preset,
+			String email, String password) throws HttpException, InvalidResponseException {
 		userEmailPassword = null;
-		userCaptchaKey = null;
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "add");
 		JSONObject jsonObject = new HttpRequest(uri, holder, preset).setPostMethod(new UrlEncodedEntity("email", email,
@@ -269,58 +283,64 @@ public class ArhivachChanPerformer extends ChanPerformer {
 		if (jsonObject == null) {
 			throw new InvalidResponseException();
 		}
-		return updateAuthorizationData(jsonObject, email, password);
+		return updateAuthorizationData(jsonObject, new Pair<>(email, password));
 	}
 
-	private boolean updateAuthorizationData(JSONObject jsonObject, String email, String password) {
+	private Pair<String, String> updateAuthorizationData(JSONObject jsonObject, Pair<String, String> emailPassword) {
 		JSONArray jsonArray = jsonObject.optJSONArray("info_msg");
 		if (jsonArray != null) {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				String message = jsonArray.optString(i);
 				if (message != null && message.contains("Вход выполнен")) {
-					userCaptchaKey = null;
-					userEmailPassword = email + " " + password;
-					return true;
+					this.userEmailPassword = emailPassword;
+					return emailPassword;
 				}
 			}
 		}
-		userCaptchaKey = CommonUtils.optJsonString(jsonObject, "captcha_public_key");
-		if (userCaptchaKey == null) {
-			// Old key
-			userCaptchaKey = "6LeJS9cSAAAAAHtATbfTO-L3awJxtICupWftpnbL";
-		}
 		userEmailPassword = null;
-		return false;
+		return null;
 	}
 
 	@Override
-	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) {
+	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException {
+		ArhivachChanLocator locator = ChanLocator.get(this);
+		Uri uri = locator.buildPath("captcha");
+		Bitmap image = new HttpRequest(uri, data).read().getBitmap();
 		CaptchaData captchaData = new CaptchaData();
-		captchaData.put(CaptchaData.API_KEY, userCaptchaKey);
-		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
+		captchaData.put(CaptchaData.CHALLENGE, data.holder.getCookieValue("PHPSESSID"));
+		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image);
+	}
+
+	private static class ArchiveRedirectHandler implements HttpRequest.RedirectHandler {
+		private final ArhivachChanLocator locator;
+		private String threadNumber;
+
+		public ArchiveRedirectHandler(ArhivachChanLocator locator) {
+			this.locator = locator;
+		}
+
+		@Override
+		public Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
+				throws HttpException {
+			if (locator.isThreadUri(redirectedUri)) {
+				threadNumber = locator.getThreadNumber(redirectedUri);
+				return Action.CANCEL;
+			}
+			return STRICT.onRedirectReached(responseCode, requestedUri, redirectedUri, holder);
+		}
 	}
 
 	@Override
 	public SendAddToArchiveResult onSendAddToArchive(SendAddToArchiveData data) throws HttpException, ApiException,
 			InvalidResponseException {
-		String[] authorizationData = ChanConfiguration.get(this).getUserAuthorizationData();
-		String email = authorizationData[0];
-		String password = authorizationData[1];
-		if (!checkEmailPassword(email, password)) {
-			if (email != null && password != null) {
-				authorizeUser(data.holder, data, email, password);
-			} else {
-				userEmailPassword = null;
-				userCaptchaKey = null;
-			}
-		}
+		Pair<String, String> userEmailPassword = authorizeUserFromConfiguration(data.holder, data);
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "add");
 		boolean first = true;
 		OUTER: while (true) {
 			String captchaChallenge = null;
 			String captchaInput = null;
-			if (userCaptchaKey != null) {
+			if (userEmailPassword == null) {
 				CaptchaData captchaData = requireUserCaptcha(null, null, null, !first);
 				if (captchaData == null) {
 					throw new ApiException(ApiException.ARCHIVE_ERROR_NO_ACCESS);
@@ -331,20 +351,24 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			}
 			UrlEncodedEntity entity = new UrlEncodedEntity();
 			if (userEmailPassword != null) {
-				entity.add("email", email);
-				entity.add("pass", password);
+				entity.add("email", userEmailPassword.first);
+				entity.add("pass", userEmailPassword.second);
 			}
 			entity.add("thread_url", data.uri.toString());
-			entity.add("recaptcha_challenge_field", captchaChallenge);
-			entity.add("recaptcha_response_field", captchaInput);
+			entity.add("captcha_code", captchaInput);
 			entity.add("add_collapsed", data.options.contains("collapsed") ? "on" : null);
-			entity.add("save_image_bytoken", data.options.contains("bytoken") ? "on" : null);
-			JSONObject jsonObject = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-					.read().getJsonObject();
+			ArchiveRedirectHandler redirectHandler = new ArchiveRedirectHandler(ArhivachChanLocator.get(this));
+			HttpResponse response = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
+					.addCookie("PHPSESSID", captchaChallenge).setRedirectHandler(redirectHandler).read();
+			if (redirectHandler.threadNumber != null) {
+				// Api is broken, handle redirect instead
+				return new SendAddToArchiveResult(null, redirectHandler.threadNumber);
+			}
+			JSONObject jsonObject = response.getJsonObject();
 			if (jsonObject == null) {
 				throw new InvalidResponseException();
 			}
-			updateAuthorizationData(jsonObject, email, password);
+			updateAuthorizationData(jsonObject, userEmailPassword);
 			JSONArray errorsArray = jsonObject.optJSONArray("errors");
 			String errorMessage = null;
 			if (errorsArray != null) {
@@ -352,7 +376,7 @@ public class ArhivachChanPerformer extends ChanPerformer {
 					String message = errorsArray.optString(i);
 					if (message != null) {
 						if (message.contains("Ошибка ввода капчи")) {
-							if (userCaptchaKey == null) {
+							if (userEmailPassword != null) {
 								throw new InvalidResponseException();
 							}
 							continue OUTER;
