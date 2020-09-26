@@ -67,6 +67,10 @@ public class FourchanModelMapper {
 		String com = CommonUtils.optJsonString(jsonObject, "com");
 		if (com != null) {
 			com = com.replaceAll("<wbr ?/?>", "");
+			int index = com.indexOf("<span class=\"abbr\">[EXIF data available. Click");
+			if (index >= 0) {
+				com = com.substring(0, index);
+			}
 			com = StringUtils.linkify(com);
 			FourchanChanConfiguration configuration = FourchanChanConfiguration.get(locator);
 			if (configuration.isMathTagsHandlingEnabled()) {
@@ -121,6 +125,7 @@ public class FourchanModelMapper {
 			for (int i = 0; i < posts.length; i++) {
 				jsonObject = jsonArray.getJSONObject(i);
 				posts[i] = createPost(jsonObject, locator, boardName);
+				// noinspection ConstantConditions
 				if (i == 0) {
 					postsCount = jsonObject.getInt("replies") + 1;
 					postsWithFilesCount = jsonObject.getInt("images") + posts[0].getAttachmentsCount();
