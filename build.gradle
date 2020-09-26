@@ -1,11 +1,12 @@
 buildscript {
 	repositories {
 		jcenter()
+		google()
 	}
 
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.2.1'
-		classpath 'me.tatarka:gradle-retrolambda:3.2.5'
+		classpath 'com.android.tools.build:gradle:4.0.1'
+		classpath 'me.tatarka:gradle-retrolambda:3.6.1'
 		classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
 	}
 
@@ -15,20 +16,19 @@ buildscript {
 allprojects {
 	repositories {
 		jcenter()
+		google()
 	}
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
 
 dependencies {
-	provided 'com.github.mishiranu:dashchan.library:+'
-	compile 'com.github.mishiranu:dashchan.static:+'
+	compileOnly 'com.github.mishiranu:dashchan.library:1.7'
+	implementation 'com.github.mishiranu:dashchan.static:1.0'
 }
 
 android {
-	compileSdkVersion 24
-	buildToolsVersion '24.0.3'
+	compileSdkVersion 25
 
 	sourceSets.main {
 		manifest.srcFile 'AndroidManifest.xml'
@@ -40,8 +40,8 @@ android {
 		assets.srcDirs = ['assets']
 	}
 
-	if (new File('keystore.properties').exists()) {
-		def Properties keystoreProperties = new Properties()
+	if (file('keystore.properties').exists()) {
+		def keystoreProperties = new Properties()
 		keystoreProperties.load(new FileInputStream(file('keystore.properties')))
 
 		signingConfigs {
@@ -71,5 +71,8 @@ android {
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_8
 		targetCompatibility JavaVersion.VERSION_1_8
+	}
+	defaultConfig {
+		minSdkVersion 16
 	}
 }

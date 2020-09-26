@@ -1,108 +1,77 @@
 package com.mishiranu.dashchan.chan.diochan;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
-import chan.text.GroupParser;
 import chan.text.ParseException;
+import chan.text.TemplateParser;
 import chan.util.StringUtils;
 
-public class DiochanBoardsParser implements GroupParser.Callback
-{
-	private final String mSource;
-	
-	private final ArrayList<BoardCategory> mBoardCategories = new ArrayList<>();
-	private final ArrayList<Board> mBoards = new ArrayList<>();
-	
-	private String mBoardCategoryTitle;
+public class DiochanBoardsParser {
+	private final String source;
 
-	private static final int EXPECT_NONE = 0;
-	private static final int EXPECT_CATEGORY = 1;
-	
-	private int mExpect = EXPECT_NONE;
-	
-	private static final Pattern BOARD_URI = Pattern.compile("/(\\w+)/");
-	
-	public DiochanBoardsParser(String source)
-	{
-		mSource = source;
+	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+	private final ArrayList<Board> boards = new ArrayList<>();
+
+	private boolean boardListParsing = false;
+
+	private static final Pattern PATTERN_BOARD_URI = Pattern.compile("/(.*?)/index.html");
+
+	public DiochanBoardsParser(String source) {
+		this.source = source;
 	}
-	
-	public ArrayList<BoardCategory> convert() throws ParseException
-	{
-		GroupParser.parse(mSource, this);
-		closeCategory();
-		for (BoardCategory boardCategory : mBoardCategories) Arrays.sort(boardCategory.getBoards());
-		return mBoardCategories;
-	}
-	
-	private void closeCategory()
-	{
-		if (mBoardCategoryTitle != null)
-		{
-			if (mBoards.size() > 0) mBoardCategories.add(new BoardCategory(mBoardCategoryTitle, mBoards));
-			mBoardCategoryTitle = null;
-			mBoards.clear();
-		}
-	}
-	
-	@Override
-	public boolean onStartElement(GroupParser parser, String tagName, String attrs)
-	{
-		if ("a".equals(tagName))
-		{
-			if ("href=\"#\"".equals(attrs))
-			{
-				closeCategory();
-				mExpect = EXPECT_CATEGORY;
-				return true;
-			}
-			else if (mBoardCategoryTitle != null)
-			{
-				String title = parser.getAttr(attrs, "title");
-				if (title != null)
-				{
-					Matcher matcher = BOARD_URI.matcher(parser.getAttr(attrs, "href"));
-					if (matcher.matches())
-					{
-						String boardName = matcher.group(1);
-						if ("d".equals(boardName) || "sug".equals(boardName)) return false;
-						title = StringUtils.clearHtml(title);
-						mBoards.add(new Board(boardName, title));
-					}
+
+	public ArrayList<BoardCategory> convert() throws ParseException {
+		PARSER.parse(source, this);
+		/*
+			Workaround for board parser. Can be improved.
+		 */
+		ArrayList<BoardCategory> categories = boardCategories;
+		for (int i = 0; i < boardCategories.size(); i++){
+			for(Board board : boardCategories.get(i).getBoards()){
+				if("b".equalsIgnoreCase(board.getBoardName())){
+					categories.set(i, new BoardCategory("NSFW", boardCategories.get(i).getBoards()));
+					break;
+				}
+				if("v".equalsIgnoreCase(board.getBoardName())){
+					categories.set(i, new BoardCategory("SFW", boardCategories.get(i).getBoards()));
+					break;
 				}
 			}
 		}
-		return false;
+		Board[] otherBoards = new Board[2];
+		otherBoards[0] = new Board("sug", "Suggerimenti & Lamentele");
+		otherBoards[1] = new Board("p", "Prova");
+		BoardCategory otherCategory = new BoardCategory("Altro", otherBoards);
+		categories.add(otherCategory);
+		return categories;
 	}
-	
-	@Override
-	public void onEndElement(GroupParser parser, String tagName)
-	{
-		
-	}
-	
-	@Override
-	public void onText(GroupParser parser, String source, int start, int end)
-	{
-		
-	}
-	
-	@Override
-	public void onGroupComplete(GroupParser parser, String text)
-	{
-		switch (mExpect)
-		{
-			case EXPECT_CATEGORY:
-			{
-				mBoardCategoryTitle = StringUtils.clearHtml(text);
-				break;
-			}
+
+	private void closeCategory() {
+		if (boards.size() > 0) {
+			boardCategories.add(new BoardCategory(Integer.toString(boardCategories.size()), boards));
+			boards.clear();
 		}
-		mExpect = EXPECT_NONE;
 	}
+
+	private static final TemplateParser<DiochanBoardsParser> PARSER = TemplateParser.<DiochanBoardsParser>builder()
+			.equals("div", "class", "boardlist").open((i, holder, t, a) -> !(holder.boardListParsing = true))
+			.name("div").close((instance, holder, tagName) -> {
+		if (holder.boardListParsing) {
+			holder.closeCategory();
+			instance.finish();
+		}
+	}).equals("span", "class", "sub").open((instance, holder, tagName, attributes) -> {
+		holder.closeCategory();
+		return false;
+	}).ends("a", "href", "/index.html").open((instance, holder, tagName, attributes) -> {
+		Matcher matcher = PATTERN_BOARD_URI.matcher(attributes.get("href"));
+		if (matcher.matches()) {
+			holder.boards.add(new Board(matcher.group(1), StringUtils.clearHtml(attributes.get("title")).trim()));
+		}
+		return false;
+	}).prepare();
 }

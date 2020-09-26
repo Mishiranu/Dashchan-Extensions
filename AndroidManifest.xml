@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.mishiranu.dashchan.chan.diochan"
-	android:versionCode="1"
-	android:versionName="1.3">
-	
-	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="23" />
-	
+	android:versionCode="2"
+	android:versionName="2.0">
+
 	<uses-feature android:name="chan.extension" />
 	
 	<application android:icon="@drawable/ic_launcher" android:allowBackup="false" android:label="@string/text_app_name">
@@ -27,6 +25,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="http" />
+				<data android:scheme="https" />
 				<data android:host="diochan.com" />
 				<data android:host="www.diochan.com" />
 			</intent-filter>
