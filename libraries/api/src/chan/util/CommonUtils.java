@@ -1,6 +1,7 @@
 package chan.util;
 
 import android.graphics.Bitmap;
+import chan.library.api.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,8 +9,8 @@ import org.json.JSONObject;
  * <p>Provides some utilities to work with JSON objects, bitmaps and logging.</p>
  */
 public class CommonUtils {
-	CommonUtils() {
-		throw new IllegalAccessError();
+	private CommonUtils() {
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -21,7 +22,7 @@ public class CommonUtils {
 	 * @return True if thread was interrupted.
 	 */
 	public static boolean sleepMaxRealtime(long startRealtime, long interval) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(startRealtime, interval);
 	}
 
 	/**
@@ -33,7 +34,7 @@ public class CommonUtils {
 	 * @return Value mapped by name.
 	 */
 	public static String optJsonString(JSONObject jsonObject, String name) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(jsonObject, name);
 	}
 
 	/**
@@ -45,7 +46,7 @@ public class CommonUtils {
 	 * @return Value mapped by name.
 	 */
 	public static String optJsonString(JSONObject jsonObject, String name, String fallback) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(jsonObject, name, fallback);
 	}
 
 	/**
@@ -58,7 +59,7 @@ public class CommonUtils {
 	 * @throws JSONException If no such mapping exists.
 	 */
 	public static String getJsonString(JSONObject jsonObject, String name) throws JSONException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(jsonObject, name);
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class CommonUtils {
 	 * @return HTML string with restored emails.
 	 */
 	public static String restoreCloudFlareProtectedEmails(String string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -80,7 +81,7 @@ public class CommonUtils {
 	 * @return Trimmed bitmap.
 	 */
 	public static Bitmap trimBitmap(Bitmap bitmap, int backgroundColor) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(bitmap, backgroundColor);
 	}
 
 	/**
@@ -89,6 +90,6 @@ public class CommonUtils {
 	 * @param data Array of objects to write.
 	 */
 	public static void writeLog(Object... data) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(data);
 	}
 }

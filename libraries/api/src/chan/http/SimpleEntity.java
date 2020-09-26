@@ -1,5 +1,6 @@
 package chan.http;
 
+import chan.library.api.BuildConfig;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -11,7 +12,7 @@ import java.io.OutputStream;
 public class SimpleEntity implements RequestEntity {
 	@Override
 	public void add(String name, String value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -20,7 +21,7 @@ public class SimpleEntity implements RequestEntity {
 	 * @param data String data.
 	 */
 	public void setData(String data) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -30,7 +31,7 @@ public class SimpleEntity implements RequestEntity {
 	 * @param charsetName Charset name.
 	 */
 	public void setData(String data, String charsetName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(data, charsetName);
 	}
 
 	/**
@@ -39,7 +40,7 @@ public class SimpleEntity implements RequestEntity {
 	 * @param data Byte array data.
 	 */
 	public void setData(byte[] data) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -48,26 +49,27 @@ public class SimpleEntity implements RequestEntity {
 	 * @param contentType Content type.
 	 */
 	public void setContentType(String contentType) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(contentType);
 	}
 
 	@Override
 	public String getContentType() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	@Override
 	public long getContentLength() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
+	@SuppressWarnings("RedundantThrows")
 	@Override
 	public void write(OutputStream output) throws IOException {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(output);
 	}
 
 	@Override
 	public RequestEntity copy() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

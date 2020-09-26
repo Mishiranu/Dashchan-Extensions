@@ -1,6 +1,7 @@
 package chan.http;
 
 import android.graphics.Bitmap;
+import chan.library.api.BuildConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,14 +15,14 @@ public class HttpResponse {
 	 * @param bytes Byte array of data.
 	 */
 	public HttpResponse(byte[] bytes) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(bytes);
 	}
 
 	/**
 	 * <p>Sets encoding for this instance. UTF-8 is used by default.</p>
 	 */
 	public void setEncoding(String charsetName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(charsetName);
 	}
 
 	/**
@@ -30,7 +31,7 @@ public class HttpResponse {
 	 * @return Byte array response.
 	 */
 	public byte[] getBytes() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -39,7 +40,7 @@ public class HttpResponse {
 	 * @return String response.
 	 */
 	public String getString() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -48,7 +49,7 @@ public class HttpResponse {
 	 * @return Bitmap response or {@code null} if response is not bitmap.
 	 */
 	public Bitmap getBitmap() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -57,7 +58,7 @@ public class HttpResponse {
 	 * @return JSON object response or {@code null} if response is not JSON object.
 	 */
 	public JSONObject getJsonObject() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -66,6 +67,6 @@ public class HttpResponse {
 	 * @return JSON array response or {@code null} if response is not JSON array.
 	 */
 	public JSONArray getJsonArray() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

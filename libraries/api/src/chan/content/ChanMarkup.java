@@ -1,6 +1,7 @@
 package chan.content;
 
 import android.util.Pair;
+import chan.library.api.BuildConfig;
 import chan.text.CommentEditor;
 
 /**
@@ -34,75 +35,68 @@ public abstract class ChanMarkup {
 	 * @return {@link ChanMarkup} instance.
 	 */
 	public static <T extends ChanMarkup> T get(Object object) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(object);
 	}
 
 	/**
 	 * Bold tag constant value.
 	 */
-	public static final int TAG_BOLD;
+	public static final int TAG_BOLD = BuildConfig.Private.expr();
 
 	/**
 	 * Italic tag constant value.
 	 */
-	public static final int TAG_ITALIC;
+	public static final int TAG_ITALIC = BuildConfig.Private.expr();
 
 	/**
 	 * Underline tag constant value.
 	 */
-	public static final int TAG_UNDERLINE;
+	public static final int TAG_UNDERLINE = BuildConfig.Private.expr();
 
 	/**
 	 * Overline tag constant value.
 	 */
-	public static final int TAG_OVERLINE;
+	public static final int TAG_OVERLINE = BuildConfig.Private.expr();
 
 	/**
 	 * Strikethrough tag constant value.
 	 */
-	public static final int TAG_STRIKE;
+	public static final int TAG_STRIKE = BuildConfig.Private.expr();
 
 	/**
 	 * Subscript tag constant value.
 	 */
-	public static final int TAG_SUBSCRIPT;
+	public static final int TAG_SUBSCRIPT = BuildConfig.Private.expr();
 
 	/**
 	 * Superscript tag constant value.
 	 */
-	public static final int TAG_SUPERSCRIPT;
+	public static final int TAG_SUPERSCRIPT = BuildConfig.Private.expr();
 
 	/**
 	 * Spoiler tag constant value.
 	 */
-	public static final int TAG_SPOILER;
+	public static final int TAG_SPOILER = BuildConfig.Private.expr();
 
 	/**
 	 * Quote tag constant value.
 	 */
-	public static final int TAG_QUOTE;
+	public static final int TAG_QUOTE = BuildConfig.Private.expr();
 
 	/**
 	 * Code tag constant value.
 	 */
-	public static final int TAG_CODE;
+	public static final int TAG_CODE = BuildConfig.Private.expr();
 
 	/**
 	 * Ascii art tag constant value.
 	 */
-	public static final int TAG_ASCII_ART;
+	public static final int TAG_ASCII_ART = BuildConfig.Private.expr();
 
 	/**
 	 * Code tag constant value.
 	 */
-	public static final int TAG_HEADING;
-
-	static {
-		// noinspection ConstantIfStatement,ConstantConditions
-		if (true) {
-			throw new IllegalAccessError();
-		}
-	}
+	public static final int TAG_HEADING = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Calls when client want to show posting activity.</p>
@@ -111,7 +105,7 @@ public abstract class ChanMarkup {
 	 * @return {@link CommentEditor} instance.
 	 */
 	public CommentEditor obtainCommentEditor(String boardName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -123,7 +117,7 @@ public abstract class ChanMarkup {
 	 * @return True if tag is supported, false otherwise.
 	 */
 	public boolean isTagSupported(String boardName, int tag) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, tag);
 	}
 
 	/**
@@ -133,7 +127,7 @@ public abstract class ChanMarkup {
 	 * @param tag Tag type.
 	 */
 	public void addTag(String tagName, int tag) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, tag);
 	}
 
 	/**
@@ -145,7 +139,7 @@ public abstract class ChanMarkup {
 	 * @param tag Tag type.
 	 */
 	public void addTag(String tagName, String cssClass, int tag) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, cssClass, tag);
 	}
 
 	/**
@@ -158,7 +152,7 @@ public abstract class ChanMarkup {
 	 * @param tag Tag type.
 	 */
 	public void addTag(String tagName, String attribute, String value, int tag) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, attribute, value, tag);
 	}
 
 	/**
@@ -168,7 +162,7 @@ public abstract class ChanMarkup {
 	 * @param tagName Tag to handle.
 	 */
 	public void addColorable(String tagName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName);
 	}
 
 	/**
@@ -179,7 +173,7 @@ public abstract class ChanMarkup {
 	 * @param cssClass Tag CSS class.
 	 */
 	public void addColorable(String tagName, String cssClass) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, cssClass);
 	}
 
 	/**
@@ -191,7 +185,7 @@ public abstract class ChanMarkup {
 	 * @param value Attribute value.
 	 */
 	public void addColorable(String tagName, String attribute, String value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, attribute, value);
 	}
 
 	/**
@@ -202,7 +196,7 @@ public abstract class ChanMarkup {
 	 * @param spaced True to enable spacing.
 	 */
 	public void addBlock(String tagName, boolean block, boolean spaced) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, block, spaced);
 	}
 
 	/**
@@ -215,7 +209,7 @@ public abstract class ChanMarkup {
 	 * @param spaced True to enable spacing.
 	 */
 	public void addBlock(String tagName, String cssClass, boolean block, boolean spaced) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, cssClass, block, spaced);
 	}
 
 	/**
@@ -229,7 +223,7 @@ public abstract class ChanMarkup {
 	 * @param spaced True to enable spacing.
 	 */
 	public void addBlock(String tagName, String attribute, String value, boolean block, boolean spaced) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, attribute, value, block, spaced);
 	}
 
 	/**
@@ -240,7 +234,7 @@ public abstract class ChanMarkup {
 	 * @param preformatted True to enable preformatted tag.
 	 */
 	public void addPreformatted(String tagName, boolean preformatted) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, preformatted);
 	}
 
 	/**
@@ -252,7 +246,7 @@ public abstract class ChanMarkup {
 	 * @param preformatted True to enable preformatted tag.
 	 */
 	public void addPreformatted(String tagName, String cssClass, boolean preformatted) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, cssClass, preformatted);
 	}
 
 	/**
@@ -265,7 +259,7 @@ public abstract class ChanMarkup {
 	 * @param preformatted True to enable preformatted tag.
 	 */
 	public void addPreformatted(String tagName, String attribute, String value, boolean preformatted) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(tagName, attribute, value, preformatted);
 	}
 
 	/**
@@ -282,6 +276,6 @@ public abstract class ChanMarkup {
 	 * @return Pair of strings.
 	 */
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uriString);
 	}
 }

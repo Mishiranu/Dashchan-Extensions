@@ -3,6 +3,7 @@ package chan.content;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Pair;
+import chan.library.api.BuildConfig;
 import chan.util.DataFile;
 import java.util.List;
 import java.util.Set;
@@ -100,14 +101,14 @@ public class ChanConfiguration {
 	 * <p>The {@code boardName} argument in all methods will be equal to {@code null}. You can change this argument
 	 * using {@link #setSingleBoardName(String)} method.</p>
 	 */
-	public static final String OPTION_SINGLE_BOARD_MODE;
+	public static final String OPTION_SINGLE_BOARD_MODE = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows client to download thread partially.</p>
 	 *
 	 * @see ChanPerformer#onReadPosts(chan.content.ChanPerformer.ReadPostsData)
 	 */
-	public static final String OPTION_READ_THREAD_PARTIALLY;
+	public static final String OPTION_READ_THREAD_PARTIALLY = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows client to download single post knowing it's board name and post number.</p>
@@ -115,7 +116,7 @@ public class ChanConfiguration {
 	 * <p>If you enable this option, you <strong>must</strong> implement
 	 * {@link ChanPerformer#onReadSinglePost(chan.content.ChanPerformer.ReadSinglePostData)}.</p>
 	 */
-	public static final String OPTION_READ_SINGLE_POST;
+	public static final String OPTION_READ_SINGLE_POST = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows client to download posts count in thread. This option is necessary for threads watcher.</p>
@@ -123,7 +124,7 @@ public class ChanConfiguration {
 	 * <p>If you enable this option, you <strong>must</strong> implement
 	 * {@link ChanPerformer#onReadPostsCount(chan.content.ChanPerformer.ReadPostsCountData)}.</p>
 	 */
-	public static final String OPTION_READ_POSTS_COUNT;
+	public static final String OPTION_READ_POSTS_COUNT = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows client to download user boards.</p>
@@ -131,7 +132,7 @@ public class ChanConfiguration {
 	 * <p>If you enable this option, you <strong>must</strong> implement
 	 * {@link ChanPerformer#onReadUserBoards(chan.content.ChanPerformer.ReadUserBoardsData)}.</p>
 	 */
-	public static final String OPTION_READ_USER_BOARDS;
+	public static final String OPTION_READ_USER_BOARDS = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows user to enter authorization data and skip the captcha.
@@ -146,7 +147,7 @@ public class ChanConfiguration {
 	 *
 	 * @see ChanPerformer.CaptchaState#PASS
 	 */
-	public static final String OPTION_ALLOW_CAPTCHA_PASS;
+	public static final String OPTION_ALLOW_CAPTCHA_PASS = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Allows user to enter authorization data to access some features.
@@ -159,25 +160,18 @@ public class ChanConfiguration {
 	 *
 	 * <p>You should also implement {@link #obtainUserAuthorizationConfiguration()}.</p>
 	 */
-	public static final String OPTION_ALLOW_USER_AUTHORIZATION;
+	public static final String OPTION_ALLOW_USER_AUTHORIZATION = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Turns extension into local mode, which disables caching, hides domain and proxy preferences, and disallows
 	 * archivation. This is useful for extensions which access local file systems or local networks.</p>
 	 */
-	public static final String OPTION_LOCAL_MODE;
+	public static final String OPTION_LOCAL_MODE = BuildConfig.Private.expr();
 
-	public static final String CAPTCHA_TYPE_RECAPTCHA_2;
-	public static final String CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE;
-	public static final String CAPTCHA_TYPE_HCAPTCHA;
-	public static final String CAPTCHA_TYPE_MAILRU;
-
-	static {
-		// noinspection ConstantIfStatement,ConstantConditions
-		if (true) {
-			throw new IllegalAccessError();
-		}
-	}
+	public static final String CAPTCHA_TYPE_RECAPTCHA_2 = BuildConfig.Private.expr();
+	public static final String CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE = BuildConfig.Private.expr();
+	public static final String CAPTCHA_TYPE_HCAPTCHA = BuildConfig.Private.expr();
+	public static final String CAPTCHA_TYPE_MAILRU = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Return linked {@link ChanConfiguration} instance.
@@ -187,7 +181,7 @@ public class ChanConfiguration {
 	 * @return {@link ChanConfiguration} instance.
 	 */
 	public static <T extends ChanConfiguration> T get(Object object) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(object);
 	}
 
 	/**
@@ -405,14 +399,14 @@ public class ChanConfiguration {
 		/**
 		 * <p>Mime types of attachments.</p>
 		 */
-		public final Set<String> attachmentMimeTypes;
+		public final Set<String> attachmentMimeTypes = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Attachment ratings. The {@code first} field in pair is value, the {@code second} one is display name.
 		 * You will receive user's selected value from {@link ChanPerformer.SendPostData.Attachment#rating}. The first
 		 * item in list will be selected by default.</p>
 		 */
-		public final List<Pair<String, String>> attachmentRatings;
+		public final List<Pair<String, String>> attachmentRatings = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Set {@code true} to enable spoiler option. You will receive user's choice from
@@ -424,7 +418,7 @@ public class ChanConfiguration {
 		 * <p>User icons. The {@code first} field in pair is value, the {@code second} one is display name.
 		 * You will receive user's selected value from {@link ChanPerformer.SendPostData#userIcon}.</p>
 		 */
-		public final List<Pair<String, String>> userIcons;
+		public final List<Pair<String, String>> userIcons = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Set {@code true} to enable notification that board has flags.</p>
@@ -435,7 +429,7 @@ public class ChanConfiguration {
 		 * <p>Default constructor for {@link Posting}.</p>
 		 */
 		public Posting() {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -482,19 +476,19 @@ public class ChanConfiguration {
 		 * <p>Reporting types. The {@code first} field in pair is value, the {@code second} one is display name.
 		 * You will receive user's selected value from {@link ChanPerformer.SendReportPostsData#type}.</p>
 		 */
-		public final List<Pair<String, String>> types;
+		public final List<Pair<String, String>> types = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Reporting options. The {@code first} field in pair is value, the {@code second} one is display name.
 		 * You will receive user's selected value from {@link ChanPerformer.SendReportPostsData#options}.</p>
 		 */
-		public final List<Pair<String, String>> options;
+		public final List<Pair<String, String>> options = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Default constructor for {@link Reporting}.</p>
 		 */
 		public Reporting() {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -524,19 +518,19 @@ public class ChanConfiguration {
 		/**
 		 * <p>List of allowed chan hosts for archivation.</p>
 		 */
-		public final List<String> hosts;
+		public final List<String> hosts = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Archivation options. The {@code first} field in pair is value, the {@code second} one is display name.
 		 * You will receive user's selected values from {@link ChanPerformer.SendAddToArchiveData#options}.</p>
 		 */
-		public final List<Pair<String, String>> options;
+		public final List<Pair<String, String>> options = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Default constructor for {@link Archivation}.</p>
 		 */
 		public Archivation() {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -584,7 +578,7 @@ public class ChanConfiguration {
 	 * @return Stored value.
 	 */
 	public final boolean get(String boardName, String key, boolean defaultValue) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, key, defaultValue);
 	}
 
 	/**
@@ -596,7 +590,7 @@ public class ChanConfiguration {
 	 * @return Stored value.
 	 */
 	public final int get(String boardName, String key, int defaultValue) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, key, defaultValue);
 	}
 
 	/**
@@ -608,7 +602,7 @@ public class ChanConfiguration {
 	 * @return Stored value.
 	 */
 	public final String get(String boardName, String key, String defaultValue) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, key, defaultValue);
 	}
 
 	/**
@@ -619,7 +613,7 @@ public class ChanConfiguration {
 	 * @param value Value to store.
 	 */
 	public final void set(String boardName, String key, boolean value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, key, value);
 	}
 
 	/**
@@ -630,7 +624,7 @@ public class ChanConfiguration {
 	 * @param value Value to store.
 	 */
 	public final void set(String boardName, String key, int value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, key, value);
 	}
 
 	/**
@@ -641,14 +635,14 @@ public class ChanConfiguration {
 	 * @param value Value to store.
 	 */
 	public final void set(String boardName, String key, String value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, key, value);
 	}
 
 	/**
 	 * <p>Returns a chan title. This title is display name used in client.</p>
 	 */
 	public final String getTitle() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -657,7 +651,7 @@ public class ChanConfiguration {
 	 * @param option Option to request.
 	 */
 	public final void request(String option) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(option);
 	}
 
 	/**
@@ -667,7 +661,7 @@ public class ChanConfiguration {
 	 * @param boardName Default board name string.
 	 */
 	public final void setSingleBoardName(String boardName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -677,7 +671,7 @@ public class ChanConfiguration {
 	 * @param title Board title.
 	 */
 	public final void setBoardTitle(String boardName, String title) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, title);
 	}
 
 	/**
@@ -687,7 +681,7 @@ public class ChanConfiguration {
 	 * @param title Board title.
 	 */
 	public final void storeBoardTitle(String boardName, String title) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, title);
 	}
 
 	/**
@@ -697,7 +691,7 @@ public class ChanConfiguration {
 	 * @param description Board description.
 	 */
 	public final void setBoardDescription(String boardName, String description) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, description);
 	}
 
 	/**
@@ -707,7 +701,7 @@ public class ChanConfiguration {
 	 * @param description Board description.
 	 */
 	public final void storeBoardDescription(String boardName, String description) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, description);
 	}
 
 	/**
@@ -716,7 +710,7 @@ public class ChanConfiguration {
 	 * @param defaultName Default name.
 	 */
 	public final void setDefaultName(String defaultName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(defaultName);
 	}
 
 	/**
@@ -726,7 +720,7 @@ public class ChanConfiguration {
 	 * @param defaultName Default name.
 	 */
 	public final void setDefaultName(String boardName, String defaultName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, defaultName);
 	}
 
 	/**
@@ -736,7 +730,7 @@ public class ChanConfiguration {
 	 * @param defaultName Default name.
 	 */
 	public final void storeDefaultName(String boardName, String defaultName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, defaultName);
 	}
 
 	/**
@@ -745,7 +739,7 @@ public class ChanConfiguration {
 	 * @param bumpLimit Bump limit value.
 	 */
 	public final void setBumpLimit(int bumpLimit) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(bumpLimit);
 	}
 
 	/**
@@ -755,7 +749,7 @@ public class ChanConfiguration {
 	 * @param bumpLimit Bump limit value.
 	 */
 	public final void setBumpLimit(String boardName, int bumpLimit) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, bumpLimit);
 	}
 
 	/**
@@ -765,7 +759,7 @@ public class ChanConfiguration {
 	 * @param bumpLimit Bump limit value.
 	 */
 	public final void storeBumpLimit(String boardName, int bumpLimit) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, bumpLimit);
 	}
 
 	/**
@@ -774,7 +768,7 @@ public class ChanConfiguration {
 	 * @param mode Bump limit mode.
 	 */
 	public final void setBumpLimitMode(BumpLimitMode mode) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(mode);
 	}
 
 	/**
@@ -784,7 +778,7 @@ public class ChanConfiguration {
 	 * @param pagesCount Pages count value.
 	 */
 	public final void setPagesCount(String boardName, int pagesCount) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, pagesCount);
 	}
 
 	/**
@@ -794,7 +788,7 @@ public class ChanConfiguration {
 	 * @param pagesCount Pages count value.
 	 */
 	public final void storePagesCount(String boardName, int pagesCount) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, pagesCount);
 	}
 
 	/**
@@ -808,7 +802,7 @@ public class ChanConfiguration {
 	 * @param captchaType Captcha type string.
 	 */
 	public final void addCaptchaType(String captchaType) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(captchaType);
 	}
 
 	/**
@@ -820,7 +814,7 @@ public class ChanConfiguration {
 	 * @param defaultValue Default value.
 	 */
 	public final void addCustomPreference(String key, boolean defaultValue) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(key, defaultValue);
 	}
 
 	/**
@@ -833,7 +827,7 @@ public class ChanConfiguration {
 	 * @param boardName Board name string.
 	 */
 	public Board obtainBoardConfiguration(String boardName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -843,7 +837,7 @@ public class ChanConfiguration {
 	 * @param captchaType Captcha type string.
 	 */
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(captchaType);
 	}
 
 	/**
@@ -857,7 +851,7 @@ public class ChanConfiguration {
 	 * @param newThread True if user starts new thread.
 	 */
 	public Posting obtainPostingConfiguration(String boardName, boolean newThread) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, newThread);
 	}
 
 	/**
@@ -870,7 +864,7 @@ public class ChanConfiguration {
 	 * @param boardName Board name string.
 	 */
 	public Deleting obtainDeletingConfiguration(String boardName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -883,7 +877,7 @@ public class ChanConfiguration {
 	 * @param boardName Board name string.
 	 */
 	public Reporting obtainReportingConfiguration(String boardName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -891,7 +885,7 @@ public class ChanConfiguration {
 	 * {@link Authorization} with captcha pass configuration.</p>
 	 */
 	public Authorization obtainCaptchaPassConfiguration() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -899,7 +893,7 @@ public class ChanConfiguration {
 	 * {@link Authorization} with user authorization configuration.</p>
 	 */
 	public Authorization obtainUserAuthorizationConfiguration() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -907,7 +901,7 @@ public class ChanConfiguration {
 	 * {@link Archivation} with archivation configuration.</p>
 	 */
 	public Archivation obtainArchivationConfiguration() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -915,7 +909,7 @@ public class ChanConfiguration {
 	 * {@link Statistics} with statistics configuration.</p>
 	 */
 	public Statistics obtainStatisticsConfiguration() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -925,21 +919,21 @@ public class ChanConfiguration {
 	 * @param key Custom preference key.
 	 */
 	public CustomPreference obtainCustomPreferenceConfiguration(String key) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(key);
 	}
 
 	/**
 	 * <p>Returns application context.</p>
 	 */
 	public final Context getContext() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>Returns resources from chan APK file.</p>
 	 */
 	public final Resources getResources() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -949,7 +943,7 @@ public class ChanConfiguration {
 	 * @return Cookie value or null if cookie not found.
 	 */
 	public final String getCookie(String cookie) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(cookie);
 	}
 
 
@@ -962,7 +956,7 @@ public class ChanConfiguration {
 	 * @param displayName Human-friendly name of cookie. May be {@code null} if value is {@code null} too.
 	 */
 	public final void storeCookie(String cookie, String value, String displayName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(cookie, value, displayName);
 	}
 
 	/**
@@ -972,13 +966,13 @@ public class ChanConfiguration {
 	 * @return User authorization fields values.
 	 */
 	public final String[] getUserAuthorizationData() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>Returns download directory.</p>
 	 */
 	public final DataFile getDownloadDirectory() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

@@ -2,6 +2,7 @@ package chan.content.model;
 
 import android.net.Uri;
 import chan.content.ChanLocator;
+import chan.library.api.BuildConfig;
 
 /**
  * <p>Model containing attached file data.</p>
@@ -23,7 +24,7 @@ public final class FileAttachment implements Attachment {
 	 * @return Attachment file URI.
 	 */
 	public Uri getFileUri(ChanLocator locator) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(locator);
 	}
 
 	/**
@@ -34,7 +35,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setFileUri(ChanLocator locator, Uri fileUri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(locator, fileUri);
 	}
 
 	/**
@@ -44,7 +45,7 @@ public final class FileAttachment implements Attachment {
 	 * @return Attachment thumbnail URI.
 	 */
 	public Uri getThumbnailUri(ChanLocator locator) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(locator);
 	}
 
 	/**
@@ -55,7 +56,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setThumbnailUri(ChanLocator locator, Uri thumbnailUri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(locator, thumbnailUri);
 	}
 
 	/**
@@ -64,7 +65,7 @@ public final class FileAttachment implements Attachment {
 	 * @return Original file name.
 	 */
 	public String getOriginalName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -74,7 +75,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setOriginalName(String originalName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(originalName);
 	}
 
 	/**
@@ -83,7 +84,7 @@ public final class FileAttachment implements Attachment {
 	 * @return File size.
 	 */
 	public int getSize() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -93,7 +94,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setSize(int size) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(size);
 	}
 
 	/**
@@ -102,7 +103,7 @@ public final class FileAttachment implements Attachment {
 	 * @return File width.
 	 */
 	public int getWidth() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -112,7 +113,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setWidth(int width) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(width);
 	}
 
 	/**
@@ -121,7 +122,7 @@ public final class FileAttachment implements Attachment {
 	 * @return File height.
 	 */
 	public int getHeight() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -131,7 +132,7 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setHeight(int height) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(height);
 	}
 
 	/**
@@ -140,7 +141,7 @@ public final class FileAttachment implements Attachment {
 	 * @return Whether file is spoiler.
 	 */
 	public boolean isSpoiler() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -150,6 +151,6 @@ public final class FileAttachment implements Attachment {
 	 * @return This model.
 	 */
 	public FileAttachment setSpoiler(boolean spoiler) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(spoiler);
 	}
 }

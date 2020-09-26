@@ -1,6 +1,7 @@
 package chan.http;
 
 import chan.content.ChanPerformer;
+import chan.library.api.BuildConfig;
 
 /**
  * <p>Thrown by HTTP client and {@link ChanPerformer} methods.</p>
@@ -13,7 +14,7 @@ public final class HttpException extends Exception {
 	 * @param responseText Response message.
 	 */
 	public HttpException(int responseCode, String responseText) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(responseCode, responseText);
 	}
 
 	/**
@@ -22,21 +23,21 @@ public final class HttpException extends Exception {
 	 * @return Response code.
 	 */
 	public int getResponseCode() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>Returns whether exception is HTTP protocol exception.</p>
 	 */
 	public boolean isHttpException() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>Returns whether exception is socket level exception.</p>
 	 */
 	public boolean isSocketException() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -46,6 +47,6 @@ public final class HttpException extends Exception {
 	 * @return Exception object.
 	 */
 	public static HttpException createNotFoundException() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

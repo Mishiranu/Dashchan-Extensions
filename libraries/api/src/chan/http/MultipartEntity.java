@@ -1,5 +1,6 @@
 package chan.http;
 
+import chan.library.api.BuildConfig;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,7 +13,7 @@ public class MultipartEntity implements RequestEntity {
 	 * <p>Default constructor for a {@link MultipartEntity}.</p>
 	 */
 	public MultipartEntity() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -21,7 +22,7 @@ public class MultipartEntity implements RequestEntity {
 	 * @param alternation Alternation of string field's names and values (name, value, name, value...).
 	 */
 	public MultipartEntity(String... alternation) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(alternation);
 	}
 
 	/**
@@ -30,12 +31,12 @@ public class MultipartEntity implements RequestEntity {
 	 * @param charsetName Charset name.
 	 */
 	public void setEncoding(String charsetName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(charsetName);
 	}
 
 	@Override
 	public void add(String name, String value) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -45,26 +46,27 @@ public class MultipartEntity implements RequestEntity {
 	 * @param file File to write.
 	 */
 	public void add(String name, File file) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(name, file);
 	}
 
 	@Override
 	public String getContentType() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	@Override
 	public long getContentLength() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
+	@SuppressWarnings("RedundantThrows")
 	@Override
 	public void write(OutputStream output) throws IOException {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(output);
 	}
 
 	@Override
 	public RequestEntity copy() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

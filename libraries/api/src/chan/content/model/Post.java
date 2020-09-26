@@ -1,6 +1,7 @@
 package chan.content.model;
 
 import chan.content.ChanMarkup;
+import chan.library.api.BuildConfig;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -22,7 +23,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Thread number.
 	 */
 	public String getThreadNumber() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -33,7 +34,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setThreadNumber(String threadNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(threadNumber);
 	}
 
 	/**
@@ -42,7 +43,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Parent post number.
 	 */
 	public String getParentPostNumber() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -54,7 +55,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setParentPostNumber(String parentPostNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(parentPostNumber);
 	}
 
 	/**
@@ -63,7 +64,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Post number.
 	 */
 	public String getPostNumber() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -73,7 +74,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setPostNumber(String postNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(postNumber);
 	}
 
 	/**
@@ -82,7 +83,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Post creation timestamp.
 	 */
 	public long getTimestamp() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -92,7 +93,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setTimestamp(long timestamp) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(timestamp);
 	}
 
 	/**
@@ -101,7 +102,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Post subject.
 	 */
 	public String getSubject() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -111,7 +112,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setSubject(String subject) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(subject);
 	}
 
 	/**
@@ -120,7 +121,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Post comment.
 	 */
 	public String getComment() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -130,7 +131,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setComment(String comment) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(comment);
 	}
 
 	/**
@@ -142,7 +143,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Original comment markup.
 	 */
 	public String getCommentMarkup() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -155,7 +156,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setCommentMarkup(String commentMarkup) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(commentMarkup);
 	}
 
 	/**
@@ -164,7 +165,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Poster name.
 	 */
 	public String getName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -174,7 +175,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setName(String name) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name);
 	}
 
 	/**
@@ -183,7 +184,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Poster identifier.
 	 */
 	public String getIdentifier() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -193,7 +194,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setIdentifier(String identifier) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(identifier);
 	}
 
 	/**
@@ -202,7 +203,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Poster tripcode.
 	 */
 	public String getTripcode() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -212,7 +213,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setTripcode(String tripcode) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(tripcode);
 	}
 
 	/**
@@ -221,7 +222,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Poster capcode.
 	 */
 	public String getCapcode() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -231,7 +232,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setCapcode(String capcode) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(capcode);
 	}
 
 	/**
@@ -240,7 +241,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Poster email.
 	 */
 	public String getEmail() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -251,7 +252,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setEmail(String email) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(email);
 	}
 
 	/**
@@ -260,7 +261,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Attachments count.
 	 */
 	public int getAttachmentsCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -269,7 +270,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return {@link Attachment} instance.
 	 */
 	public Attachment getAttachmentAt(int index) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(index);
 	}
 
 	/**
@@ -279,7 +280,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setAttachments(Attachment... attachments) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(attachments);
 	}
 
 	/**
@@ -288,8 +289,9 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param attachments Collection of {@link Attachment}.
 	 * @return This model.
 	 */
+	@SuppressWarnings("unchecked")
 	public Post setAttachments(Collection<? extends Attachment> attachments) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(attachments);
 	}
 
 	/**
@@ -298,7 +300,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Icons count.
 	 */
 	public int getIconsCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -307,7 +309,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return {@link Icon} instance.
 	 */
 	public Icon getIconAt(int index) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(index);
 	}
 
 	/**
@@ -317,7 +319,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setIcons(Icon... icons) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(icons);
 	}
 
 	/**
@@ -326,8 +328,9 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param icons Collection of {@link Icon}.
 	 * @return This model.
 	 */
+	@SuppressWarnings("unchecked")
 	public Post setIcons(Collection<? extends Icon> icons) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(icons);
 	}
 
 	/**
@@ -336,7 +339,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if posts contains sage mark.
 	 */
 	public boolean isSage() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -346,7 +349,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setSage(boolean sage) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(sage);
 	}
 
 	/**
@@ -355,7 +358,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if thread is sticky.
 	 */
 	public boolean isSticky() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -365,7 +368,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setSticky(boolean sticky) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(sticky);
 	}
 
 	/**
@@ -374,7 +377,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if thread is closed.
 	 */
 	public boolean isClosed() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -384,7 +387,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setClosed(boolean closed) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(closed);
 	}
 
 	/**
@@ -393,7 +396,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if thread is archived.
 	 */
 	public boolean isArchived() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -403,7 +406,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setArchived(boolean archived) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(archived);
 	}
 
 	/**
@@ -412,7 +415,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return Trust if thread is cyclical.
 	 */
 	public boolean isCyclical() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -422,7 +425,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setCyclical(boolean cyclical) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(cyclical);
 	}
 
 	/**
@@ -431,7 +434,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if poster is warned.
 	 */
 	public boolean isPosterWarned() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -441,7 +444,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setPosterWarned(boolean posterWarned) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(posterWarned);
 	}
 
 	/**
@@ -450,7 +453,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if poster is banned.
 	 */
 	public boolean isPosterBanned() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -460,7 +463,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setPosterBanned(boolean posterBanned) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(posterBanned);
 	}
 
 	/**
@@ -469,7 +472,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if poster is original poster.
 	 */
 	public boolean isOriginalPoster() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -479,7 +482,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setOriginalPoster(boolean originalPoster) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(originalPoster);
 	}
 
 	/**
@@ -488,7 +491,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if name is default.
 	 */
 	public boolean isDefaultName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -498,7 +501,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setDefaultName(boolean defaultName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(defaultName);
 	}
 
 	/**
@@ -507,7 +510,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return True if bump limit is reached.
 	 */
 	public boolean isBumpLimitReached() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -517,7 +520,7 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @return This model.
 	 */
 	public Post setBumpLimitReached(boolean bumpLimitReached) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(bumpLimitReached);
 	}
 
 	/**
@@ -526,8 +529,9 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param another Post to compare with.
 	 * @return Integer value which represents {@code Comparable} result.
 	 */
+	@SuppressWarnings("NullableProblems")
 	@Override
 	public int compareTo(Post another) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(another);
 	}
 }

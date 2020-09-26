@@ -167,7 +167,6 @@ public class ArhivachChanPerformer extends ChanPerformer {
 
 	@Override
 	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException {
-		// noinspection ConstantConditions
 		if ("abload.de".equals(data.uri.getAuthority()) &&
 				StringUtils.emptyIfNull(data.uri.getPath()).startsWith("/thumb/")) {
 			HttpResponse response = new HttpRequest(data.uri, data.holder, data).read();

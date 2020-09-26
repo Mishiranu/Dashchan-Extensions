@@ -14,6 +14,7 @@ import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.HttpValidator;
 import chan.http.MultipartEntity;
+import chan.library.api.BuildConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -75,7 +76,7 @@ public class ChanPerformer {
 	 * @return {@link ChanPerformer} instance.
 	 */
 	public static <T extends ChanPerformer> T get(Object object) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(object);
 	}
 
 	/**
@@ -94,7 +95,7 @@ public class ChanPerformer {
 	 */
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException,
 			RedirectException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -114,7 +115,7 @@ public class ChanPerformer {
 	 */
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException,
 			RedirectException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -130,7 +131,7 @@ public class ChanPerformer {
 	 */
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -146,7 +147,7 @@ public class ChanPerformer {
 	 */
 	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data) throws HttpException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -161,7 +162,7 @@ public class ChanPerformer {
 	 * @throws InvalidResponseException if server returned an invalid data.
 	 */
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -177,7 +178,7 @@ public class ChanPerformer {
 	 */
 	public ReadUserBoardsResult onReadUserBoards(ReadUserBoardsData data) throws HttpException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -197,7 +198,7 @@ public class ChanPerformer {
 	 */
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException,
 			InvalidResponseException {
-		throw new UnsupportedOperationException();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -216,7 +217,7 @@ public class ChanPerformer {
 	 */
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -228,7 +229,7 @@ public class ChanPerformer {
 	 * @throws InvalidResponseException if server returned an invalid data.
 	 */
 	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -248,7 +249,7 @@ public class ChanPerformer {
 	 */
 	public CheckAuthorizationResult onCheckAuthorization(CheckAuthorizationData data) throws HttpException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -278,7 +279,7 @@ public class ChanPerformer {
 	 * @throws InvalidResponseException if server returned an invalid data.
 	 */
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -293,7 +294,7 @@ public class ChanPerformer {
 	 * @throws InvalidResponseException if server returned an invalid data.
 	 */
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -316,7 +317,7 @@ public class ChanPerformer {
 	 */
 	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws HttpException, ApiException,
 			InvalidResponseException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -335,7 +336,7 @@ public class ChanPerformer {
 	 */
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException {
-		throw new UnsupportedOperationException();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -353,7 +354,7 @@ public class ChanPerformer {
 	 */
 	public SendAddToArchiveResult onSendAddToArchive(SendAddToArchiveData data) throws HttpException, ApiException,
 			InvalidResponseException {
-		throw new UnsupportedOperationException();
+		return BuildConfig.Private.expr(data);
 	}
 
 	/**
@@ -369,25 +370,25 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Page number argument.</p>
 		 */
-		public final int pageNumber;
+		public final int pageNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
 		 */
-		public final HttpValidator validator;
+		public final HttpValidator validator = BuildConfig.Private.expr();
 
-		ReadThreadsData() {
-			throw new IllegalAccessError();
+		private ReadThreadsData() {
+			BuildConfig.Private.expr();
 		}
 
 		/**
@@ -397,7 +398,7 @@ public class ChanPerformer {
 		 * @return True if application requests a catalog page.
 		 */
 		public boolean isCatalog() {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 	}
 
@@ -411,7 +412,7 @@ public class ChanPerformer {
 		 * @param threads Array of {@link Posts}.
 		 */
 		public ReadThreadsResult(Posts... threads) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(threads);
 		}
 
 		/**
@@ -419,8 +420,9 @@ public class ChanPerformer {
 		 *
 		 * @param threads Collection of {@link Posts}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadThreadsResult(Collection<Posts> threads) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(threads);
 		}
 
 		/**
@@ -430,7 +432,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadThreadsResult setBoardSpeed(int boardSpeed) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(boardSpeed);
 		}
 
 		/**
@@ -441,7 +443,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadThreadsResult setValidator(HttpValidator validator) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(validator);
 		}
 	}
 
@@ -453,41 +455,41 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Last post number argument. Used when partial thread loading enabled.</p>
 		 */
-		public final String lastPostNumber;
+		public final String lastPostNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Defines whether use partial thread loading or not.</p>
 		 */
-		public final boolean partialThreadLoading;
+		public final boolean partialThreadLoading = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Current cached posts model. <strong>Do not modity this model!</strong> This model is used
 		 * only for reading.</p>
 		 */
-		public final Posts cachedPosts;
+		public final Posts cachedPosts = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
 		 */
-		public final HttpValidator validator;
+		public final HttpValidator validator = BuildConfig.Private.expr();
 
-		ReadPostsData() {
-			throw new IllegalAccessError();
+		private ReadPostsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -501,7 +503,7 @@ public class ChanPerformer {
 		 * @param posts {@link Posts} model instance.
 		 */
 		public ReadPostsResult(Posts posts) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(posts);
 		}
 
 		/**
@@ -511,7 +513,7 @@ public class ChanPerformer {
 		 * @param posts Array of {@link Post}.
 		 */
 		public ReadPostsResult(Post... posts) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(posts);
 		}
 
 		/**
@@ -520,8 +522,9 @@ public class ChanPerformer {
 		 *
 		 * @param posts Collection of {@link Post}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadPostsResult(Collection<Post> posts) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(posts);
 		}
 
 		/**
@@ -532,7 +535,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadPostsResult setValidator(HttpValidator validator) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(validator);
 		}
 
 		/**
@@ -542,7 +545,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadPostsResult setFullThread(boolean fullThread) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(fullThread);
 		}
 	}
 
@@ -554,20 +557,20 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Post number argument.</p>
 		 */
-		public final String postNumber;
+		public final String postNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadSinglePostData() {
-			throw new IllegalAccessError();
+		private ReadSinglePostData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -581,7 +584,7 @@ public class ChanPerformer {
 		 * @param post {@link Post} model instance.
 		 */
 		public ReadSinglePostResult(Post post) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(post);
 		}
 	}
 
@@ -593,25 +596,25 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Search query argument.</p>
 		 */
-		public final String searchQuery;
+		public final String searchQuery = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Page number argument.</p>
 		 */
-		public final int pageNumber;
+		public final int pageNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadSearchPostsData() {
-			throw new IllegalAccessError();
+		private ReadSearchPostsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -625,7 +628,7 @@ public class ChanPerformer {
 		 * @param posts Array of {@link Post}.
 		 */
 		public ReadSearchPostsResult(Post... posts) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(posts);
 		}
 
 		/**
@@ -633,8 +636,9 @@ public class ChanPerformer {
 		 *
 		 * @param posts Collection of {@link Post}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadSearchPostsResult(Collection<Post> posts) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(posts);
 		}
 	}
 
@@ -646,10 +650,10 @@ public class ChanPerformer {
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadBoardsData() {
-			throw new IllegalAccessError();
+		private ReadBoardsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -663,7 +667,7 @@ public class ChanPerformer {
 		 * @param boardCategories Array of {@link BoardCategory}.
 		 */
 		public ReadBoardsResult(BoardCategory... boardCategories) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(boardCategories);
 		}
 
 		/**
@@ -671,8 +675,9 @@ public class ChanPerformer {
 		 *
 		 * @param boardCategories Collection of {@link BoardCategory}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadBoardsResult(Collection<BoardCategory> boardCategories) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(boardCategories);
 		}
 	}
 
@@ -684,10 +689,10 @@ public class ChanPerformer {
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadUserBoardsData() {
-			throw new IllegalAccessError();
+		private ReadUserBoardsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -701,7 +706,7 @@ public class ChanPerformer {
 		 * @param boards Array of {@link Board}.
 		 */
 		public ReadUserBoardsResult(Board... boards) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(boards);
 		}
 
 		/**
@@ -709,8 +714,9 @@ public class ChanPerformer {
 		 *
 		 * @param boards Collection of {@link Board}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadUserBoardsResult(Collection<Board> boards) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(boards);
 		}
 	}
 
@@ -722,37 +728,30 @@ public class ChanPerformer {
 		/**
 		 * <p>Archived threads page type.</p>
 		 */
-		public static final int TYPE_ARCHIVED_THREADS;
+		public static final int TYPE_ARCHIVED_THREADS = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Board name argument. May be null.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Page number argument.</p>
 		 */
-		public final int pageNumber;
+		public final int pageNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Page type argument.</p>
 		 */
-		public final int type;
+		public final int type = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadThreadSummariesData() {
-			throw new IllegalAccessError();
-		}
-
-		static {
-			// noinspection ConstantIfStatement, ConstantConditions
-			if (true) {
-				throw new IllegalAccessError();
-			}
+		private ReadThreadSummariesData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -766,7 +765,7 @@ public class ChanPerformer {
 		 * @param threadSummaries Array of {@link ThreadSummary}.
 		 */
 		public ReadThreadSummariesResult(ThreadSummary... threadSummaries) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(threadSummaries);
 		}
 
 		/**
@@ -774,8 +773,9 @@ public class ChanPerformer {
 		 *
 		 * @param threadSummaries Collection of {@link ThreadSummary}.
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadThreadSummariesResult(Collection<ThreadSummary> threadSummaries) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(threadSummaries);
 		}
 	}
 
@@ -787,25 +787,25 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
 		 */
-		public final HttpValidator validator;
+		public final HttpValidator validator = BuildConfig.Private.expr();
 
-		ReadPostsCountData() {
-			throw new IllegalAccessError();
+		private ReadPostsCountData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -819,7 +819,7 @@ public class ChanPerformer {
 		 * @param postsCount Total number of posts in thread.
 		 */
 		public ReadPostsCountResult(int postsCount) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(postsCount);
 		}
 
 		/**
@@ -830,7 +830,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadPostsCountResult setValidator(HttpValidator validator) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(validator);
 		}
 	}
 
@@ -842,15 +842,15 @@ public class ChanPerformer {
 		/**
 		 * <p>URI to content argument.</p>
 		 */
-		public final Uri uri;
+		public final Uri uri = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadContentData() {
-			throw new IllegalAccessError();
+		private ReadContentData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -864,7 +864,7 @@ public class ChanPerformer {
 		 * @param response HTTP response.
 		 */
 		public ReadContentResult(HttpResponse response) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(response);
 		}
 	}
 
@@ -876,37 +876,30 @@ public class ChanPerformer {
 		/**
 		 * <p>Captcha pass authorization type.</p>
 		 */
-		public static final int TYPE_CAPTCHA_PASS;
+		public static final int TYPE_CAPTCHA_PASS = BuildConfig.Private.expr();
 
 		/**
 		 * <p>User authorization type.</p>
 		 */
-		public static final int TYPE_USER_AUTHORIZATION;
+		public static final int TYPE_USER_AUTHORIZATION = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Authorization type argument.</p>
 		 */
-		public final int type;
+		public final int type = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Authorization data fields.</p>
 		 */
-		public final String[] authorizationData;
+		public final String[] authorizationData = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		CheckAuthorizationData() {
-			throw new IllegalAccessError();
-		}
-
-		static {
-			// noinspection ConstantIfStatement, ConstantConditions
-			if (true) {
-				throw new IllegalAccessError();
-			}
+		private CheckAuthorizationData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -920,7 +913,7 @@ public class ChanPerformer {
 		 * @param success True if authorization data is correct, false otherwise.
 		 */
 		public CheckAuthorizationResult(boolean success) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(success);
 		}
 	}
 
@@ -932,48 +925,41 @@ public class ChanPerformer {
 		/**
 		 * <p>Captcha type argument.</p>
 		 */
-		public final String captchaType;
+		public final String captchaType = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Captcha pass authorization data argument.</p>
 		 */
-		public final String[] captchaPass;
+		public final String[] captchaPass = BuildConfig.Private.expr();
 
 		/**
 		 * <p>If {@code true} you can return {@link CaptchaState#NEED_LOAD} if captcha has short lifetime.</p>
 		 */
-		public final boolean mayShowLoadButton;
+		public final boolean mayShowLoadButton = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Requirement string argument.
 		 * Used with {@link #requireUserCaptcha(String, String, String, boolean)}.</p>
 		 */
-		public final String requirement;
+		public final String requirement = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Board name argument</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		ReadCaptchaData() {
-			throw new IllegalAccessError();
-		}
-
-		static {
-			// noinspection ConstantIfStatement, ConstantConditions
-			if (true) {
-				throw new IllegalAccessError();
-			}
+		private ReadCaptchaData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -1013,7 +999,7 @@ public class ChanPerformer {
 		 * @param captchaData Resulting captcha data map.
 		 */
 		public ReadCaptchaResult(CaptchaState captchaState, CaptchaData captchaData) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(captchaData, captchaData);
 		}
 
 		/**
@@ -1023,7 +1009,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadCaptchaResult setCaptchaType(String captchaType) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(captchaType);
 		}
 
 		/**
@@ -1034,7 +1020,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadCaptchaResult setInput(ChanConfiguration.Captcha.Input input) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(input);
 		}
 
 		/**
@@ -1045,7 +1031,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadCaptchaResult setValidity(ChanConfiguration.Captcha.Validity validity) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(validity);
 		}
 
 		/**
@@ -1055,7 +1041,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadCaptchaResult setImage(Bitmap image) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(image);
 		}
 
 		/**
@@ -1065,7 +1051,7 @@ public class ChanPerformer {
 		 * @return This object.
 		 */
 		public ReadCaptchaResult setLarge(boolean large) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(large);
 		}
 	}
 
@@ -1080,22 +1066,22 @@ public class ChanPerformer {
 		 * <p>Captcha challenge string: public key, image id, cookie or another string that
 		 * represents captcha session.</p>
 		 */
-		public static final String CHALLENGE;
+		public static final String CHALLENGE = BuildConfig.Private.expr();
 
 		/**
 		 * <p>User's input.</p>
 		 */
-		public static final String INPUT;
+		public static final String INPUT = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Captcha API key. May be used for default captcha handler.</p>
 		 */
-		public static final String API_KEY;
+		public static final String API_KEY = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Referer header for captcha requests. May be useful with reCAPTCHA 2.</p>
 		 */
-		public static final String REFERER;
+		public static final String REFERER = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Put captcha data to map.</p>
@@ -1104,7 +1090,7 @@ public class ChanPerformer {
 		 * @param value Data value.
 		 */
 		public void put(String key, String value) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(key, value);
 		}
 
 		/**
@@ -1114,14 +1100,7 @@ public class ChanPerformer {
 		 * @return Data value.
 		 */
 		public String get(String key) {
-			throw new IllegalAccessError();
-		}
-
-		static {
-			// noinspection ConstantIfStatement, ConstantConditions
-			if (true) {
-				throw new IllegalAccessError();
-			}
+			return BuildConfig.Private.expr(key);
 		}
 	}
 
@@ -1133,78 +1112,78 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument. Equals {@code null} if this new thread request.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Subject argument. Equals {@code null} if empty.</p>
 		 */
-		public final String subject;
+		public final String subject = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Comment argument. Equals {@code null} if empty.</p>
 		 */
-		public final String comment;
+		public final String comment = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Name argument. Equals {@code null} if empty.</p>
 		 */
-		public final String name;
+		public final String name = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Email argument. Equals {@code null} if empty.</p>
 		 */
-		public final String email;
+		public final String email = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Password for deleting argument. Equals {@code null} if empty.</p>
 		 */
-		public final String password;
+		public final String password = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Array of attachments argument. Equals {@code null} if empty.</p>
 		 */
-		public final Attachment[] attachments;
+		public final Attachment[] attachments = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Sage option.</p>
 		 */
-		public final boolean optionSage;
+		public final boolean optionSage = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Spoiler option.</p>
 		 */
-		public final boolean optionSpoiler;
+		public final boolean optionSpoiler = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Original poster option.</p>
 		 */
-		public final boolean optionOriginalPoster;
+		public final boolean optionOriginalPoster = BuildConfig.Private.expr();
 
 		/**
 		 * <p>User icon value. Equals {@code null} if nothing chosen.</p>
 		 */
-		public final String userIcon;
+		public final String userIcon = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Captcha type argument.</p>
 		 */
-		public final String captchaType;
+		public final String captchaType = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Captcha data argument. Obtained from {@link #onReadCaptcha(ReadCaptchaData)}.
 		 * May be {@code null} if captcha was not loaded.</p>
 		 */
-		public final CaptchaData captchaData;
+		public final CaptchaData captchaData = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Holds attachment data.</p>
@@ -1213,15 +1192,15 @@ public class ChanPerformer {
 			/**
 			 * <p>Attachment rating argument.</p>
 			 */
-			public final String rating;
+			public final String rating = BuildConfig.Private.expr();
 
 			/**
 			 * <p>Spoiler option.</p>
 			 */
-			public final boolean optionSpoiler;
+			public final boolean optionSpoiler = BuildConfig.Private.expr();
 
-			Attachment() {
-				throw new IllegalAccessError();
+			private Attachment() {
+				BuildConfig.Private.expr();
 			}
 
 			/**
@@ -1231,21 +1210,21 @@ public class ChanPerformer {
 			 * @param name Field name.
 			 */
 			public void addToEntity(MultipartEntity entity, String name) {
-				throw new IllegalAccessError();
+				BuildConfig.Private.expr(entity, name);
 			}
 
 			/**
 			 * <p>Returns attachment file name.</p>
 			 */
 			public String getFileName() {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 
 			/**
 			 * <p>Returns attachment mime type.</p>
 			 */
 			public String getMimeType() {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 
 			/**
@@ -1253,8 +1232,9 @@ public class ChanPerformer {
 			 *
 			 * @throws IOException If an error occurs while initializing a stream.
 			 */
+			@SuppressWarnings("RedundantThrows")
 			public InputStream openInputSteam() throws IOException {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 
 			/**
@@ -1263,27 +1243,28 @@ public class ChanPerformer {
 			 *
 			 * @throws IOException If an error occurs while initializing a stream.
 			 */
+			@SuppressWarnings("RedundantThrows")
 			public InputStream openInputSteamForSending() throws IOException {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 
 			/**
 			 * <p>Returns attachment file size.</p>
 			 */
 			public long getSize() {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 
 			/**
 			 * <p>Returns a pair of image demensions for image files or {@code null} for other files.</p>
 			 */
 			public Pair<Integer, Integer> getImageSize() {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr();
 			}
 		}
 
-		SendPostData() {
-			throw new IllegalAccessError();
+		private SendPostData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -1298,7 +1279,7 @@ public class ChanPerformer {
 		 * @param postNumber Resulting post number.
 		 */
 		public SendPostResult(String threadNumber, String postNumber) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(threadNumber, postNumber);
 		}
 	}
 
@@ -1310,35 +1291,35 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>List of deleting post numbers.</p>
 		 */
-		public final List<String> postNumbers;
+		public final List<String> postNumbers = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Password for deleting argument.</p>
 		 */
-		public final String password;
+		public final String password = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Delete files only option.</p>
 		 */
-		public final boolean optionFilesOnly;
+		public final boolean optionFilesOnly = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		SendDeletePostsData() {
-			throw new IllegalAccessError();
+		private SendDeletePostsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -1355,40 +1336,40 @@ public class ChanPerformer {
 		/**
 		 * <p>Board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Thread number argument.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>List of reporting post numbers.</p>
 		 */
-		public final List<String> postNumbers;
+		public final List<String> postNumbers = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Reporting type argument.</p>
 		 */
-		public final String type;
+		public final String type = BuildConfig.Private.expr();
 
 		/**
 		 * <p>List of reporting options argument.</p>
 		 */
-		public final List<String> options;
+		public final List<String> options = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Comment argument.</p>
 		 */
-		public final String comment;
+		public final String comment = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		SendReportPostsData() {
-			throw new IllegalAccessError();
+		private SendReportPostsData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -1405,30 +1386,30 @@ public class ChanPerformer {
 		/**
 		 * <p>Archiving thread URI argument.</p>
 		 */
-		public final Uri uri;
+		public final Uri uri = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Archiving board name argument.</p>
 		 */
-		public final String boardName;
+		public final String boardName = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Archiving thread number argument.</p>
 		 */
-		public final String threadNumber;
+		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
 		 * <p>List of archiving options argument.</p>
 		 */
-		public final List<String> options;
+		public final List<String> options = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
 		 */
-		public final HttpHolder holder;
+		public final HttpHolder holder = BuildConfig.Private.expr();
 
-		SendAddToArchiveData() {
-			throw new IllegalAccessError();
+		private SendAddToArchiveData() {
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -1443,7 +1424,7 @@ public class ChanPerformer {
 		 * @param threadNumber Resulting thread number in archive.
 		 */
 		public SendAddToArchiveResult(String boardName, String threadNumber) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(boardName, threadNumber);
 		}
 	}
 
@@ -1459,7 +1440,7 @@ public class ChanPerformer {
 	 */
 	protected final CaptchaData requireUserCaptcha(String requirement, String boardName, String threadNumber,
 			boolean retry) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(requirement, boardName, threadNumber, retry);
 	}
 
 	/**
@@ -1473,7 +1454,7 @@ public class ChanPerformer {
 	 */
 	protected final Integer requireUserItemSingleChoice(int selected, CharSequence[] items, String descriptionText,
 			Bitmap descriptionImage) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(selected, items, descriptionText, descriptionImage);
 	}
 
 	/**
@@ -1487,7 +1468,7 @@ public class ChanPerformer {
 	 */
 	protected final boolean[] requireUserItemMultipleChoice(boolean[] selected, CharSequence[] items,
 			String descriptionText, Bitmap descriptionImage) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(selected, items, descriptionText, descriptionImage);
 	}
 
 	/**
@@ -1501,7 +1482,7 @@ public class ChanPerformer {
 	 */
 	protected final Integer requireUserImageSingleChoice(int selected, Bitmap[] images, String descriptionText,
 			Bitmap descriptionImage) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(selected, images, descriptionText, descriptionImage);
 	}
 
 	/**
@@ -1515,6 +1496,6 @@ public class ChanPerformer {
 	 */
 	protected final boolean[] requireUserImageMultipleChoice(boolean[] selected, Bitmap[] images,
 			String descriptionText, Bitmap descriptionImage) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(selected, images, descriptionText, descriptionImage);
 	}
 }

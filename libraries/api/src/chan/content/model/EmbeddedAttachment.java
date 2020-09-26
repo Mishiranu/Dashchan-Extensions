@@ -1,6 +1,7 @@
 package chan.content.model;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 
 /**
  * <p>This class can handle some embedded links. See {@link EmbeddedAttachment#obtain(String)}.</p>
@@ -36,7 +37,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 */
 	public EmbeddedAttachment(Uri fileUri, Uri thumbnailUri, String embeddedType, ContentType contentType,
 			boolean canDownload, String forcedName) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(fileUri, thumbnailUri, embeddedType, contentType, canDownload, forcedName);
 	}
 
 	/**
@@ -45,7 +46,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return Attachment file URI.
 	 */
 	public Uri getFileUri() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -54,7 +55,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return Attachment thumbnail URI.
 	 */
 	public Uri getThumbnailUri() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -63,7 +64,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return Attachment type.
 	 */
 	public String getEmbeddedType() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -72,7 +73,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return Attachment content type.
 	 */
 	public ContentType getContentType() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -81,7 +82,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return True is attachment can be downloaded.
 	 */
 	public boolean isCanDownload() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -90,7 +91,7 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return Forced file name.
 	 */
 	public String getForcedName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -111,6 +112,6 @@ public final class EmbeddedAttachment implements Attachment {
 	 * @return {@link EmbeddedAttachment} instance or {@code null} if embedded link is not supported.
 	 */
 	public static EmbeddedAttachment obtain(String data) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(data);
 	}
 }

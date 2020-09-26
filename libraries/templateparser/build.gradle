@@ -1,5 +1,5 @@
 rootProject.configureLibrary(project)
 
 dependencies {
-    compileOnly 'com.github.mishiranu:dashchan.library:1.7'
+    compileOnly project(':libraries:api')
 }

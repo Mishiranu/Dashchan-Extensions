@@ -1,6 +1,7 @@
 package chan.content;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 import java.util.regex.Pattern;
 
 /**
@@ -65,25 +66,18 @@ public class ChanLocator {
 		/**
 		 * <p>Target to list of threads.</p>
 		 */
-		public static final int TARGET_THREADS;
+		public static final int TARGET_THREADS = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Target to list of posts.</p>
 		 */
-		public static final int TARGET_POSTS;
+		public static final int TARGET_POSTS = BuildConfig.Private.expr();
 
 		/**
 		 * <p>Target to list of search results. You <strong>must</strong> enable
 		 * {@link ChanConfiguration.Board#allowSearch} option for specified board to use this target.</p>
 		 */
-		public static final int TARGET_SEARCH;
-
-		static {
-			// noinspection ConstantIfStatement, ConstantConditions
-			if (true) {
-				throw new IllegalAccessError();
-			}
-		}
+		public static final int TARGET_SEARCH = BuildConfig.Private.expr();
 
 		/**
 		 * @param target Can take the values {@link #TARGET_THREADS}, {@link #TARGET_POSTS} or {@link #TARGET_SEARCH}.
@@ -94,7 +88,7 @@ public class ChanLocator {
 		 */
 		public NavigationData(int target, String boardName, String threadNumber, String postNumber,
 				String searchQuery) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(target, boardName, threadNumber, postNumber, searchQuery);
 		}
 	}
 
@@ -106,7 +100,7 @@ public class ChanLocator {
 	 * @return {@link ChanLocator} instance.
 	 */
 	public static <T extends ChanLocator> T get(Object object) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(object);
 	}
 
 	/**
@@ -118,7 +112,7 @@ public class ChanLocator {
 	 * {@code addr2.com} in preferences, URIs with the rest addresses will be converted to {@code addr2.com}.</p>
 	 */
 	public final void addChanHost(String host) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(host);
 	}
 
 	/**
@@ -126,7 +120,7 @@ public class ChanLocator {
 	 * but it still can be converted. For example, it can be useful for old domains that don't work now.</p>
 	 */
 	public final void addConvertableChanHost(String host) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(host);
 	}
 
 	/**
@@ -134,7 +128,7 @@ public class ChanLocator {
 	 * and and can't be converted. For example, it can be useful for special hosts like JSON API or static data.</p>
 	 */
 	public final void addSpecialChanHost(String host) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(host);
 	}
 
 	/**
@@ -143,7 +137,7 @@ public class ChanLocator {
 	 * @see HttpsMode
 	 */
 	public final void setHttpsMode(HttpsMode httpsMode) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(httpsMode);
 	}
 
 	/**
@@ -152,7 +146,7 @@ public class ChanLocator {
 	 * @return True if HTTPS enabled.
 	 */
 	public final boolean isUseHttps() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -163,7 +157,7 @@ public class ChanLocator {
 	 * @return True if host is chan host or relative.
 	 */
 	public final boolean isChanHostOrRelative(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -183,7 +177,7 @@ public class ChanLocator {
 	 * @return Resulting host or {@code null}.
 	 */
 	public String getHostTransition(String chanHost, String requiredHost) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(chanHost, requiredHost);
 	}
 
 	/**
@@ -193,7 +187,7 @@ public class ChanLocator {
 	 * @return True if URI is board URI.
 	 */
 	public boolean isBoardUri(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -203,7 +197,7 @@ public class ChanLocator {
 	 * @return True if URI is thread URI.
 	 */
 	public boolean isThreadUri(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -213,7 +207,7 @@ public class ChanLocator {
 	 * @return True if URI is attachment URI.
 	 */
 	public boolean isAttachmentUri(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -223,7 +217,7 @@ public class ChanLocator {
 	 * @return Board name.
 	 */
 	public String getBoardName(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -233,7 +227,7 @@ public class ChanLocator {
 	 * @return Thread number.
 	 */
 	public String getThreadNumber(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -243,7 +237,7 @@ public class ChanLocator {
 	 * @return Posts number.
 	 */
 	public String getPostNumber(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -254,7 +248,7 @@ public class ChanLocator {
 	 * @return Board URI.
 	 */
 	public Uri createBoardUri(String boardName, int pageNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, pageNumber);
 	}
 
 	/**
@@ -265,7 +259,7 @@ public class ChanLocator {
 	 * @return Thread URI.
 	 */
 	public Uri createThreadUri(String boardName, String threadNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, threadNumber);
 	}
 
 	/**
@@ -278,7 +272,7 @@ public class ChanLocator {
 	 * @return Post URI.
 	 */
 	public Uri createPostUri(String boardName, String threadNumber, String postNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, threadNumber);
 	}
 
 	/**
@@ -289,7 +283,7 @@ public class ChanLocator {
 	 * @return File name.
 	 */
 	public String createAttachmentForcedName(Uri fileUri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(fileUri);
 	}
 
 	/**
@@ -300,7 +294,7 @@ public class ChanLocator {
 	 * @return {@link NavigationData} instance or null.
 	 */
 	public NavigationData handleUriClickSpecial(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -310,7 +304,7 @@ public class ChanLocator {
 	 * @return True if extension is image's.
 	 */
 	public final boolean isImageExtension(String path) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path);
 	}
 
 	/**
@@ -320,7 +314,7 @@ public class ChanLocator {
 	 * @return True if extension is audio's.
 	 */
 	public final boolean isAudioExtension(String path) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path);
 	}
 
 	/**
@@ -330,7 +324,7 @@ public class ChanLocator {
 	 * @return True if extension is video's.
 	 */
 	public final boolean isVideoExtension(String path) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path);
 	}
 
 	/**
@@ -340,7 +334,7 @@ public class ChanLocator {
 	 * @return File extension in lower case.
 	 */
 	public final String getFileExtension(String path) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path);
 	}
 
 	/**
@@ -350,7 +344,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildPath(String... segments) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(segments);
 	}
 
 	/**
@@ -361,7 +355,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildPathWithHost(String host, String... segments) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(host, segments);
 	}
 
 	/**
@@ -373,7 +367,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildPathWithSchemeHost(boolean useHttps, String host, String... segments) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(useHttps, host, segments);
 	}
 
 	/**
@@ -384,7 +378,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildQuery(String path, String... alternation) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path, alternation);
 	}
 
 	/**
@@ -396,7 +390,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildQueryWithHost(String host, String path, String... alternation) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(host, path, alternation);
 	}
 
 	/**
@@ -409,7 +403,7 @@ public class ChanLocator {
 	 * @return URI.
 	 */
 	public final Uri buildQueryWithSchemeHost(boolean useHttps, String host, String path, String... alternation) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(useHttps, host, path, alternation);
 	}
 
 	/**
@@ -420,7 +414,7 @@ public class ChanLocator {
 	 * @return True if URI's path matches to pattern.
 	 */
 	public final boolean isPathMatches(Uri uri, Pattern pattern) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri, pattern);
 	}
 
 	/**
@@ -432,6 +426,6 @@ public class ChanLocator {
 	 * @return First found value in string by group index.
 	 */
 	public final String getGroupValue(String from, Pattern pattern, int groupIndex) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(from, pattern, groupIndex);
 	}
 }

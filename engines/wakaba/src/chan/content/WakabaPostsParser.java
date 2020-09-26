@@ -114,7 +114,6 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 				.open((instance, holder, tagName, attributes) -> {
 					if ("checkbox".equals(attributes.get("type"))) {
 						holder.headerHandling = true;
-						// noinspection ConstantConditions
 						if (holder.post == null || holder.post.getPostNumber() == null) {
 							String number = attributes.get("value");
 							if (holder.post == null) {
@@ -149,7 +148,6 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 				})
 				.name("a")
 				.open((instance, holder, tagName, attributes) -> {
-					// noinspection ConstantConditions
 					if (holder.attachment != null && holder.attachment.getFileUri(holder.locator) == null) {
 						holder.attachment.setFileUri(holder.locator, holder.locator.buildPath(attributes.get("href")));
 						return cast(holder).originalNameFromLink;
@@ -219,7 +217,6 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 						name = matcher.group(2);
 						email = StringUtils.clearHtml(matcher.group(1));
 					}
-					// noinspection ConstantConditions
 					holder.setNameEmail(name, email);
 				})
 				.equals("span", "class", "postertrip")

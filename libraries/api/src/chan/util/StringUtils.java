@@ -1,5 +1,6 @@
 package chan.util;
 
+import chan.library.api.BuildConfig;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -7,8 +8,8 @@ import java.util.regex.Pattern;
  * <p>Provides some utilities to work with strings.</p>
  */
 public class StringUtils {
-	StringUtils() {
-		throw new IllegalAccessError();
+	private StringUtils() {
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -18,7 +19,7 @@ public class StringUtils {
 	 * @return True if string is empty.
 	 */
 	public static boolean isEmpty(CharSequence string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -28,7 +29,7 @@ public class StringUtils {
 	 * @return True if string is empty or whitespace.
 	 */
 	public static boolean isEmptyOrWhitespace(CharSequence string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -39,7 +40,7 @@ public class StringUtils {
 	 * @see #isEmpty(CharSequence)
 	 */
 	public static String emptyIfNull(CharSequence string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -50,7 +51,7 @@ public class StringUtils {
 	 * @see #isEmpty(CharSequence)
 	 */
 	public static String nullIfEmpty(String string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -61,7 +62,7 @@ public class StringUtils {
 	 * @return True if strings are equals.
 	 */
 	public static boolean equals(String first, String second) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(first, second);
 	}
 
 	/**
@@ -73,7 +74,7 @@ public class StringUtils {
 	 * @return True if strings are equals.
 	 */
 	public static int nearestIndexOf(String string, int start, String... what) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string, start, what);
 	}
 
 	/**
@@ -85,7 +86,7 @@ public class StringUtils {
 	 * @return True if strings are equals.
 	 */
 	public static int nearestIndexOf(String string, int start, char... what) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string, string, what);
 	}
 
 	/**
@@ -103,7 +104,7 @@ public class StringUtils {
 		 * @param matcher Match result holder.
 		 * @return Replacement string.
 		 */
-		public String getReplacement(Matcher matcher);
+		String getReplacement(Matcher matcher);
 	}
 
 	/**
@@ -119,7 +120,8 @@ public class StringUtils {
 	 * @return Resulting string.
 	 */
 	public static String replaceAll(String string, String regularExpression, ReplacementCallback replacementCallback) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(replacementCallback.getReplacement(BuildConfig.Private.expr()));
+		return BuildConfig.Private.expr(string, regularExpression, replacementCallback);
 	}
 
 	/**
@@ -132,7 +134,8 @@ public class StringUtils {
 	 * @return Resulting string.
 	 */
 	public static String replaceAll(String string, Pattern pattern, ReplacementCallback replacementCallback) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(replacementCallback.getReplacement(BuildConfig.Private.expr()));
+		return BuildConfig.Private.expr(string, pattern, replacementCallback);
 	}
 
 	/**
@@ -142,7 +145,7 @@ public class StringUtils {
 	 * @return Text with links.
 	 */
 	public static String linkify(String string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -152,7 +155,7 @@ public class StringUtils {
 	 * @return Cleared {@code source} string.
 	 */
 	public static String clearHtml(String string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 
 	/**
@@ -162,6 +165,6 @@ public class StringUtils {
 	 * @return Escaped {@code source} string.
 	 */
 	public static String unescapeHtml(String string) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(string);
 	}
 }

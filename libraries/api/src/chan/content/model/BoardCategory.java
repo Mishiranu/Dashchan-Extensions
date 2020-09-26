@@ -1,5 +1,6 @@
 package chan.content.model;
 
+import chan.library.api.BuildConfig;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -13,7 +14,7 @@ public final class BoardCategory implements Iterable<Board> {
 	 * @return Title string.
 	 */
 	public String getTitle() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -22,7 +23,7 @@ public final class BoardCategory implements Iterable<Board> {
 	 * @return Array of {@link Board}.
 	 */
 	public Board[] getBoards() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -32,7 +33,7 @@ public final class BoardCategory implements Iterable<Board> {
 	 * @param boards Array of {@link Board}.
 	 */
 	public BoardCategory(String title, Board[] boards) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(title, boards);
 	}
 
 	/**
@@ -42,7 +43,7 @@ public final class BoardCategory implements Iterable<Board> {
 	 * @param boards Collection of {@link Board}.
 	 */
 	public BoardCategory(String title, Collection<Board> boards) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(title, boards);
 	}
 
 	/**
@@ -50,8 +51,9 @@ public final class BoardCategory implements Iterable<Board> {
 	 *
 	 * @return An iterator.
 	 */
+	@SuppressWarnings("NullableProblems")
 	@Override
 	public Iterator<Board> iterator() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

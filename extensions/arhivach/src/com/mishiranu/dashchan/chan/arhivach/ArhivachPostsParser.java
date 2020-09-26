@@ -286,7 +286,6 @@ public class ArhivachPostsParser {
 					Matcher matcher = PATTERN_ICON.matcher(icon);
 					ArrayList<Icon> icons = null;
 					while (matcher.find()) {
-						// noinspection ConstantConditions
 						if (icons == null) {
 							icons = new ArrayList<>();
 						}
@@ -294,13 +293,12 @@ public class ArhivachPostsParser {
 						String title = matcher.group(2);
 						Uri uri = Uri.parse(path);
 						if (StringUtils.isEmpty(title)) {
-							title = uri.getLastPathSegment();
+							title = StringUtils.emptyIfNull(uri.getLastPathSegment());
 							title = title.substring(0, title.lastIndexOf('.'));
 						}
 						title = StringUtils.clearHtml(title);
 						icons.add(new Icon(holder.locator, uri, title));
 					}
-					// noinspection ConstantConditions
 					holder.post.setIcons(icons);
 				}
 				String name = StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim());

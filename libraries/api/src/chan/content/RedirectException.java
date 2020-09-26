@@ -1,6 +1,7 @@
 package chan.content;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 
 /**
  * <p>Thrown to inform client about redirection. These exceptions is thrown by
@@ -10,7 +11,7 @@ import android.net.Uri;
  */
 public final class RedirectException extends Exception {
 	private RedirectException() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -19,7 +20,7 @@ public final class RedirectException extends Exception {
 	 * @param uri Redirected URI.
 	 */
 	public static RedirectException toUri(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -28,7 +29,7 @@ public final class RedirectException extends Exception {
 	 * @param boardName Redirected board name.
 	 */
 	public static RedirectException toBoard(String boardName) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName);
 	}
 
 	/**
@@ -39,6 +40,6 @@ public final class RedirectException extends Exception {
 	 * @param postNumber Redirected post number.
 	 */
 	public static RedirectException toThread(String boardName, String threadNumber, String postNumber) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(boardName, threadNumber, postNumber);
 	}
 }

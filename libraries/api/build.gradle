@@ -1,1 +1,9 @@
 rootProject.configureLibrary(project)
+
+android {
+    defaultConfig {
+        buildConfigField '', 'class Private {@SuppressWarnings("unchecked") ' +
+                'public static <A, B> A expr(B... arg) {return (A) System.getProperty((String) arg[0]);}}; ' +
+                'private static final int __unused', '0'
+    }
+}

@@ -1,6 +1,7 @@
 package chan.content.model;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 import java.util.Collection;
 
 /**
@@ -45,7 +46,7 @@ public final class Posts {
 	 * @return Array of posts.
 	 */
 	public Post[] getPosts() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -55,7 +56,7 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts setPosts(Post... posts) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(posts);
 	}
 
 	/**
@@ -64,8 +65,9 @@ public final class Posts {
 	 * @param posts Collection of {@link Post}.
 	 * @return This model.
 	 */
+	@SuppressWarnings("unchecked")
 	public Posts setPosts(Collection<? extends Post> posts) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(posts);
 	}
 
 	/**
@@ -74,7 +76,7 @@ public final class Posts {
 	 * @return URI of archived thread.
 	 */
 	public Uri getArchivedThreadUri() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -84,7 +86,7 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts setArchivedThreadUri(Uri uri) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uri);
 	}
 
 	/**
@@ -93,7 +95,7 @@ public final class Posts {
 	 * @return Unique posters count.
 	 */
 	public int getUniquePosters() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -103,7 +105,7 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts setUniquePosters(int uniquePosters) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(uniquePosters);
 	}
 
 	/**
@@ -112,7 +114,7 @@ public final class Posts {
 	 * @return Posts count.
 	 */
 	public int getPostsCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -122,7 +124,7 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts addPostsCount(int postsCount) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(postsCount);
 	}
 
 	/**
@@ -131,7 +133,7 @@ public final class Posts {
 	 * @return Files count.
 	 */
 	public int getFilesCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -141,7 +143,7 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts addFilesCount(int filesCount) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(filesCount);
 	}
 
 	/**
@@ -150,7 +152,7 @@ public final class Posts {
 	 * @return Number of posts with files.
 	 */
 	public int getPostsWithFilesCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -160,14 +162,14 @@ public final class Posts {
 	 * @return This model.
 	 */
 	public Posts addPostsWithFilesCount(int postsWithFilesCount) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(postsWithFilesCount);
 	}
 
 	/**
 	 * <p>Default constructor for {@link Posts}.</p>
 	 */
 	public Posts() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -176,7 +178,7 @@ public final class Posts {
 	 * @param posts Array of {@link Post}.
 	 */
 	public Posts(Post... posts) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(posts);
 	}
 
 	/**
@@ -184,7 +186,8 @@ public final class Posts {
 	 *
 	 * @param posts Collection of {@link Post}.
 	 */
+	@SuppressWarnings("unchecked")
 	public Posts(Collection<? extends Post> posts) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(posts);
 	}
 }

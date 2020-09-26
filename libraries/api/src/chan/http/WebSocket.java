@@ -1,6 +1,7 @@
 package chan.http;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 import java.io.InputStream;
 
 /**
@@ -11,36 +12,36 @@ public final class WebSocket {
 	 * <p>Read data holder.</p>
 	 */
 	public static class Event {
-		Event() {
-			throw new IllegalAccessError();
+		private Event() {
+			BuildConfig.Private.expr();
 		}
 
 		/**
 		 * <p>Converts and results event data as {@link HttpResponse} instance.</p>
 		 */
 		public HttpResponse getResponse() {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 
 		/**
 		 * <p>Returns whether event data is binary.</p>
 		 */
 		public boolean isBinary() {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 
 		/**
 		 * @see Connection#store(String, Object)
 		 */
 		public void store(String key, Object object) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(key, object);
 		}
 
 		/**
 		 * @see Connection#get(String)
 		 */
 		public <T> T get(String key) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(key);
 		}
 
 		/**
@@ -50,7 +51,7 @@ public final class WebSocket {
 		 * @see Connection#await(Object...)
 		 */
 		public void complete(Object result) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr(result);
 		}
 
 		/**
@@ -58,7 +59,7 @@ public final class WebSocket {
 		 * directly.</p>
 		 */
 		public void close() {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -75,7 +76,7 @@ public final class WebSocket {
 		 *
 		 * @param event Event data.
 		 */
-		public void onEvent(Event event);
+		void onEvent(Event event);
 	}
 
 	/**
@@ -86,7 +87,7 @@ public final class WebSocket {
 	 * @param preset Preset with configuration.
 	 */
 	public WebSocket(Uri uri, HttpHolder holder, HttpRequest.Preset preset) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, holder, preset);
 	}
 
 	/**
@@ -96,7 +97,7 @@ public final class WebSocket {
 	 * @param holder {@link HttpHolder} instance. May be null.
 	 */
 	public WebSocket(Uri uri, HttpHolder holder) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, holder);
 	}
 
 	/**
@@ -107,7 +108,7 @@ public final class WebSocket {
 	 * @param preset Preset with configuration.
 	 */
 	public WebSocket(Uri uri, HttpRequest.Preset preset) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, preset);
 	}
 
 	/**
@@ -118,7 +119,7 @@ public final class WebSocket {
 	 * @return This builder.
 	 */
 	public WebSocket addHeader(String name, String value) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -130,7 +131,7 @@ public final class WebSocket {
 	 * @see CookieBuilder
 	 */
 	public WebSocket addCookie(String name, String value) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -141,7 +142,7 @@ public final class WebSocket {
 	 * @see CookieBuilder
 	 */
 	public WebSocket addCookie(String cookie) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(cookie);
 	}
 
 	/**
@@ -152,7 +153,7 @@ public final class WebSocket {
 	 * @see CookieBuilder
 	 */
 	public WebSocket addCookie(CookieBuilder builder) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(builder);
 	}
 
 	/**
@@ -163,7 +164,7 @@ public final class WebSocket {
 	 * @return This builder.
 	 */
 	public WebSocket setTimeouts(int connectTimeout, int readTimeout) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(connectTimeout, readTimeout);
 	}
 
 	/**
@@ -173,16 +174,18 @@ public final class WebSocket {
 	 * @return Connection instance.
 	 * @throws HttpException if HTTP exception occurred.
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public Connection open(EventHandler handler) throws HttpException {
-		throw new IllegalAccessError();
+		handler.onEvent(BuildConfig.Private.expr());
+		return BuildConfig.Private.expr(handler);
 	}
 
 	/**
 	 * <p>A builder for complex binary data.</p>
 	 */
 	public static class ComplexBinaryBuilder {
-		ComplexBinaryBuilder(Connection connection) {
-			throw new IllegalAccessError();
+		private ComplexBinaryBuilder() {
+			BuildConfig.Private.expr();
 		}
 
 		/**
@@ -192,7 +195,7 @@ public final class WebSocket {
 		 * @return This builder.
 		 */
 		public ComplexBinaryBuilder bytes(byte... bytes) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(bytes);
 		}
 
 		/**
@@ -202,7 +205,7 @@ public final class WebSocket {
 		 * @return This builder.
 		 */
 		public ComplexBinaryBuilder bytes(int... bytes) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(bytes);
 		}
 
 		/**
@@ -212,7 +215,7 @@ public final class WebSocket {
 		 * @return This builder.
 		 */
 		public ComplexBinaryBuilder string(String string) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(string);
 		}
 
 		/**
@@ -223,7 +226,7 @@ public final class WebSocket {
 		 * @return This builder.
 		 */
 		public ComplexBinaryBuilder stream(InputStream inputStream, int count) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(inputStream, count);
 		}
 
 		/**
@@ -233,7 +236,8 @@ public final class WebSocket {
 		 * @return This builder.
 		 */
 		public ComplexBinaryBuilder wrap(Wrapper wrapper) {
-			return wrapper.apply(this);
+			BuildConfig.Private.expr(wrapper.apply(BuildConfig.Private.expr()));
+			return BuildConfig.Private.expr(wrapper);
 		}
 
 		/**
@@ -242,8 +246,9 @@ public final class WebSocket {
 		 * @return Connection instance.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public Connection send() throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 
 		/**
@@ -256,7 +261,7 @@ public final class WebSocket {
 			 * @param builder Initial builder.
 			 * @return Modified builder.
 			 */
-			public ComplexBinaryBuilder apply(ComplexBinaryBuilder builder);
+			ComplexBinaryBuilder apply(ComplexBinaryBuilder builder);
 		}
 	}
 
@@ -264,6 +269,10 @@ public final class WebSocket {
 	 * <p>WebSocker connection instance.</p>
 	 */
 	public class Connection {
+		private Connection() {
+			BuildConfig.Private.expr();
+		}
+
 		/**
 		 * <p>Sends a text data to socket.</p>
 		 *
@@ -271,8 +280,9 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public Connection sendText(String text) throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(text);
 		}
 
 		/**
@@ -282,8 +292,9 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public Connection sendBinary(byte[] data) throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(data);
 		}
 
 		/**
@@ -292,8 +303,9 @@ public final class WebSocket {
 		 * @return {@link ComplexBinaryBuilder} instance.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public ComplexBinaryBuilder sendComplexBinary() throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 
 		/**
@@ -305,8 +317,9 @@ public final class WebSocket {
 		 * @throws HttpException if HTTP exception occurred.
 		 * @see Event#complete(Object)
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public Connection await(Object... results) throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(results);
 		}
 
 		/**
@@ -317,7 +330,7 @@ public final class WebSocket {
 		 * @return this connection.
 		 */
 		public Connection store(String key, Object data) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(key, data);
 		}
 
 		/**
@@ -327,7 +340,7 @@ public final class WebSocket {
 		 * @return Data value.
 		 */
 		public <T> T get(String key) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(key);
 		}
 
 		/**
@@ -336,14 +349,16 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
+		@SuppressWarnings("RedundantThrows")
 		public Result close() throws HttpException {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr();
 		}
 	}
 
 	/**
 	 * <p>Connection result holder.</p>
 	 */
+	@SuppressWarnings("InnerClassMayBeStatic")
 	public class Result {
 		/**
 		 * <p>Retrieves data from thread-safe container.</p>
@@ -352,7 +367,7 @@ public final class WebSocket {
 		 * @return Data value.
 		 */
 		public <T> T get(String key) {
-			throw new IllegalAccessError();
+			return BuildConfig.Private.expr(key);
 		}
 	}
 }

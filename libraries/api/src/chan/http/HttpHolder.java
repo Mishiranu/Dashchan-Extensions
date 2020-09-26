@@ -1,6 +1,7 @@
 package chan.http;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 import java.util.List;
 import java.util.Map;
 
@@ -12,22 +13,24 @@ public final class HttpHolder {
 	 * <p>Disconnect from server.</p>
 	 */
 	public void disconnect() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>Reads {@link HttpResponse} from server.</p>
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public HttpResponse read() throws HttpException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
 	 * <p>This method will throw {@link HttpException} if response code is not success ({@code 2xx}) or redirect
 	 * ({@code 301}, {@code 302}, {@code 303} or {@code 307}).</p>
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public void checkResponseCode() throws HttpException {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -36,7 +39,7 @@ public final class HttpHolder {
 	 * @return Response code.
 	 */
 	public int getResponseCode() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -45,7 +48,7 @@ public final class HttpHolder {
 	 * @return Response message.
 	 */
 	public String getResponseMessage() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -54,7 +57,7 @@ public final class HttpHolder {
 	 * @return Redirected URI.
 	 */
 	public Uri getRedirectedUri() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -63,7 +66,7 @@ public final class HttpHolder {
 	 * @return HTTP header fields.
 	 */
 	public Map<String, List<String>> getHeaderFields() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -73,7 +76,7 @@ public final class HttpHolder {
 	 * @return Value of cookie or {@code null} if given cookie doesn't exist.
 	 */
 	public String getCookieValue(String name) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name);
 	}
 
 	/**
@@ -83,6 +86,6 @@ public final class HttpHolder {
 	 * @see HttpValidator
 	 */
 	public HttpValidator getValidator() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

@@ -1,6 +1,7 @@
 package chan.text;
 
 import chan.content.ChanMarkup;
+import chan.library.api.BuildConfig;
 
 /**
  * <p>This class is used to handle comment input when user writes new post.</p>
@@ -9,7 +10,7 @@ public class CommentEditor {
 	/**
 	 * <p>Flag for tags that work only being in one line.</p>
 	 */
-	public static final int FLAG_ONE_LINE;
+	public static final int FLAG_ONE_LINE = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Add a new tag to handle. {@code what} argument must be one of tag constants from {@link ChanMarkup}.</p>
@@ -19,7 +20,7 @@ public class CommentEditor {
 	 * @param close Close tag string.
 	 */
 	public final void addTag(int what, String open, String close) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(what, open, close);
 	}
 
 	/**
@@ -31,7 +32,7 @@ public class CommentEditor {
 	 * @param flags Tag handling flags.
 	 */
 	public final void addTag(int what, String open, String close, int flags) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(what, open, close, flags);
 	}
 
 	/**
@@ -41,7 +42,7 @@ public class CommentEditor {
 	 * @param mark Unordered list mark.
 	 */
 	public final void setUnorderedListMark(String mark) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(mark);
 	}
 
 	/**
@@ -51,7 +52,7 @@ public class CommentEditor {
 	 * @param mark Ordered list mark.
 	 */
 	public final void setOrderedListMark(String mark) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(mark);
 	}
 
 	/**
@@ -75,7 +76,7 @@ public class CommentEditor {
 	 */
 	public static class BulletinBoardCodeCommentEditor extends CommentEditor {
 		public BulletinBoardCodeCommentEditor() {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 
@@ -97,14 +98,7 @@ public class CommentEditor {
 	 */
 	public static class WakabaMarkCommentEditor extends CommentEditor {
 		public WakabaMarkCommentEditor() {
-			throw new IllegalAccessError();
-		}
-	}
-
-	static {
-		// noinspection ConstantIfStatement, ConstantConditions
-		if (true) {
-			throw new IllegalAccessError();
+			BuildConfig.Private.expr();
 		}
 	}
 }

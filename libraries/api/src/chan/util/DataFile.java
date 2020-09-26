@@ -1,6 +1,7 @@
 package chan.util;
 
 import chan.content.ChanConfiguration;
+import chan.library.api.BuildConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public class DataFile {
 	private DataFile() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -24,7 +25,7 @@ public class DataFile {
 	 * @return File name.
 	 */
 	public String getName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -33,7 +34,7 @@ public class DataFile {
 	 * @return True if file is directory.
 	 */
 	public boolean isDirectory() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -42,7 +43,7 @@ public class DataFile {
 	 * @return Last modified timestamp.
 	 */
 	public long getLastModified() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -52,7 +53,7 @@ public class DataFile {
 	 * @return Child file.
 	 */
 	public DataFile getChild(String path) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(path);
 	}
 
 	/**
@@ -61,7 +62,7 @@ public class DataFile {
 	 * @return List of children {@link DataFile}.
 	 */
 	public List<DataFile> getChildren() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -70,7 +71,7 @@ public class DataFile {
 	 * @return True if file was successfully deleted.
 	 */
 	public boolean delete() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -79,8 +80,9 @@ public class DataFile {
 	 * @return Input stream.
 	 * @throws IOException If an I/O error occurs.
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public InputStream openInputStream() throws IOException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -89,7 +91,8 @@ public class DataFile {
 	 * @return Output stream.
 	 * @throws IOException If an I/O error occurs.
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public OutputStream openOutputStream() throws IOException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

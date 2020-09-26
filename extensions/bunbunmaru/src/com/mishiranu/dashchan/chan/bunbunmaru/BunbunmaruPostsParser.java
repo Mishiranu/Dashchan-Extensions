@@ -47,7 +47,6 @@ public class BunbunmaruPostsParser extends WakabaPostsParser
 			.open((instance, holder, tagName, attributes) -> {
 				if (holder.reflinkParsing) {
 					holder.reflinkParsing = false;
-					// noinspection ConstantConditions
 					if (holder.post != null && holder.post.getParentPostNumber() == null) {
 						Uri uri = Uri.parse(attributes.get("href"));
 						String threadNumber = holder.locator.getThreadNumber(uri);

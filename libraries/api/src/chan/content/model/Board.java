@@ -1,5 +1,7 @@
 package chan.content.model;
 
+import chan.library.api.BuildConfig;
+
 /**
  * <p>Model containing board data: board name, title and description.</p>
  */
@@ -10,7 +12,7 @@ public final class Board implements Comparable<Board> {
 	 * @return Board name.
 	 */
 	public String getBoardName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -19,7 +21,7 @@ public final class Board implements Comparable<Board> {
 	 * @return Board title.
 	 */
 	public String getTitle() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -28,7 +30,7 @@ public final class Board implements Comparable<Board> {
 	 * @return Board description.
 	 */
 	public String getDescription() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -38,7 +40,7 @@ public final class Board implements Comparable<Board> {
 	 * @param title Board title.
 	 */
 	public Board(String boardName, String title) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, title);
 	}
 
 	/**
@@ -49,11 +51,12 @@ public final class Board implements Comparable<Board> {
 	 * @param description Board description.
 	 */
 	public Board(String boardName, String title, String description) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, title, description);
 	}
 
+	@SuppressWarnings("NullableProblems")
 	@Override
 	public int compareTo(Board another) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(another);
 	}
 }

@@ -1,5 +1,7 @@
 package chan.content.model;
 
+import chan.library.api.BuildConfig;
+
 /**
  * <p>Model containing thread summary: board name, thread number and short description.
  * This model is used in archived threads page, for example.</p>
@@ -13,7 +15,7 @@ public final class ThreadSummary {
 	 * @param description Short description, may be the subject or some first sentences of the comment.
 	 */
 	public ThreadSummary(String boardName, String threadNumber, String description) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(boardName, threadNumber, description);
 	}
 
 	/**
@@ -22,7 +24,7 @@ public final class ThreadSummary {
 	 * @return Board name.
 	 */
 	public String getBoardName() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -31,7 +33,7 @@ public final class ThreadSummary {
 	 * @return Thread number.
 	 */
 	public String getThreadNumber() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -40,7 +42,7 @@ public final class ThreadSummary {
 	 * @return Thread description.
 	 */
 	public String getDescription() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -49,7 +51,7 @@ public final class ThreadSummary {
 	 * @return Posts count.
 	 */
 	public int getPostsCount() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -59,6 +61,6 @@ public final class ThreadSummary {
 	 * @return This model.
 	 */
 	public ThreadSummary setPostsCount(int postsCount) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(postsCount);
 	}
 }

@@ -2,6 +2,7 @@ package chan.content.model;
 
 import android.net.Uri;
 import chan.content.ChanLocator;
+import chan.library.api.BuildConfig;
 import java.io.Serializable;
 
 /**
@@ -16,7 +17,7 @@ public final class Icon implements Serializable {
 	 * @param title Icon title.
 	 */
 	public Icon(ChanLocator locator, Uri uri, String title) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(locator, uri, title);
 	}
 
 	/**
@@ -25,7 +26,7 @@ public final class Icon implements Serializable {
 	 * @param locator {@link ChanLocator} instance to decode URI in model.
 	 */
 	public Uri getUri(ChanLocator locator) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(locator);
 	}
 
 	/**
@@ -34,6 +35,6 @@ public final class Icon implements Serializable {
 	 * @return Icon title.
 	 */
 	public String getTitle() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

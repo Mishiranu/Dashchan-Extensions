@@ -1,5 +1,7 @@
 package chan.http;
 
+import chan.library.api.BuildConfig;
+
 /**
  * <p>Provides easy cookie building.</p>
  */
@@ -12,7 +14,7 @@ public final class CookieBuilder {
 	 * @return This builder.
 	 */
 	public CookieBuilder append(String name, String value) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -21,6 +23,6 @@ public final class CookieBuilder {
 	 * @return Cookie string.
 	 */
 	public String build() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

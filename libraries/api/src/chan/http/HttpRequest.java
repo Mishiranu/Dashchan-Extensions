@@ -1,6 +1,7 @@
 package chan.http;
 
 import android.net.Uri;
+import chan.library.api.BuildConfig;
 import java.io.OutputStream;
 
 /**
@@ -21,7 +22,7 @@ public final class HttpRequest {
 		/**
 		 * <p>Redirection handler result.</p>
 		 */
-		public enum Action {
+		enum Action {
 			/**
 			 * <p>Cancel redirect handling.</p>
 			 */
@@ -41,7 +42,7 @@ public final class HttpRequest {
 			 * <p>Overrides redirected URI.</p>
 			 */
 			public Action setRedirectedUri(Uri redirectedUri) {
-				throw new IllegalAccessError();
+				return BuildConfig.Private.expr(redirectedUri);
 			}
 		}
 
@@ -56,28 +57,24 @@ public final class HttpRequest {
 		 * @return {@link Action} type.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		public Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
+		Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
 				throws HttpException;
 
 		/**
 		 * <p>{@link RedirectHandler} implementation. This handler will not follow any redirects.</p>
 		 */
-		public static final RedirectHandler NONE = stub();
+		RedirectHandler NONE = BuildConfig.Private.expr();
 
 		/**
 		 * <p>{@link RedirectHandler} implementation. This handler will follow all redirects with GET method.</p>
 		 */
-		public static final RedirectHandler BROWSER = stub();
+		RedirectHandler BROWSER = BuildConfig.Private.expr();
 
 		/**
 		 * <p>{@link RedirectHandler} implementation. This handler will follow {@code 301} and {@code 302} redirects
 		 * with previous method. The rest will be followed with GET method.</p>
 		 */
-		public static final RedirectHandler STRICT = stub();
-	}
-
-	private static RedirectHandler stub() {
-		throw new IllegalAccessError();
+		RedirectHandler STRICT = BuildConfig.Private.expr();
 	}
 
 	/**
@@ -88,7 +85,7 @@ public final class HttpRequest {
 	 * @param preset Preset with configuration.
 	 */
 	public HttpRequest(Uri uri, HttpHolder holder, Preset preset) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, holder, preset);
 	}
 
 	/**
@@ -98,7 +95,7 @@ public final class HttpRequest {
 	 * @param holder {@link HttpHolder} instance. May be null.
 	 */
 	public HttpRequest(Uri uri, HttpHolder holder) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, holder);
 	}
 
 	/**
@@ -109,7 +106,7 @@ public final class HttpRequest {
 	 * @param preset Preset with configuration.
 	 */
 	public HttpRequest(Uri uri, Preset preset) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(uri, preset);
 	}
 
 	/**
@@ -118,7 +115,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setGetMethod() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -127,7 +124,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setHeadMethod() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -137,7 +134,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setPostMethod(RequestEntity entity) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(entity);
 	}
 
 	/**
@@ -147,7 +144,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setPutMethod(RequestEntity entity) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(entity);
 	}
 
 	/**
@@ -157,7 +154,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setDeleteMethod(RequestEntity entity) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(entity);
 	}
 
 	/**
@@ -168,7 +165,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setSuccessOnly(boolean successOnly) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(successOnly);
 	}
 
 	/**
@@ -178,7 +175,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setRedirectHandler(RedirectHandler redirectHandler) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(redirectHandler);
 	}
 
 	/**
@@ -188,7 +185,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setValidator(HttpValidator validator) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(validator);
 	}
 
 	/**
@@ -198,7 +195,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setKeepAlive(boolean keepAlive) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(keepAlive);
 	}
 
 	/**
@@ -209,7 +206,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setTimeouts(int connectTimeout, int readTimeout) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(connectTimeout, readTimeout);
 	}
 
 	/**
@@ -220,7 +217,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setDelay(int delay) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(delay);
 	}
 
 	/**
@@ -231,7 +228,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest setOutputStream(OutputStream outputStream) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(outputStream);
 	}
 
 	/**
@@ -242,7 +239,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest addHeader(String name, String value) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -251,7 +248,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest clearHeaders() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -263,7 +260,7 @@ public final class HttpRequest {
 	 * @see CookieBuilder
 	 */
 	public HttpRequest addCookie(String name, String value) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(name, value);
 	}
 
 	/**
@@ -274,7 +271,7 @@ public final class HttpRequest {
 	 * @see CookieBuilder
 	 */
 	public HttpRequest addCookie(String cookie) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(cookie);
 	}
 
 	/**
@@ -285,7 +282,7 @@ public final class HttpRequest {
 	 * @see CookieBuilder
 	 */
 	public HttpRequest addCookie(CookieBuilder builder) {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr(builder);
 	}
 
 	/**
@@ -294,7 +291,7 @@ public final class HttpRequest {
 	 * @return This builder.
 	 */
 	public HttpRequest clearCookies() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -303,7 +300,7 @@ public final class HttpRequest {
 	 * @return Copy of builder.
 	 */
 	public HttpRequest copy() {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -313,8 +310,9 @@ public final class HttpRequest {
 	 * @return HTTP connection holder.
 	 * @throws HttpException if HTTP exception occurred.
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public HttpHolder execute() throws HttpException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 
 	/**
@@ -324,7 +322,8 @@ public final class HttpRequest {
 	 * @throws HttpException if HTTP exception occurred.
 	 * @see HttpResponse
 	 */
+	@SuppressWarnings("RedundantThrows")
 	public HttpResponse read() throws HttpException {
-		throw new IllegalAccessError();
+		return BuildConfig.Private.expr();
 	}
 }

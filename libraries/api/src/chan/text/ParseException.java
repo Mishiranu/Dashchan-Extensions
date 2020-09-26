@@ -1,5 +1,7 @@
 package chan.text;
 
+import chan.library.api.BuildConfig;
+
 /**
  * <p>Thrown when parsing exception occurred.
  * Usually thrown by {@link GroupParser#parse(String, chan.text.GroupParser.Callback)} method.</p>
@@ -9,7 +11,7 @@ public class ParseException extends Exception {
 	 * <p>Default constructor for a {@link ParseException}.</p>
 	 */
 	public ParseException() {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr();
 	}
 
 	/**
@@ -18,6 +20,6 @@ public class ParseException extends Exception {
 	 * @param throwable The cause of this exception.
 	 */
 	public ParseException(Throwable throwable) {
-		throw new IllegalAccessError();
+		BuildConfig.Private.expr(throwable);
 	}
 }
