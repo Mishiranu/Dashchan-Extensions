@@ -16,12 +16,10 @@ public class FourchanBoardsParser {
 	private final Map<String, List<String>> map = new LinkedHashMap<>();
 	private final List<String> list = new ArrayList<>();
 
-	private boolean awaitBoardTitle;
 	private String boardTitle;
 
-
-	public FourchanBoardsParser(FourchanChanLocator locator, String source) {
-		this.locator = locator;
+	public FourchanBoardsParser(String source, Object linked) {
+		this.locator = FourchanChanLocator.get(linked);
 		this.source = source;
 	}
 
@@ -43,22 +41,18 @@ public class FourchanBoardsParser {
 	private static final TemplateParser<FourchanBoardsParser> PARSER = TemplateParser
 			.<FourchanBoardsParser>builder()
 			.name("h3")
-			.open((i, h, t, a) -> {
-				h.awaitBoardTitle = true;
-				return true;
-			})
-			.content((i, h, t) -> {
-				if (!t.contains("Not Safe For Work")) {
-					h.closeBoard();
-					h.boardTitle = StringUtils.clearHtml(t);
+			.content((instance, holder, text) -> {
+				if (!text.contains("Not Safe For Work")) {
+					holder.closeBoard();
+					holder.boardTitle = StringUtils.clearHtml(text);
 				}
 			})
 			.equals("a", "class", "boardlink")
-			.open((i, h, t, a) -> {
-				if (h.boardTitle != null) {
-					String boardName = h.locator.getBoardName(Uri.parse(a.get("href")));
+			.open((instance, holder, tagName, attributes) -> {
+				if (holder.boardTitle != null) {
+					String boardName = holder.locator.getBoardName(Uri.parse(attributes.get("href")));
 					if (boardName != null) {
-						h.list.add(boardName);
+						holder.list.add(boardName);
 					}
 				}
 				return false;

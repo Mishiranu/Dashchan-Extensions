@@ -125,7 +125,6 @@ public class FourchanModelMapper {
 			for (int i = 0; i < posts.length; i++) {
 				jsonObject = jsonArray.getJSONObject(i);
 				posts[i] = createPost(jsonObject, locator, boardName);
-				// noinspection ConstantConditions
 				if (i == 0) {
 					postsCount = jsonObject.getInt("replies") + 1;
 					postsWithFilesCount = jsonObject.getInt("images") + posts[0].getAttachmentsCount();

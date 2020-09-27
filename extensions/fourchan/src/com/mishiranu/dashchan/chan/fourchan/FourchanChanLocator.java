@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 public class FourchanChanLocator extends ChanLocator {
 	private static final String HOST_BOARDS = "boards.4chan.org";
 	private static final String HOST_BOARDS_SAFE = "boards.4channel.org";
-	private static final String HOST_POST = "sys.4chan.org";
+	private static final String HOST_SYS = "sys.4chan.org";
 	private static final String HOST_API = "a.4cdn.org";
 	private static final String HOST_IMAGES = "i.4cdn.org";
 	private static final String HOST_STATIC = "s.4cdn.org";
@@ -29,7 +29,8 @@ public class FourchanChanLocator extends ChanLocator {
 		addConvertableChanHost("www.4channel.org");
 		addSpecialChanHost(HOST_BOARDS);
 		addSpecialChanHost(HOST_BOARDS_SAFE);
-		addSpecialChanHost(HOST_POST);
+		addSpecialChanHost(HOST_SYS);
+		addSpecialChanHost("sys.4channel.org");
 		addSpecialChanHost(HOST_API);
 		addSpecialChanHost(HOST_IMAGES);
 		addSpecialChanHost(HOST_STATIC);
@@ -116,7 +117,7 @@ public class FourchanChanLocator extends ChanLocator {
 	}
 
 	public Uri createSysUri(String... segments) {
-		return buildPathWithSchemeHost(true, HOST_POST, segments);
+		return buildPathWithSchemeHost(true, HOST_SYS, segments);
 	}
 
 	public Uri buildMathUri(String data) {

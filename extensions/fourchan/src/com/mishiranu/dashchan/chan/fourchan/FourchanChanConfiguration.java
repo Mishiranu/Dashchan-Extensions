@@ -5,6 +5,8 @@ import android.util.Pair;
 import chan.content.ChanConfiguration;
 import chan.content.ChanMarkup;
 import chan.util.CommonUtils;
+import chan.util.StringUtils;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +17,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
 	private static final String KEY_SAFE_FOR_WORK = "safe_for_work";
+	private static final String KEY_REPORT_REASONS = "report_reasons";
 
 	private static final String KEY_MATH_TAGS = "math_tags";
 
@@ -35,7 +38,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		board.allowArchive = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;
-		board.allowReporting = true;
+		board.allowReporting = !StringUtils.isEmpty(get(boardName, KEY_REPORT_REASONS, ""));
 		return board;
 	}
 
@@ -68,10 +71,11 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 
 	@Override
 	public Reporting obtainReportingConfiguration(String boardName) {
-		Resources resources = getResources();
+		List<ReportReason> reportReasons = ReportReason.parse(get(boardName, KEY_REPORT_REASONS, ""));
 		Reporting reporting = new Reporting();
-		reporting.types.add(new Pair<>("vio", resources.getString(R.string.text_violation)));
-		reporting.types.add(new Pair<>("illegal", resources.getString(R.string.text_illegal)));
+		for (ReportReason reportReason : reportReasons) {
+			reporting.types.add(new Pair<>(reportReason.getKey(), reportReason.title));
+		}
 		return reporting;
 	}
 
@@ -139,5 +143,9 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		} catch (JSONException e) {
 			// Ignore exception
 		}
+	}
+
+	public void updateReportingConfiguration(String boardName, List<ReportReason> reportReasons) {
+		set(boardName, KEY_REPORT_REASONS, ReportReason.serialize(reportReasons));
 	}
 }
