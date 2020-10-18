@@ -10,7 +10,6 @@ import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.UrlEncodedEntity;
@@ -35,7 +34,7 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("index/" + (data.pageNumber * PAGE_SIZE));
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
 		try {
 			return new ReadThreadsResult(new ArhivachThreadsParser(responseText, this, true).convertThreads());
 		} catch (ParseException e) {
@@ -47,7 +46,7 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createThreadUri(null, data.threadNumber);
-		String responseText = new HttpRequest(uri, data.holder, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
 		try {
 			return new ReadPostsResult(new ArhivachPostsParser(responseText, this, data.threadNumber).convert());
 		} catch (ParseException e) {
@@ -105,7 +104,7 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			ArrayList<String> tagsList = new ArrayList<>();
 			for (String tag : tags) {
 				Uri uri = locator.buildQuery("ajax", "callback", "", "act", "tagcomplete", "q", tag);
-				String responseText = new HttpRequest(uri, data.holder, data).read().getString();
+				String responseText = new HttpRequest(uri, data).perform().readString();
 				try {
 					JSONObject jsonObject = new JSONObject(responseText.substring(1, responseText.length() - 1));
 					JSONArray jsonArray = jsonObject.optJSONArray("tags");
@@ -143,13 +142,14 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			throw new HttpException(0, builder.toString());
 		}
 		Uri uri = locator.buildQuery("index/" + (data.pageNumber * PAGE_SIZE), "tags", searchTags);
-		String responseText = new HttpRequest(uri, data.holder, data).setSuccessOnly(false).read().getString();
-		if (data.holder.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+		HttpResponse response = new HttpRequest(uri, data).setSuccessOnly(false).perform();
+		if (response.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
 			return new ReadSearchPostsResult();
 		}
-		data.holder.checkResponseCode();
+		response.checkResponseCode();
 		try {
-			return new ReadSearchPostsResult(new ArhivachThreadsParser(responseText, this, false).convertPosts());
+			return new ReadSearchPostsResult(new ArhivachThreadsParser
+					(response.readString(), this, false).convertPosts());
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		}
@@ -169,10 +169,10 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadContentResult onReadContent(ReadContentData data) throws HttpException, InvalidResponseException {
 		if ("abload.de".equals(data.uri.getAuthority()) &&
 				StringUtils.emptyIfNull(data.uri.getPath()).startsWith("/thumb/")) {
-			HttpResponse response = new HttpRequest(data.uri, data.holder, data).read();
+			HttpResponse response = new HttpRequest(data.uri, data).perform();
 			try {
 				Thread thread = Thread.currentThread();
-				Bitmap bitmap = response.getBitmap();
+				Bitmap bitmap = response.readBitmap();
 				if (bitmap != null && bitmap.getWidth() == 132 && bitmap.getHeight() == 147) {
 					int top = 1;
 					int[] line = new int[130];
@@ -234,6 +234,8 @@ public class ArhivachChanPerformer extends ChanPerformer {
 					newBitmap.recycle();
 					return new ReadContentResult(new HttpResponse(stream.toByteArray()));
 				}
+			} catch (HttpException e) {
+				throw e;
 			} catch (Exception e) {
 				// Ignore exception
 			}
@@ -254,17 +256,17 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		String email = data.authorizationData[0];
 		String password = data.authorizationData[1];
-		return new CheckAuthorizationResult(authorizeUser(data.holder, data, email, password) != null);
+		return new CheckAuthorizationResult(authorizeUser(data, email, password) != null);
 	}
 
-	private Pair<String, String> authorizeUserFromConfiguration(HttpHolder holder, HttpRequest.Preset preset)
+	private Pair<String, String> authorizeUserFromConfiguration(HttpRequest.Preset preset)
 			throws HttpException, InvalidResponseException {
 		String[] authorizationData = ChanConfiguration.get(this).getUserAuthorizationData();
 		String email = authorizationData[0];
 		String password = authorizationData[1];
 		if (!checkEmailPassword(email, password)) {
 			if (email != null && password != null) {
-				return authorizeUser(holder, preset, email, password);
+				return authorizeUser(preset, email, password);
 			} else {
 				userEmailPassword = null;
 			}
@@ -272,17 +274,18 @@ public class ArhivachChanPerformer extends ChanPerformer {
 		return userEmailPassword;
 	}
 
-	private Pair<String, String> authorizeUser(HttpHolder holder, HttpRequest.Preset preset,
-			String email, String password) throws HttpException, InvalidResponseException {
+	private Pair<String, String> authorizeUser(HttpRequest.Preset preset, String email,
+			String password) throws HttpException, InvalidResponseException {
 		userEmailPassword = null;
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "add");
-		JSONObject jsonObject = new HttpRequest(uri, holder, preset).setPostMethod(new UrlEncodedEntity("email", email,
-				"pass", password)).read().getJsonObject();
-		if (jsonObject == null) {
-			throw new InvalidResponseException();
+		try {
+			JSONObject jsonObject = new JSONObject(new HttpRequest(uri, preset)
+					.setPostMethod(new UrlEncodedEntity("email", email, "pass", password)).perform().readString());
+			return updateAuthorizationData(jsonObject, new Pair<>(email, password));
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
-		return updateAuthorizationData(jsonObject, new Pair<>(email, password));
 	}
 
 	private Pair<String, String> updateAuthorizationData(JSONObject jsonObject, Pair<String, String> emailPassword) {
@@ -304,10 +307,10 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException {
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("captcha");
-		Bitmap image = new HttpRequest(uri, data).read().getBitmap();
+		HttpResponse response = new HttpRequest(uri, data).perform();
 		CaptchaData captchaData = new CaptchaData();
-		captchaData.put(CaptchaData.CHALLENGE, data.holder.getCookieValue("PHPSESSID"));
-		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image);
+		captchaData.put(CaptchaData.CHALLENGE, response.getCookieValue("PHPSESSID"));
+		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(response.readBitmap());
 	}
 
 	private static class ArchiveRedirectHandler implements HttpRequest.RedirectHandler {
@@ -319,20 +322,19 @@ public class ArhivachChanPerformer extends ChanPerformer {
 		}
 
 		@Override
-		public Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
-				throws HttpException {
-			if (locator.isThreadUri(redirectedUri)) {
-				threadNumber = locator.getThreadNumber(redirectedUri);
+		public Action onRedirect(HttpResponse response) throws HttpException {
+			if (locator.isThreadUri(response.getRedirectedUri())) {
+				threadNumber = locator.getThreadNumber(response.getRedirectedUri());
 				return Action.CANCEL;
 			}
-			return STRICT.onRedirectReached(responseCode, requestedUri, redirectedUri, holder);
+			return STRICT.onRedirect(response);
 		}
 	}
 
 	@Override
 	public SendAddToArchiveResult onSendAddToArchive(SendAddToArchiveData data) throws HttpException, ApiException,
 			InvalidResponseException {
-		Pair<String, String> userEmailPassword = authorizeUserFromConfiguration(data.holder, data);
+		Pair<String, String> userEmailPassword = authorizeUserFromConfiguration(data);
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("api", "add");
 		boolean first = true;
@@ -357,15 +359,17 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			entity.add("captcha_code", captchaInput);
 			entity.add("add_collapsed", data.options.contains("collapsed") ? "on" : null);
 			ArchiveRedirectHandler redirectHandler = new ArchiveRedirectHandler(ArhivachChanLocator.get(this));
-			HttpResponse response = new HttpRequest(uri, data.holder, data).setPostMethod(entity)
-					.addCookie("PHPSESSID", captchaChallenge).setRedirectHandler(redirectHandler).read();
+			HttpResponse response = new HttpRequest(uri, data).setPostMethod(entity)
+					.addCookie("PHPSESSID", captchaChallenge).setRedirectHandler(redirectHandler).perform();
 			if (redirectHandler.threadNumber != null) {
 				// Api is broken, handle redirect instead
 				return new SendAddToArchiveResult(null, redirectHandler.threadNumber);
 			}
-			JSONObject jsonObject = response.getJsonObject();
-			if (jsonObject == null) {
-				throw new InvalidResponseException();
+			JSONObject jsonObject;
+			try {
+				jsonObject = new JSONObject(response.readString());
+			} catch (JSONException e) {
+				throw new InvalidResponseException(e);
 			}
 			updateAuthorizationData(jsonObject, userEmailPassword);
 			JSONArray errorsArray = jsonObject.optJSONArray("errors");

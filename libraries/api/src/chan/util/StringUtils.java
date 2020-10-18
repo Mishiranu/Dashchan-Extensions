@@ -55,17 +55,6 @@ public class StringUtils {
 	}
 
 	/**
-	 * <p>Returns whether strings are equals. May handle null values.</p>
-	 *
-	 * @param first String instance.
-	 * @param second String instance.
-	 * @return True if strings are equals.
-	 */
-	public static boolean equals(String first, String second) {
-		return BuildConfig.Private.expr(first, second);
-	}
-
-	/**
 	 * <p>Returns the next index of the nearest of given {@code what} string array in {@code string}, or -1.</p>
 	 *
 	 * @param string Where to search.
@@ -85,7 +74,7 @@ public class StringUtils {
 	 * @param what Char array to search.
 	 * @return True if strings are equals.
 	 */
-	public static int nearestIndexOf(String string, int start, char... what) {
+	public static int nearestIndexOf(CharSequence string, int start, char... what) {
 		return BuildConfig.Private.expr(string, string, what);
 	}
 

@@ -14,6 +14,17 @@ public class CommonUtils {
 	}
 
 	/**
+	 * <p>Returns whether object are equal. May handle null values.</p>
+	 *
+	 * @param first Object instance.
+	 * @param second Object instance.
+	 * @return True if objects are equal.
+	 */
+	public static boolean equals(Object first, Object second) {
+		return BuildConfig.Private.expr(first, second);
+	}
+
+	/**
 	 * <p>Wait time = {@code interval} - (current time - {@code startRealtime}).
 	 * Returns whether thread was interrupted during sleep.</p>
 	 *

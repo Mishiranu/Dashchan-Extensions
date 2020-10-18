@@ -41,7 +41,7 @@ public class YakujiMoeChanPerformer extends WakabaChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		YakujiMoeChanLocator locator = YakujiMoeChanLocator.get(this);
 		Uri uri = locator.buildPath("n", "list.html");
-		String responseText = new HttpRequest(uri, data).read().getString();
+		String responseText = new HttpRequest(uri, data).perform().readString();
 		try {
 			return new ReadBoardsResult(new YakujiMoeBoardsParser(responseText).convert());
 		} catch (ParseException e) {
@@ -53,7 +53,7 @@ public class YakujiMoeChanPerformer extends WakabaChanPerformer {
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		RequestEntity entity = createSendPostEntity(data, field ->
 				field.startsWith("field") ? "nya" + field.substring(5) : field);
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data.holder, data);
+		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			return null;
 		}

@@ -62,9 +62,9 @@ public class SimpleEntity implements RequestEntity {
 		return BuildConfig.Private.expr();
 	}
 
-	@SuppressWarnings("RedundantThrows")
 	@Override
 	public void write(OutputStream output) throws IOException {
+		BuildConfig.Private.<IOException>error();
 		BuildConfig.Private.expr(output);
 	}
 

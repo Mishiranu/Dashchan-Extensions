@@ -73,9 +73,6 @@ public class LocalChanPerformer extends ChanPerformer {
 
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
-		if (data.cachedPosts != null) {
-			return new ReadPostsResult(data.cachedPosts); // Do not allow models merging
-		}
 		LocalChanConfiguration configuration = ChanConfiguration.get(this);
 		DataFile localDownloadDirectory = configuration.getLocalDownloadDirectory();
 		DataFile file = localDownloadDirectory.getChild(data.threadNumber + ".html");

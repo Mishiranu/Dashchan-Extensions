@@ -65,7 +65,6 @@ public final class Posts {
 	 * @param posts Collection of {@link Post}.
 	 * @return This model.
 	 */
-	@SuppressWarnings("unchecked")
 	public Posts setPosts(Collection<? extends Post> posts) {
 		return BuildConfig.Private.expr(posts);
 	}
@@ -186,7 +185,6 @@ public final class Posts {
 	 *
 	 * @param posts Collection of {@link Post}.
 	 */
-	@SuppressWarnings("unchecked")
 	public Posts(Collection<? extends Post> posts) {
 		BuildConfig.Private.expr(posts);
 	}

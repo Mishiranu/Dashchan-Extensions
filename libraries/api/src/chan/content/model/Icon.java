@@ -3,12 +3,11 @@ package chan.content.model;
 import android.net.Uri;
 import chan.content.ChanLocator;
 import chan.library.api.BuildConfig;
-import java.io.Serializable;
 
 /**
  * <p>Model containing post icon.</p>
  */
-public final class Icon implements Serializable {
+public final class Icon {
 	/**
 	 * <p>Constructor for {@link Icon}.</p>
 	 *

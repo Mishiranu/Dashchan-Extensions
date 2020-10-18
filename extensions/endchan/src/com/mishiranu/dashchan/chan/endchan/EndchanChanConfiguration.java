@@ -15,7 +15,6 @@ public class EndchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 
 	public EndchanChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		request(OPTION_READ_USER_BOARDS);
 		setDefaultName("Anonymous");
 		addCaptchaType("endchan");

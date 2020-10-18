@@ -80,8 +80,8 @@ public class DataFile {
 	 * @return Input stream.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	@SuppressWarnings("RedundantThrows")
 	public InputStream openInputStream() throws IOException {
+		BuildConfig.Private.<IOException>error();
 		return BuildConfig.Private.expr();
 	}
 
@@ -91,8 +91,8 @@ public class DataFile {
 	 * @return Output stream.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	@SuppressWarnings("RedundantThrows")
 	public OutputStream openOutputStream() throws IOException {
+		BuildConfig.Private.<IOException>error();
 		return BuildConfig.Private.expr();
 	}
 }

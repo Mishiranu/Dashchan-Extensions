@@ -9,8 +9,8 @@ import android.util.Pair;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
+import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
 import chan.http.RequestEntity;
 import chan.http.UrlEncodedEntity;
@@ -31,7 +31,7 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 			RedirectException {
 		WakabaChanLocator locator = WakabaChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, data.pageNumber);
-		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
+		String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
 		try {
 			return new ReadThreadsResult(parseThreads(data.boardName, responseText));
 		} catch (ParseException e) {
@@ -47,7 +47,7 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 		if (redirectHandler != null) {
 			request.setRedirectHandler(redirectHandler);
 		}
-		String responseText = request.read().getString();
+		String responseText = request.perform().readString();
 		try {
 			List<Post> posts = parsePosts(data.boardName, responseText);
 			if (posts == null || posts.isEmpty()) {
@@ -79,21 +79,12 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 		return new ReadPostsCountResult(count);
 	}
 
-	@Override
-	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
-			InvalidResponseException {
-		WakabaChanLocator locator = WakabaChanLocator.get(this);
-		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
-		return createPostsCountResult(responseText);
-	}
-
 	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
 			{0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 0f, 1f, 0f});
 
 	protected ReadCaptchaResult readCaptchaResult(ReadCaptchaData data, Uri uri)
 			throws HttpException, InvalidResponseException {
-		Bitmap image = new HttpRequest(uri, data).read().getBitmap();
+		Bitmap image = new HttpRequest(uri, data).perform().readBitmap();
 		if (image != null) {
 			Bitmap newImage = Bitmap.createBitmap(image.getWidth(), 32, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(newImage);
@@ -154,27 +145,23 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 		return entity;
 	}
 
-	private static final HttpRequest.RedirectHandler POST_REDIRECT_HANDLER =
-			(responseCode, requestedUri, redirectedUri, holder) -> {
-		if (responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
+	private static final HttpRequest.RedirectHandler POST_REDIRECT_HANDLER = response -> {
+		if (response.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
 			return HttpRequest.RedirectHandler.Action.CANCEL;
 		}
-		return HttpRequest.RedirectHandler.STRICT.onRedirectReached(responseCode, requestedUri, redirectedUri, holder);
+		return HttpRequest.RedirectHandler.STRICT.onRedirect(response);
 	};
 
 	protected Pair<String, Uri> executeWakaba(String boardName, RequestEntity entity,
-			HttpHolder holder, HttpRequest.Preset preset) throws HttpException {
+			HttpRequest.Preset preset) throws HttpException {
 		WakabaChanLocator locator = WakabaChanLocator.get(this);
 		Uri uri = locator.createScriptUri(boardName, "wakaba.pl");
-		try {
-			new HttpRequest(uri, preset).setPostMethod(entity).setRedirectHandler(POST_REDIRECT_HANDLER).execute();
-			if (holder.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
-				return new Pair<>(null, holder.getRedirectedUri());
-			}
-			return new Pair<>(StringUtils.emptyIfNull(holder.read().getString()), null);
-		} finally {
-			holder.disconnect();
+		HttpResponse response = new HttpRequest(uri, preset).setPostMethod(entity)
+				.setRedirectHandler(POST_REDIRECT_HANDLER).perform();
+		if (response.getResponseCode() == HttpURLConnection.HTTP_SEE_OTHER) {
+			return new Pair<>(null, response.getRedirectedUri());
 		}
+		return new Pair<>(StringUtils.emptyIfNull(response.readString()), null);
 	}
 
 	protected enum ErrorSource {POST, DELETE}
@@ -250,7 +237,7 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		RequestEntity entity = createSendPostEntity(data, null);
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data.holder, data);
+		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			return null;
 		}
@@ -268,7 +255,7 @@ public abstract class WakabaChanPerformer extends ChanPerformer {
 		if (data.optionFilesOnly) {
 			entity.add("fileonly", "on");
 		}
-		Pair<String, Uri> result = executeWakaba(data.boardName, entity, data.holder, data);
+		Pair<String, Uri> result = executeWakaba(data.boardName, entity, data);
 		if (result.first == null) {
 			return null;
 		}

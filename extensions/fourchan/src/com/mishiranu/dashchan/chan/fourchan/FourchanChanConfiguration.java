@@ -22,7 +22,6 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_MATH_TAGS = "math_tags";
 
 	public FourchanChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		request(OPTION_ALLOW_CAPTCHA_PASS);
 		setDefaultName("Anonymous");
 		setBumpLimit(300);

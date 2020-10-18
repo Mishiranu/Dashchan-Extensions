@@ -9,7 +9,6 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.content.model.ThreadSummary;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.HttpValidator;
@@ -378,11 +377,6 @@ public class ChanPerformer {
 		public final int pageNumber = BuildConfig.Private.expr();
 
 		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
-		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
 		 */
 		public final HttpValidator validator = BuildConfig.Private.expr();
@@ -420,7 +414,6 @@ public class ChanPerformer {
 		 *
 		 * @param threads Collection of {@link Posts}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadThreadsResult(Collection<Posts> threads) {
 			BuildConfig.Private.expr(threads);
 		}
@@ -436,7 +429,7 @@ public class ChanPerformer {
 		}
 
 		/**
-		 * <p>Stores {@code validator} in this result. By default client will call {@link HttpHolder#getValidator()}
+		 * <p>Stores {@code validator} in this result. By default client will call {@link HttpResponse#getValidator()}
 		 * after the last request. This can be useful if you want to store validator from intermediate request.</p>
 		 *
 		 * @param validator {@link HttpValidator} instance.
@@ -463,7 +456,7 @@ public class ChanPerformer {
 		public final String threadNumber = BuildConfig.Private.expr();
 
 		/**
-		 * <p>Last post number argument. Used when partial thread loading enabled.</p>
+		 * <p>Last existing post number argument. Used when partial thread loading enabled.</p>
 		 */
 		public final String lastPostNumber = BuildConfig.Private.expr();
 
@@ -473,15 +466,9 @@ public class ChanPerformer {
 		public final boolean partialThreadLoading = BuildConfig.Private.expr();
 
 		/**
-		 * <p>Current cached posts model. <strong>Do not modity this model!</strong> This model is used
-		 * only for reading.</p>
+		 * <p>Existing cached posts. Read-only data.</p>
 		 */
 		public final Posts cachedPosts = BuildConfig.Private.expr();
-
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
@@ -522,13 +509,12 @@ public class ChanPerformer {
 		 *
 		 * @param posts Collection of {@link Post}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadPostsResult(Collection<Post> posts) {
 			BuildConfig.Private.expr(posts);
 		}
 
 		/**
-		 * <p>Stores {@code validator} in this cache. By default client will call {@link HttpHolder#getValidator()}
+		 * <p>Stores {@code validator} in this cache. By default client will call {@link HttpResponse#getValidator()}
 		 * after the last request. This can be useful if you want to store validator from intermediate request.</p>
 		 *
 		 * @param validator {@link HttpValidator} instance.
@@ -563,11 +549,6 @@ public class ChanPerformer {
 		 * <p>Post number argument.</p>
 		 */
 		public final String postNumber = BuildConfig.Private.expr();
-
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		private ReadSinglePostData() {
 			BuildConfig.Private.expr();
@@ -608,11 +589,6 @@ public class ChanPerformer {
 		 */
 		public final int pageNumber = BuildConfig.Private.expr();
 
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private ReadSearchPostsData() {
 			BuildConfig.Private.expr();
 		}
@@ -636,7 +612,6 @@ public class ChanPerformer {
 		 *
 		 * @param posts Collection of {@link Post}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadSearchPostsResult(Collection<Post> posts) {
 			BuildConfig.Private.expr(posts);
 		}
@@ -647,11 +622,6 @@ public class ChanPerformer {
 	 * be used as {@link HttpRequest.Preset}.</p>
 	 */
 	public static class ReadBoardsData implements HttpRequest.Preset {
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private ReadBoardsData() {
 			BuildConfig.Private.expr();
 		}
@@ -675,7 +645,6 @@ public class ChanPerformer {
 		 *
 		 * @param boardCategories Collection of {@link BoardCategory}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadBoardsResult(Collection<BoardCategory> boardCategories) {
 			BuildConfig.Private.expr(boardCategories);
 		}
@@ -686,11 +655,6 @@ public class ChanPerformer {
 	 * be used as {@link HttpRequest.Preset}.</p>
 	 */
 	public static class ReadUserBoardsData implements HttpRequest.Preset {
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private ReadUserBoardsData() {
 			BuildConfig.Private.expr();
 		}
@@ -714,7 +678,6 @@ public class ChanPerformer {
 		 *
 		 * @param boards Collection of {@link Board}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadUserBoardsResult(Collection<Board> boards) {
 			BuildConfig.Private.expr(boards);
 		}
@@ -745,11 +708,6 @@ public class ChanPerformer {
 		 */
 		public final int type = BuildConfig.Private.expr();
 
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private ReadThreadSummariesData() {
 			BuildConfig.Private.expr();
 		}
@@ -773,7 +731,6 @@ public class ChanPerformer {
 		 *
 		 * @param threadSummaries Collection of {@link ThreadSummary}.
 		 */
-		@SuppressWarnings("unchecked")
 		public ReadThreadSummariesResult(Collection<ThreadSummary> threadSummaries) {
 			BuildConfig.Private.expr(threadSummaries);
 		}
@@ -793,11 +750,6 @@ public class ChanPerformer {
 		 * <p>Thread number argument.</p>
 		 */
 		public final String threadNumber = BuildConfig.Private.expr();
-
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		/**
 		 * <p>HTTP validator. With this argument you can check if page was changed.</p>
@@ -823,7 +775,7 @@ public class ChanPerformer {
 		}
 
 		/**
-		 * <p>Stores {@code validator} in this cache. By default client will call {@link HttpHolder#getValidator()}
+		 * <p>Stores {@code validator} in this cache. By default client will call {@link HttpResponse#getValidator()}
 		 * after the last request. This can be useful if you want to store validator from intermediate request.</p>
 		 *
 		 * @param validator {@link HttpValidator} instance.
@@ -845,9 +797,9 @@ public class ChanPerformer {
 		public final Uri uri = BuildConfig.Private.expr();
 
 		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
+		 * <p>Configuration preset used for direct requests. It should be used to download the requested data.</p>
 		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
+		public final HttpRequest.Preset direct = BuildConfig.Private.expr();
 
 		private ReadContentData() {
 			BuildConfig.Private.expr();
@@ -892,11 +844,6 @@ public class ChanPerformer {
 		 * <p>Authorization data fields.</p>
 		 */
 		public final String[] authorizationData = BuildConfig.Private.expr();
-
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		private CheckAuthorizationData() {
 			BuildConfig.Private.expr();
@@ -952,11 +899,6 @@ public class ChanPerformer {
 		 * <p>Thread number argument</p>
 		 */
 		public final String threadNumber = BuildConfig.Private.expr();
-
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
 
 		private ReadCaptchaData() {
 			BuildConfig.Private.expr();
@@ -1181,11 +1123,6 @@ public class ChanPerformer {
 		public final CaptchaData captchaData = BuildConfig.Private.expr();
 
 		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
-		/**
 		 * <p>Holds attachment data.</p>
 		 */
 		public static class Attachment {
@@ -1232,8 +1169,8 @@ public class ChanPerformer {
 			 *
 			 * @throws IOException If an error occurs while initializing a stream.
 			 */
-			@SuppressWarnings("RedundantThrows")
 			public InputStream openInputSteam() throws IOException {
+				BuildConfig.Private.<IOException>error();
 				return BuildConfig.Private.expr();
 			}
 
@@ -1243,8 +1180,8 @@ public class ChanPerformer {
 			 *
 			 * @throws IOException If an error occurs while initializing a stream.
 			 */
-			@SuppressWarnings("RedundantThrows")
 			public InputStream openInputSteamForSending() throws IOException {
+				BuildConfig.Private.<IOException>error();
 				return BuildConfig.Private.expr();
 			}
 
@@ -1313,11 +1250,6 @@ public class ChanPerformer {
 		 */
 		public final boolean optionFilesOnly = BuildConfig.Private.expr();
 
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private SendDeletePostsData() {
 			BuildConfig.Private.expr();
 		}
@@ -1363,11 +1295,6 @@ public class ChanPerformer {
 		 */
 		public final String comment = BuildConfig.Private.expr();
 
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private SendReportPostsData() {
 			BuildConfig.Private.expr();
 		}
@@ -1403,11 +1330,6 @@ public class ChanPerformer {
 		 */
 		public final List<String> options = BuildConfig.Private.expr();
 
-		/**
-		 * <p>HTTP holder. You must use it when building new {@link HttpRequest}.</p>
-		 */
-		public final HttpHolder holder = BuildConfig.Private.expr();
-
 		private SendAddToArchiveData() {
 			BuildConfig.Private.expr();
 		}
@@ -1437,9 +1359,11 @@ public class ChanPerformer {
 	 * @param threadNumber Thread number.
 	 * @param retry True if this is not the first request. If true, this will show "invalid captcha" toast for user.
 	 * @return {@link CaptchaData} with {@link CaptchaData#INPUT} or null if user has canceled an operation.
+	 * @throws HttpException if HTTP or another error with message occurred.
 	 */
 	protected final CaptchaData requireUserCaptcha(String requirement, String boardName, String threadNumber,
-			boolean retry) {
+			boolean retry) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr(requirement, boardName, threadNumber, retry);
 	}
 
@@ -1451,9 +1375,11 @@ public class ChanPerformer {
 	 * @param descriptionText Description text (e.g. "Select all burgers").
 	 * @param descriptionImage Description image (e.g. example image).
 	 * @return Index of chosen item, -1 if item wasn't chosen or {@code null} if user has canceled an operation.
+	 * @throws HttpException if HTTP or another error with message occurred.
 	 */
 	protected final Integer requireUserItemSingleChoice(int selected, CharSequence[] items, String descriptionText,
-			Bitmap descriptionImage) {
+			Bitmap descriptionImage) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr(selected, items, descriptionText, descriptionImage);
 	}
 
@@ -1465,9 +1391,11 @@ public class ChanPerformer {
 	 * @param descriptionText Description text (e.g. "Select all burgers").
 	 * @param descriptionImage Description image (e.g. example image).
 	 * @return Array of selected indexes or {@code null} if user has canceled an operation.
+	 * @throws HttpException if HTTP or another error with message occurred.
 	 */
 	protected final boolean[] requireUserItemMultipleChoice(boolean[] selected, CharSequence[] items,
-			String descriptionText, Bitmap descriptionImage) {
+			String descriptionText, Bitmap descriptionImage) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr(selected, items, descriptionText, descriptionImage);
 	}
 
@@ -1479,9 +1407,11 @@ public class ChanPerformer {
 	 * @param descriptionText Description text (e.g. "Select all burgers").
 	 * @param descriptionImage Description image (e.g. example image).
 	 * @return Index of chosen image, -1 if image wasn't chosen or {@code null} if user has canceled an operation.
+	 * @throws HttpException if HTTP or another error with message occurred.
 	 */
 	protected final Integer requireUserImageSingleChoice(int selected, Bitmap[] images, String descriptionText,
-			Bitmap descriptionImage) {
+			Bitmap descriptionImage) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr(selected, images, descriptionText, descriptionImage);
 	}
 
@@ -1493,9 +1423,11 @@ public class ChanPerformer {
 	 * @param descriptionText Description text (e.g. "Select all burgers").
 	 * @param descriptionImage Description image (e.g. example image).
 	 * @return Array of selected indexes or {@code null} if user has canceled an operation.
+	 * @throws HttpException if HTTP or another error with message occurred.
 	 */
 	protected final boolean[] requireUserImageMultipleChoice(boolean[] selected, Bitmap[] images,
-			String descriptionText, Bitmap descriptionImage) {
+			String descriptionText, Bitmap descriptionImage) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr(selected, images, descriptionText, descriptionImage);
 	}
 }

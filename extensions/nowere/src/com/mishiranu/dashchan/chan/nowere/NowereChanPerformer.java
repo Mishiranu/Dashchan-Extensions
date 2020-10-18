@@ -10,6 +10,7 @@ import chan.content.model.ThreadSummary;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.text.ParseException;
+import chan.util.StringUtils;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +57,7 @@ public class NowereChanPerformer extends WakabaChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		NowereChanLocator locator = NowereChanLocator.get(this);
 		Uri uri = locator.buildPath("nav.html");
-		String responseText = new HttpRequest(uri, data).read().getString();
+		String responseText = new HttpRequest(uri, data).perform().readString();
 		try {
 			return new ReadBoardsResult(new NowereBoardsParser(responseText).convert());
 		} catch (ParseException e) {
@@ -75,13 +76,13 @@ public class NowereChanPerformer extends WakabaChanPerformer {
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException {
 		NowereChanLocator locator = NowereChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, 0).buildUpon().appendEncodedPath("arch").build();
-		String responseText = new HttpRequest(uri, data).read().getString();
+		String responseText = new HttpRequest(uri, data).perform().readString();
 		ArrayList<Pair<Integer, ThreadSummary>> threadSummaries = new ArrayList<>();
 		Matcher matcher = PATTERN_ARCHIVED_THREAD.matcher(responseText);
 		while (matcher.find()) {
 			String threadNumber = matcher.group(1);
 			threadSummaries.add(new Pair<>(Integer.parseInt(threadNumber), new ThreadSummary(data.boardName,
-					threadNumber, "#" + threadNumber + ", " + matcher.group(2).trim())));
+					threadNumber, "#" + threadNumber + ", " + StringUtils.emptyIfNull(matcher.group(2)).trim())));
 		}
 		if (threadSummaries.size() > 0) {
 			Collections.sort(threadSummaries, ARCHIVE_COMPARATOR);

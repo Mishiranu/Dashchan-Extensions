@@ -2,7 +2,6 @@ package chan.http;
 
 import android.net.Uri;
 import chan.library.api.BuildConfig;
-import java.io.OutputStream;
 
 /**
  * <p>HTTP request builder and executor.</p>
@@ -50,15 +49,13 @@ public final class HttpRequest {
 		 * <p>HTTP client will call this method every time it reaches redirect response code.
 		 * You must return the most suitable {@link Action} type for this response.</p>
 		 *
-		 * @param responseCode Response code.
-		 * @param requestedUri Requested URI.
-		 * @param redirectedUri URI decoded from {@code Location} header.
-		 * @param holder HTTP holder instance.
+		 * <p>You can also override the redirected URI using {@link HttpResponse#setRedirectedUri(Uri)}.</p>
+		 *
+		 * @param response Response.
 		 * @return {@link Action} type.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
-				throws HttpException;
+		Action onRedirect(HttpResponse response) throws HttpException;
 
 		/**
 		 * <p>{@link RedirectHandler} implementation. This handler will not follow any redirects.</p>
@@ -79,28 +76,6 @@ public final class HttpRequest {
 
 	/**
 	 * <p>Constructor for {@link HttpRequest}.</p>
-	 *
-	 * @param uri URI for request.
-	 * @param holder {@link HttpHolder} instance. May be null.
-	 * @param preset Preset with configuration.
-	 */
-	public HttpRequest(Uri uri, HttpHolder holder, Preset preset) {
-		BuildConfig.Private.expr(uri, holder, preset);
-	}
-
-	/**
-	 * <p>Constructor for {@link HttpRequest} without preset.</p>
-	 *
-	 * @param uri URI for request.
-	 * @param holder {@link HttpHolder} instance. May be null.
-	 */
-	public HttpRequest(Uri uri, HttpHolder holder) {
-		BuildConfig.Private.expr(uri, holder);
-	}
-
-	/**
-	 * <p>Constructor for {@link HttpRequest}. In most cases {@link Preset} can provide it's own
-	 * {@link HttpHolder}, so you can use this constructor.</p>
 	 *
 	 * @param uri URI for request.
 	 * @param preset Preset with configuration.
@@ -158,7 +133,7 @@ public final class HttpRequest {
 	}
 
 	/**
-	 * <p>Configures response code handling. The {@link HttpHolder#checkResponseCode()} will be called automatically
+	 * <p>Configures response code handling. The {@link HttpResponse#checkResponseCode()} will be called automatically
 	 * if this handling enabled. Enabled by default.</p>
 	 *
 	 * @param successOnly True to enable handling, false to disable one.
@@ -218,17 +193,6 @@ public final class HttpRequest {
 	 */
 	public HttpRequest setDelay(int delay) {
 		return BuildConfig.Private.expr(delay);
-	}
-
-	/**
-	 * <p>Sets the output stream as the destination of response. In this case {@link #read()} method
-	 * will return {@code null} value.</p>
-	 *
-	 * @param outputStream Output stream.
-	 * @return This builder.
-	 */
-	public HttpRequest setOutputStream(OutputStream outputStream) {
-		return BuildConfig.Private.expr(outputStream);
 	}
 
 	/**
@@ -304,26 +268,14 @@ public final class HttpRequest {
 	}
 
 	/**
-	 * <p>Executes HTTP request. This make available response headers with returned {@link HttpHolder}.
-	 * Later you can read response body with {@link HttpHolder#read()} or disconnect.</p>
-	 *
-	 * @return HTTP connection holder.
-	 * @throws HttpException if HTTP exception occurred.
-	 */
-	@SuppressWarnings("RedundantThrows")
-	public HttpHolder execute() throws HttpException {
-		return BuildConfig.Private.expr();
-	}
-
-	/**
 	 * <p>Executes HTTP request and reads response.</p>
 	 *
 	 * @return HTTP response.
 	 * @throws HttpException if HTTP exception occurred.
 	 * @see HttpResponse
 	 */
-	@SuppressWarnings("RedundantThrows")
-	public HttpResponse read() throws HttpException {
+	public HttpResponse perform() throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		return BuildConfig.Private.expr();
 	}
 }

@@ -1,11 +1,13 @@
 package chan.text;
 
 import chan.library.api.BuildConfig;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * <p>HTML text parser. Can work in two modes: linear and group.</p>
  *
- * <p>In linear mode, parser will call {@link Callback#onStartElement(GroupParser, String, String)} every
+ * <p>In linear mode, parser will call {@link Callback#onStartElement(GroupParser, String, Attributes)}  every
  * time parser reaches new tag. This method has boolean result, and when this method returns true - parser switches
  * to group mode.</p>
  *
@@ -13,6 +15,35 @@ import chan.library.api.BuildConfig;
  * {@link Callback#onGroupComplete(GroupParser, String)} with all text inside tag.</p>
  */
 public final class GroupParser {
+	/**
+	 * <p>Attributes holder and parser.</p>
+	 */
+	public static final class Attributes {
+		private Attributes() {
+			BuildConfig.Private.expr();
+		}
+
+		/**
+		 * <p>Parses the attribute and returns its value if attribute exists.</p>
+		 *
+		 * @param attribute Attribute name.
+		 * @return Attribute value.
+		 */
+		public String get(String attribute) {
+			return BuildConfig.Private.expr(attribute);
+		}
+
+		/**
+		 * <p>Checks the attributes line contains the string.</p>
+		 *
+		 * @param string String to search for.
+		 * @return True if string contains the {@code string}.
+		 */
+		public boolean contains(CharSequence string) {
+			return BuildConfig.Private.expr(string);
+		}
+	}
+
 	/**
 	 * <p>Callback for {@link GroupParser}.</p>
 	 */
@@ -22,11 +53,11 @@ public final class GroupParser {
 		 *
 		 * @param parser {@link GroupParser} instance.
 		 * @param tagName Name of tag.
-		 * @param attrs Encoded attributes inside tag.
+		 * @param attributes Tag attributes.
 		 * @return True to switch parser to group mode.
 		 * @throws ParseException to interrupt parsing process.
 		 */
-		boolean onStartElement(GroupParser parser, String tagName, String attrs) throws ParseException;
+		boolean onStartElement(GroupParser parser, String tagName, Attributes attributes) throws ParseException;
 
 		/**
 		 * <p>This method will be called in linear mode every time parser reaches end of tag.</p>
@@ -41,12 +72,10 @@ public final class GroupParser {
 		 * <p>This method will be called in linear mode every time parser skips text.</p>
 		 *
 		 * @param parser {@link GroupParser} instance.
-		 * @param source Source string.
-		 * @param start Start index of text.
-		 * @param end End index of text.
+		 * @param text Source string.
 		 * @throws ParseException to interrupt parsing process.
 		 */
-		void onText(GroupParser parser, String source, int start, int end) throws ParseException;
+		void onText(GroupParser parser, CharSequence text) throws ParseException;
 
 		/**
 		 * <p>This method will be called in group mode every time parser reaches end of group.</p>
@@ -69,34 +98,22 @@ public final class GroupParser {
 	 * @param callback Callback to handle parsed data.
 	 * @throws ParseException when parsing process was interrupted.
 	 */
-	@SuppressWarnings("RedundantThrows")
 	public static void parse(String source, Callback callback) throws ParseException {
+		BuildConfig.Private.<ParseException>error();
 		BuildConfig.Private.expr(source, callback);
 	}
 
 	/**
-	 * <p>Stores parser's position. Later you can come back with {@link #reset()} method.</p>
-	 */
-	public void mark() {
-		BuildConfig.Private.expr();
-	}
-
-	/**
-	 * <p>Resets parser's position to last marked one.</p>
-	 */
-	public void reset() {
-		BuildConfig.Private.expr();
-	}
-
-	/**
-	 * <p>Decodes attribute from encoded string. You can use it to handle {@code attrs} argument in
-	 * {@link Callback#onStartElement(GroupParser, String, String)} method.</p>
+	 * <p>Starts a new parsing process.</p>
 	 *
-	 * @param attrs Encoded string.
-	 * @param attr Attribute name.
-	 * @return Attribute value if it exists or {@code null}.
+	 * @param reader Input to parse.
+	 * @param callback Callback to handle parsed data.
+	 * @throws IOException when reading process was interrupted due to I/O problem.
+	 * @throws ParseException when parsing process was interrupted.
 	 */
-	public String getAttr(String attrs, String attr) {
-		return BuildConfig.Private.expr(attrs, attr);
+	public static void parse(Reader reader, Callback callback) throws IOException, ParseException {
+		BuildConfig.Private.<IOException>error();
+		BuildConfig.Private.<ParseException>error();
+		BuildConfig.Private.expr(reader, callback);
 	}
 }

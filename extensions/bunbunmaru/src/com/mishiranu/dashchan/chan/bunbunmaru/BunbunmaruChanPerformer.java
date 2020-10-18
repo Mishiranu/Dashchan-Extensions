@@ -30,7 +30,7 @@ public class BunbunmaruChanPerformer extends WakabaChanPerformer {
 		MultipartEntity entity = new MultipartEntity();
 		entity.add("task", "search");
 		entity.add("q", data.searchQuery);
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data.holder, data);
+		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			throw new InvalidResponseException();
 		}

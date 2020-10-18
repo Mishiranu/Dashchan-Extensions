@@ -12,6 +12,7 @@ import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
+import chan.http.HttpResponse;
 import chan.http.SimpleEntity;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
@@ -37,33 +38,29 @@ public class EndchanChanPerformer extends ChanPerformer {
 		EndchanChanLocator locator = EndchanChanLocator.get(this);
 		if (data.isCatalog()) {
 			Uri uri = locator.buildPath(data.boardName, "catalog.json");
-			JSONArray jsonArray = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonArray();
-			if (jsonArray == null) {
-				throw new InvalidResponseException();
-			}
-			if (jsonArray.length() == 0) {
-				return null;
-			}
 			try {
+				JSONArray jsonArray = new JSONArray(new HttpRequest(uri, data)
+						.setValidator(data.validator).perform().readString());
+				if (jsonArray.length() == 0) {
+					return null;
+				}
 				return new ReadThreadsResult(EndchanModelMapper.createThreads(jsonArray, locator));
 			} catch (JSONException | ParseException e) {
 				throw new InvalidResponseException(e);
 			}
 		} else {
 			Uri uri = locator.buildPath(data.boardName, (data.pageNumber + 1) + ".json");
-			JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
-			if (jsonObject == null) {
-				throw new InvalidResponseException();
-			}
-			if (data.pageNumber == 0) {
-				EndchanChanConfiguration configuration = EndchanChanConfiguration.get(this);
-				configuration.updateFromThreadsJson(data.boardName, jsonObject, true);
-			}
-			JSONArray jsonArray = jsonObject.optJSONArray("threads");
-			if (jsonArray == null || jsonObject.length() == 0) {
-				return null;
-			}
 			try {
+				JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data)
+						.setValidator(data.validator).perform().readString());
+				if (data.pageNumber == 0) {
+					EndchanChanConfiguration configuration = EndchanChanConfiguration.get(this);
+					configuration.updateFromThreadsJson(data.boardName, jsonObject, true);
+				}
+				JSONArray jsonArray = jsonObject.optJSONArray("threads");
+				if (jsonArray == null || jsonObject.length() == 0) {
+					return null;
+				}
 				return new ReadThreadsResult(EndchanModelMapper.createThreads(jsonArray, locator));
 			} catch (JSONException | ParseException e) {
 				throw new InvalidResponseException(e);
@@ -75,15 +72,13 @@ public class EndchanChanPerformer extends ChanPerformer {
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		EndchanChanLocator locator = EndchanChanLocator.get(this);
 		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
-		if (jsonObject != null) {
-			try {
-				return new ReadPostsResult(EndchanModelMapper.createPosts(jsonObject, locator));
-			} catch (JSONException | ParseException e) {
-				throw new InvalidResponseException(e);
-			}
+		try {
+			JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data)
+					.setValidator(data.validator).perform().readString());
+			return new ReadPostsResult(EndchanModelMapper.createPosts(jsonObject, locator));
+		} catch (JSONException | ParseException e) {
+			throw new InvalidResponseException(e);
 		}
-		throw new InvalidResponseException();
 	}
 
 	@Override
@@ -94,10 +89,7 @@ public class EndchanChanPerformer extends ChanPerformer {
 		try {
 			for (int i = 0; i < BOARDS_GENERAL.length; i++) {
 				Uri uri = locator.buildPath(BOARDS_GENERAL[i], "1.json");
-				JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
-				if (jsonObject == null) {
-					throw new InvalidResponseException();
-				}
+				JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
 				String title = CommonUtils.getJsonString(jsonObject, "boardName");
 				String description = CommonUtils.optJsonString(jsonObject, "boardDescription");
 				configuration.updateFromThreadsJson(BOARDS_GENERAL[i], jsonObject, false);
@@ -114,53 +106,31 @@ public class EndchanChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		EndchanChanLocator locator = EndchanChanLocator.get(this);
 		Uri uri = locator.buildQuery("boards.js", "json", "1");
-		JSONObject jsonObject = new HttpRequest(uri, data).read().getJsonObject();
-		if (jsonObject != null) {
-			try {
-				HashSet<String> ignoreBoardNames = new HashSet<>();
-				Collections.addAll(ignoreBoardNames, BOARDS_GENERAL);
-				ArrayList<Board> boards = new ArrayList<>();
-				for (int i = 0, count = jsonObject.getInt("pageCount"); i < count; i++) {
-					if (i > 0) {
-						uri = locator.buildQuery("boards.js", "json", "1", "page", Integer.toString(i + 1));
-						jsonObject = new HttpRequest(uri, data).read().getJsonObject();
-						if (jsonObject == null) {
-							throw new InvalidResponseException();
-						}
-					}
-					JSONArray jsonArray = jsonObject.getJSONArray("boards");
-					for (int j = 0; j < jsonArray.length(); j++) {
-						jsonObject = jsonArray.getJSONObject(j);
-						String boardName = CommonUtils.getJsonString(jsonObject, "boardUri");
-						if (!ignoreBoardNames.contains(boardName)) {
-							String title = CommonUtils.getJsonString(jsonObject, "boardName");
-							String description = CommonUtils.getJsonString(jsonObject, "boardDescription");
-							boards.add(new Board(boardName, title, description));
-						}
+		try {
+			JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
+			HashSet<String> ignoreBoardNames = new HashSet<>();
+			Collections.addAll(ignoreBoardNames, BOARDS_GENERAL);
+			ArrayList<Board> boards = new ArrayList<>();
+			for (int i = 0, count = jsonObject.getInt("pageCount"); i < count; i++) {
+				if (i > 0) {
+					uri = locator.buildQuery("boards.js", "json", "1", "page", Integer.toString(i + 1));
+					jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
+				}
+				JSONArray jsonArray = jsonObject.getJSONArray("boards");
+				for (int j = 0; j < jsonArray.length(); j++) {
+					jsonObject = jsonArray.getJSONObject(j);
+					String boardName = CommonUtils.getJsonString(jsonObject, "boardUri");
+					if (!ignoreBoardNames.contains(boardName)) {
+						String title = CommonUtils.getJsonString(jsonObject, "boardName");
+						String description = CommonUtils.getJsonString(jsonObject, "boardDescription");
+						boards.add(new Board(boardName, title, description));
 					}
 				}
-				return new ReadUserBoardsResult(boards);
-			} catch (JSONException e) {
-				throw new InvalidResponseException(e);
 			}
+			return new ReadUserBoardsResult(boards);
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
-		throw new InvalidResponseException();
-	}
-
-	@Override
-	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
-			InvalidResponseException {
-		EndchanChanLocator locator = EndchanChanLocator.get(this);
-		Uri uri = locator.buildPath(data.boardName, "res", data.threadNumber + ".json");
-		JSONObject jsonObject = new HttpRequest(uri, data).setValidator(data.validator).read().getJsonObject();
-		if (jsonObject != null) {
-			try {
-				return new ReadPostsCountResult(jsonObject.getJSONArray("posts").length() + 1);
-			} catch (JSONException e) {
-				throw new InvalidResponseException(e);
-			}
-		}
-		throw new InvalidResponseException();
 	}
 
 	private static final String REQUIRE_REPORT = "report";
@@ -173,7 +143,7 @@ public class EndchanChanPerformer extends ChanPerformer {
 		} else if (data.threadNumber == null) {
 			EndchanChanLocator locator = EndchanChanLocator.get(this);
 			Uri uri = locator.createBoardUri(data.boardName, 0);
-			String responseText = new HttpRequest(uri, data).read().getString();
+			String responseText = new HttpRequest(uri, data).perform().readString();
 			if (responseText.contains("<div id=\"captchaDiv\">")) {
 				needCaptcha = true;
 			}
@@ -182,8 +152,9 @@ public class EndchanChanPerformer extends ChanPerformer {
 		if (needCaptcha) {
 			EndchanChanLocator locator = EndchanChanLocator.get(this);
 			Uri uri = locator.buildPath("captcha.js");
-			Bitmap image = new HttpRequest(uri, data).read().getBitmap();
-			String captchaId = data.holder.getCookieValue("captchaid");
+			HttpResponse response = new HttpRequest(uri, data).perform();
+			Bitmap image = response.readBitmap();
+			String captchaId = response.getCookieValue("captchaid");
 			if (image == null || captchaId == null) {
 				throw new InvalidResponseException();
 			}
@@ -277,7 +248,7 @@ public class EndchanChanPerformer extends ChanPerformer {
 					}
 					Uri uri = locator.buildQuery("checkFileIdentifier.js", "identifier", digestBuilder + "-"
 							+ attachment.getMimeType().replace("/", ""));
-					String responseText = new HttpRequest(uri, data).read().getString();
+					String responseText = new HttpRequest(uri, data).perform().readString();
 					JSONObject fileObject = new JSONObject();
 					try {
 						if ("false".equals(responseText)) {
@@ -310,10 +281,11 @@ public class EndchanChanPerformer extends ChanPerformer {
 		}
 
 		Uri uri = locator.buildPath(".api", data.threadNumber != null ? "replyThread" : "newThread");
-		jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
-		if (jsonObject == null) {
-			throw new InvalidResponseException();
+		try {
+			jsonObject = new JSONObject(new HttpRequest(uri, data).setPostMethod(entity)
+					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString());
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
 
 		String status = jsonObject.optString("status");
@@ -332,27 +304,24 @@ public class EndchanChanPerformer extends ChanPerformer {
 			throw new InvalidResponseException();
 		}
 		String errorMessage = jsonObject.optString("data");
-		if (errorMessage != null) {
-			int errorType = 0;
-			if (errorMessage.contains("Wrong captcha") || errorMessage.contains("Expired captcha")) {
-				errorType = ApiException.SEND_ERROR_CAPTCHA;
-			} else if (errorMessage.contains("Flood detected")) {
-				errorType = ApiException.SEND_ERROR_TOO_FAST;
-			} else if (errorMessage.contains("Either a message or a file is required")
-					|| "message".equals(errorMessage)) {
-				errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
-			} else if (errorMessage.contains("Board not found")) {
-				errorType = ApiException.SEND_ERROR_NO_BOARD;
-			} else if (errorMessage.contains("Thread not found")) {
-				errorType = ApiException.SEND_ERROR_NO_THREAD;
-			}
-			if (errorType != 0) {
-				throw new ApiException(errorType);
-			}
-			CommonUtils.writeLog("Endchan send message", status, errorMessage);
-			throw new ApiException(status + ": " + errorMessage);
+		int errorType = 0;
+		if (errorMessage.contains("Wrong captcha") || errorMessage.contains("Expired captcha")) {
+			errorType = ApiException.SEND_ERROR_CAPTCHA;
+		} else if (errorMessage.contains("Flood detected")) {
+			errorType = ApiException.SEND_ERROR_TOO_FAST;
+		} else if (errorMessage.contains("Either a message or a file is required")
+				|| "message".equals(errorMessage)) {
+			errorType = ApiException.SEND_ERROR_EMPTY_COMMENT;
+		} else if (errorMessage.contains("Board not found")) {
+			errorType = ApiException.SEND_ERROR_NO_BOARD;
+		} else if (errorMessage.contains("Thread not found")) {
+			errorType = ApiException.SEND_ERROR_NO_THREAD;
 		}
-		throw new InvalidResponseException();
+		if (errorType != 0) {
+			throw new ApiException(errorType);
+		}
+		CommonUtils.writeLog("Endchan send message", status, errorMessage);
+		throw new ApiException(status + ": " + errorMessage);
 	}
 
 	private static void fillDeleteReportPostings(JSONObject parametersObject, String boardName, String threadNumber,
@@ -391,10 +360,11 @@ public class EndchanChanPerformer extends ChanPerformer {
 		entity.setData(jsonObject.toString());
 		EndchanChanLocator locator = EndchanChanLocator.get(this);
 		Uri uri = locator.buildPath(".api", "deleteContent");
-		jsonObject = new HttpRequest(uri, data).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
-		if (jsonObject == null) {
-			throw new InvalidResponseException();
+		try {
+			jsonObject = new JSONObject(new HttpRequest(uri, data).setPostMethod(entity)
+					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString());
+		} catch (JSONException e) {
+			throw new InvalidResponseException(e);
 		}
 		if ("error".equals(CommonUtils.optJsonString(jsonObject, "status"))) {
 			String errorMessage = CommonUtils.optJsonString(jsonObject, "data");
@@ -451,10 +421,12 @@ public class EndchanChanPerformer extends ChanPerformer {
 			entity.setData(jsonObject.toString());
 			EndchanChanLocator locator = EndchanChanLocator.get(this);
 			Uri uri = locator.buildPath(".api", "reportContent");
-			JSONObject responseJsonObject = new HttpRequest(uri, data).setPostMethod(entity)
-					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).read().getJsonObject();
-			if (responseJsonObject == null) {
-				throw new InvalidResponseException();
+			JSONObject responseJsonObject;
+			try {
+				responseJsonObject = new JSONObject(new HttpRequest(uri, data).setPostMethod(entity)
+						.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString());
+			} catch (JSONException e) {
+				throw new InvalidResponseException(e);
 			}
 			String status = CommonUtils.optJsonString(responseJsonObject, "status");
 			if ("ok".equals(status)) {

@@ -1,7 +1,7 @@
 package chan.text;
 
 import android.util.Pair;
-import chan.util.StringUtils;
+import chan.util.CommonUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -78,7 +78,7 @@ public final class TemplateParser<H> {
 			String value = attributes.get(attribute);
 			switch (method) {
 				case EQUALS: {
-					return StringUtils.equals(value, this.value);
+					return CommonUtils.equals(value, this.value);
 				}
 				case STARTS: {
 					return value != null && value.startsWith(this.value);
@@ -234,12 +234,11 @@ public final class TemplateParser<H> {
 	 * <p>Attributes holder and parser.</p>
 	 */
 	public static final class Attributes {
-		private static final Object NULL = new Object();
+		private static final String NULL = "null";
 
-		private GroupParser parser;
-		private String attributes;
+		private GroupParser.Attributes attributes;
 
-		private final HashMap<String, Object> lastValues = new HashMap<>();
+		private final HashMap<String, String> lastValues = new HashMap<>();
 
 		private Attributes() {}
 
@@ -249,18 +248,17 @@ public final class TemplateParser<H> {
 		 * @param attribute Attribute name.
 		 * @return Attribute value.
 		 */
+		@SuppressWarnings("StringEquality")
 		public String get(String attribute) {
-			Object value = lastValues.get(attribute);
-			if (value != null) {
-				return value == NULL ? null : (String) value;
+			String value = lastValues.get(attribute);
+			if (value == null) {
+				value = attributes.get(attribute);
+				lastValues.put(attribute, value != null ? value : NULL);
 			}
-			String stringValue = parser.getAttr(attributes, attribute);
-			lastValues.put(attribute, stringValue != null ? stringValue : NULL);
-			return stringValue;
+			return value == NULL ? null : value;
 		}
 
-		private void set(GroupParser parser, String attributes) {
-			this.parser = parser;
+		private void set(GroupParser.Attributes attributes) {
 			this.attributes = attributes;
 			lastValues.clear();
 		}
@@ -341,11 +339,9 @@ public final class TemplateParser<H> {
 		 * @param instance Parser instance holder.
 		 * @param holder Intermediate data holder.
 		 * @param source Source string.
-		 * @param start Start index of text.
-		 * @param end End index of text.
 		 * @throws ParseException to interrupt parsing process.
 		 */
-		void onText(Instance<H> instance, H holder, String source, int start, int end) throws ParseException;
+		void onText(Instance<H> instance, H holder, CharSequence source) throws ParseException;
 	}
 
 	private static class FinishException extends ParseException {}
@@ -372,15 +368,16 @@ public final class TemplateParser<H> {
 		}
 
 		@Override
-		public boolean onStartElement(GroupParser parser, String tagName, String attrs) throws ParseException {
+		public boolean onStartElement(GroupParser parser, String tagName,
+				GroupParser.Attributes attributes) throws ParseException {
 			ArrayList<AttributeMatcher<H>> matchers = this.parser.openMatchers.get(tagName);
 			if (matchers != null) {
-				attributes.set(parser, attrs);
+				this.attributes.set(attributes);
 				for (AttributeMatcher<H> matcher : matchers) {
-					if (matcher.match(attributes)) {
+					if (matcher.match(this.attributes)) {
 						boolean readContent;
 						if (matcher.openCallback != null) {
-							readContent = matcher.openCallback.onOpen(instance, holder, tagName, attributes);
+							readContent = matcher.openCallback.onOpen(instance, holder, tagName, this.attributes);
 							checkFinish();
 						} else {
 							readContent = true;
@@ -415,10 +412,10 @@ public final class TemplateParser<H> {
 		}
 
 		@Override
-		public void onText(GroupParser parser, String source, int start, int end) throws ParseException {
+		public void onText(GroupParser parser, CharSequence text) throws ParseException {
 			ArrayList<TextCallback<H>> textCallbacks = this.parser.textCallbacks;
 			for (TextCallback<H> textCallback : textCallbacks) {
-				textCallback.onText(instance, holder, source, start, end);
+				textCallback.onText(instance, holder, text);
 				checkFinish();
 			}
 		}
@@ -510,7 +507,7 @@ public final class TemplateParser<H> {
 		 *
 		 * @param openCallback Tag open callback.
 		 * @return Parser builder.
-		 * @see GroupParser.Callback#onStartElement(GroupParser, String, String)
+		 * @see GroupParser.Callback#onStartElement(GroupParser, String, GroupParser.Attributes)
 		 */
 		ContentBuilder<H> open(OpenCallback<H> openCallback);
 
@@ -534,7 +531,7 @@ public final class TemplateParser<H> {
 		 *
 		 * @param textCallback Text between tags callback.
 		 * @return Parser builder.
-		 * @see GroupParser.Callback#onText(GroupParser, String, int, int)
+		 * @see GroupParser.Callback#onText(GroupParser, CharSequence)
 		 */
 		InitialBuilder<H> text(TextCallback<H> textCallback);
 

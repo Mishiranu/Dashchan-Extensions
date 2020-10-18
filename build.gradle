@@ -28,12 +28,12 @@ class GenerateFileTask extends DefaultTask {
 
 def configureCommon(project, manifestFile) {
 	project.android {
-		compileSdkVersion 29
-		buildToolsVersion '29.0.3'
+		compileSdkVersion 30
+		buildToolsVersion '30.0.2'
 
 		defaultConfig {
 			minSdkVersion 16
-			targetSdkVersion 29
+			targetSdkVersion 30
 		}
 
 		sourceSets.main {
@@ -91,6 +91,7 @@ project.ext.set 'configureExtension', { project, data ->
 	def hosts = data['hosts'] ?: keyNotFound('hosts')
 	def customUriHandler = data['customFilter'] ?: false
 	def customFilter = data['customFilter']
+	def chanTitle = hosts[0]
 
 	def requiredClasses = ['ChanConfiguration', 'ChanLocator', 'ChanMarkup', 'ChanPerformer']
 			.collect { packageName + '.' + chanNameUpper + it }
@@ -100,8 +101,9 @@ project.ext.set 'configureExtension', { project, data ->
 			"package=\"$packageName\" android:versionCode=\"1\" android:versionName=\"$versionName\">\n"
 	xml += '<uses-feature android:name="chan.extension" />\n'
 	xml += '<application android:icon="@null" android:allowBackup="false" ' +
-			"android:label=\"Dashchan for ${hosts[0]}\">\n"
+			"android:label=\"Dashchan for ${chanTitle}\">\n"
 	xml += "<meta-data android:name=\"chan.extension.name\" android:value=\"$chanName\" />\n"
+	xml += "<meta-data android:name=\"chan.extension.title\" android:value=\"${chanTitle}\" />\n"
 	xml += "<meta-data android:name=\"chan.extension.version\" android:value=\"$apiVersion\" />\n"
 	xml += "<meta-data android:name=\"chan.extension.icon\" android:resource=\"@drawable/$icon\" />\n"
 	xml += "<meta-data android:name=\"chan.extension.source\" android:value=\"$updateUri\" />\n"

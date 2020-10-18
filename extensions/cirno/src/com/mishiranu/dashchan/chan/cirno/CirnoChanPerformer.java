@@ -10,10 +10,11 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.content.model.ThreadSummary;
 import chan.http.HttpException;
-import chan.http.HttpHolder;
 import chan.http.HttpRequest;
+import chan.http.HttpResponse;
 import chan.http.RequestEntity;
 import chan.text.ParseException;
+import chan.util.StringUtils;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 		if (data.isCatalog()) {
 			CirnoChanLocator locator = CirnoChanLocator.get(this);
 			Uri uri = locator.buildPath(data.boardName, "catalogue.html");
-			String responseText = new HttpRequest(uri, data).setValidator(data.validator).read().getString();
+			String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
 			checkThreadsRedirect(responseText);
 			try {
 				return new ReadThreadsResult(new CirnoCatalogParser(responseText, this).convert());
@@ -60,13 +61,12 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 		public boolean archived = false;
 
 		@Override
-		public Action onRedirectReached(int responseCode, Uri requestedUri, Uri redirectedUri, HttpHolder holder)
-				throws HttpException {
-			String path = redirectedUri.getPath();
+		public Action onRedirect(HttpResponse response) throws HttpException {
+			String path = response.getRedirectedUri().getPath();
 			if (path != null && path.contains("/arch/")) {
 				archived = true;
 			}
-			return BROWSER.onRedirectReached(responseCode, requestedUri, redirectedUri, holder);
+			return BROWSER.onRedirect(response);
 		}
 	}
 
@@ -104,7 +104,7 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		CirnoChanLocator locator = CirnoChanLocator.get(this);
 		Uri uri = locator.buildPath("n", "list_ru_m.html");
-		String responseText = new HttpRequest(uri, data).read().getString();
+		String responseText = new HttpRequest(uri, data).perform().readString();
 		try {
 			return new ReadBoardsResult(new CirnoBoardsParser(responseText).convert());
 		} catch (ParseException e) {
@@ -119,28 +119,14 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 	public ReadThreadSummariesResult onReadThreadSummaries(ReadThreadSummariesData data) throws HttpException {
 		CirnoChanLocator locator = CirnoChanLocator.get(this);
 		Uri uri = locator.createBoardUri(data.boardName, 0).buildUpon().appendEncodedPath("arch/res").build();
-		String responseText = new HttpRequest(uri, data).read().getString();
+		String responseText = new HttpRequest(uri, data).perform().readString();
 		ArrayList<ThreadSummary> threadSummaries = new ArrayList<>();
 		Matcher matcher = PATTERN_ARCHIVED_THREAD.matcher(responseText);
 		while (matcher.find()) {
 			threadSummaries.add(new ThreadSummary(data.boardName, matcher.group(1), "#" + matcher.group(1) + ", "
-					+ matcher.group(2).trim()));
+					+ StringUtils.emptyIfNull(matcher.group(2)).trim()));
 		}
 		return new ReadThreadSummariesResult(threadSummaries);
-	}
-
-	@Override
-	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
-			InvalidResponseException {
-		CirnoChanLocator locator = CirnoChanLocator.get(this);
-		Uri uri = locator.createThreadUri(data.boardName, data.threadNumber);
-		ArchiveRedirectHandler redirectHandler = new ArchiveRedirectHandler();
-		String responseText = new HttpRequest(uri, data).setValidator(data.validator)
-				.setRedirectHandler(redirectHandler).read().getString();
-		if (redirectHandler.archived) {
-			throw HttpException.createNotFoundException();
-		}
-		return createPostsCountResult(responseText);
 	}
 
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
@@ -153,7 +139,7 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 		RequestEntity entity = createSendPostEntity(data, field ->
 				field.startsWith("field") ? "nya" + field.substring(5) : field);
 		entity.add("postredir", "1");
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data.holder, data);
+		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			if (response.second != null) {
 				CirnoChanLocator locator = CirnoChanLocator.get(this);

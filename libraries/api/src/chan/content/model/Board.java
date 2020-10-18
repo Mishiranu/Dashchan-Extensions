@@ -54,7 +54,6 @@ public final class Board implements Comparable<Board> {
 		BuildConfig.Private.expr(boardName, title, description);
 	}
 
-	@SuppressWarnings("NullableProblems")
 	@Override
 	public int compareTo(Board another) {
 		return BuildConfig.Private.expr(another);

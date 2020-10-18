@@ -17,9 +17,9 @@ public final class WebSocket {
 		}
 
 		/**
-		 * <p>Converts and results event data as {@link HttpResponse} instance.</p>
+		 * <p>Returns event data as byte array.</p>
 		 */
-		public HttpResponse getResponse() {
+		public byte[] getData() {
 			return BuildConfig.Private.expr();
 		}
 
@@ -81,28 +81,6 @@ public final class WebSocket {
 
 	/**
 	 * <p>Constructor for {@link WebSocket}.</p>
-	 *
-	 * @param uri URI for request.
-	 * @param holder {@link HttpHolder} instance. May be null.
-	 * @param preset Preset with configuration.
-	 */
-	public WebSocket(Uri uri, HttpHolder holder, HttpRequest.Preset preset) {
-		BuildConfig.Private.expr(uri, holder, preset);
-	}
-
-	/**
-	 * <p>Constructor for {@link WebSocket} without preset.</p>
-	 *
-	 * @param uri URI for request.
-	 * @param holder {@link HttpHolder} instance. May be null.
-	 */
-	public WebSocket(Uri uri, HttpHolder holder) {
-		BuildConfig.Private.expr(uri, holder);
-	}
-
-	/**
-	 * <p>Constructor for {@link WebSocket}. In most cases {@link HttpRequest.Preset} can provide it's own
-	 * {@link HttpHolder}, so you can use this constructor.</p>
 	 *
 	 * @param uri URI for request.
 	 * @param preset Preset with configuration.
@@ -174,8 +152,8 @@ public final class WebSocket {
 	 * @return Connection instance.
 	 * @throws HttpException if HTTP exception occurred.
 	 */
-	@SuppressWarnings("RedundantThrows")
 	public Connection open(EventHandler handler) throws HttpException {
+		BuildConfig.Private.<HttpException>error();
 		handler.onEvent(BuildConfig.Private.expr());
 		return BuildConfig.Private.expr(handler);
 	}
@@ -246,8 +224,8 @@ public final class WebSocket {
 		 * @return Connection instance.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public Connection send() throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr();
 		}
 
@@ -280,8 +258,8 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public Connection sendText(String text) throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr(text);
 		}
 
@@ -292,8 +270,8 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public Connection sendBinary(byte[] data) throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr(data);
 		}
 
@@ -303,8 +281,8 @@ public final class WebSocket {
 		 * @return {@link ComplexBinaryBuilder} instance.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public ComplexBinaryBuilder sendComplexBinary() throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr();
 		}
 
@@ -317,8 +295,8 @@ public final class WebSocket {
 		 * @throws HttpException if HTTP exception occurred.
 		 * @see Event#complete(Object)
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public Connection await(Object... results) throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr(results);
 		}
 
@@ -349,8 +327,8 @@ public final class WebSocket {
 		 * @return this connection.
 		 * @throws HttpException if HTTP exception occurred.
 		 */
-		@SuppressWarnings("RedundantThrows")
 		public Result close() throws HttpException {
+			BuildConfig.Private.<HttpException>error();
 			return BuildConfig.Private.expr();
 		}
 	}
@@ -358,8 +336,12 @@ public final class WebSocket {
 	/**
 	 * <p>Connection result holder.</p>
 	 */
-	@SuppressWarnings("InnerClassMayBeStatic")
 	public class Result {
+		private Result() {
+			BuildConfig.Private.expr();
+			WebSocket.this.notify();
+		}
+
 		/**
 		 * <p>Retrieves data from thread-safe container.</p>
 		 *

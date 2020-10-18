@@ -2,7 +2,6 @@ package chan.content.model;
 
 import chan.content.ChanMarkup;
 import chan.library.api.BuildConfig;
-import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -16,7 +15,7 @@ import java.util.Collection;
  * <li>{@link Post#setPostNumber(String)}</li>
  * </ul>
  */
-public final class Post implements Serializable, Comparable<Post> {
+public final class Post implements Comparable<Post> {
 	/**
 	 * <p>Returns real thread number with this post.</p>
 	 *
@@ -289,7 +288,6 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param attachments Collection of {@link Attachment}.
 	 * @return This model.
 	 */
-	@SuppressWarnings("unchecked")
 	public Post setAttachments(Collection<? extends Attachment> attachments) {
 		return BuildConfig.Private.expr(attachments);
 	}
@@ -328,7 +326,6 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param icons Collection of {@link Icon}.
 	 * @return This model.
 	 */
-	@SuppressWarnings("unchecked")
 	public Post setIcons(Collection<? extends Icon> icons) {
 		return BuildConfig.Private.expr(icons);
 	}
@@ -529,7 +526,6 @@ public final class Post implements Serializable, Comparable<Post> {
 	 * @param another Post to compare with.
 	 * @return Integer value which represents {@code Comparable} result.
 	 */
-	@SuppressWarnings("NullableProblems")
 	@Override
 	public int compareTo(Post another) {
 		return BuildConfig.Private.expr(another);

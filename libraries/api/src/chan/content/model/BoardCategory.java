@@ -51,7 +51,6 @@ public final class BoardCategory implements Iterable<Board> {
 	 *
 	 * @return An iterator.
 	 */
-	@SuppressWarnings("NullableProblems")
 	@Override
 	public Iterator<Board> iterator() {
 		return BuildConfig.Private.expr();

@@ -9,6 +9,7 @@ import chan.util.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -222,13 +223,13 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 				.equals("span", "class", "postertrip")
 				.content((instance, holder, text) -> holder.post
 						.setTripcode(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim())))
-				.text((instance, holder, source, start, end) -> {
+				.text((instance, holder, source) -> {
 					if (holder.headerHandling) {
-						String text = source.substring(start, end).trim();
+						String text = source.toString().trim();
 						if (text.length() > 0) {
 							try {
-								// noinspection ConstantConditions
-								holder.post.setTimestamp(cast(holder).dateFormat.parse(text).getTime());
+								holder.post.setTimestamp(Objects.requireNonNull(cast(holder)
+										.dateFormat.parse(text)).getTime());
 							} catch (java.text.ParseException e) {
 								// Ignore exception
 							}

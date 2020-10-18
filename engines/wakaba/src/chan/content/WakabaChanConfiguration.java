@@ -4,7 +4,6 @@ public class WakabaChanConfiguration extends ChanConfiguration {
 	public static final String CAPTCHA_TYPE_WAKABA = "wakaba";
 
 	public WakabaChanConfiguration() {
-		request(OPTION_READ_POSTS_COUNT);
 		addCaptchaType(CAPTCHA_TYPE_WAKABA);
 	}
 

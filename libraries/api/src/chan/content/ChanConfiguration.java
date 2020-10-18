@@ -2,6 +2,7 @@ package chan.content;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.util.Pair;
 import chan.library.api.BuildConfig;
 import chan.util.DataFile;
@@ -171,7 +172,6 @@ public class ChanConfiguration {
 	public static final String CAPTCHA_TYPE_RECAPTCHA_2 = BuildConfig.Private.expr();
 	public static final String CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE = BuildConfig.Private.expr();
 	public static final String CAPTCHA_TYPE_HCAPTCHA = BuildConfig.Private.expr();
-	public static final String CAPTCHA_TYPE_MAILRU = BuildConfig.Private.expr();
 
 	/**
 	 * <p>Return linked {@link ChanConfiguration} instance.
@@ -795,8 +795,8 @@ public class ChanConfiguration {
 	 * <p>Add captcha type to list of supported capthas. User may choose captcha in application preferences.
 	 * Client will obtain configuration of custom captchas with {@link #obtainCustomCaptchaConfiguration(String)}.</p>
 	 *
-	 * <p>There is a list of default captcha types: {@link #CAPTCHA_TYPE_RECAPTCHA_2},
-	 * {@link #CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE}, {@link #CAPTCHA_TYPE_HCAPTCHA}, and {@link #CAPTCHA_TYPE_MAILRU}.
+	 * <p>Here is the list of default captcha types: {@link #CAPTCHA_TYPE_RECAPTCHA_2},
+	 * {@link #CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE}, and {@link #CAPTCHA_TYPE_HCAPTCHA}.
 	 * Client is able to handle these captchas by itself.</p>
 	 *
 	 * @param captchaType Captcha type string.
@@ -934,6 +934,15 @@ public class ChanConfiguration {
 	 */
 	public final Resources getResources() {
 		return BuildConfig.Private.expr();
+	}
+
+	/**
+	 * <p>Returns URI for resource in chan APK file.</p>
+	 *
+	 * @param resId Resource ID.
+	 */
+	public final Uri getResourceUri(int resId) {
+		return BuildConfig.Private.expr(resId);
 	}
 
 	/**
