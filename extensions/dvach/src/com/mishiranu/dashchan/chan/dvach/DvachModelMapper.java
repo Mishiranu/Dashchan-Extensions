@@ -1,43 +1,151 @@
 package com.mishiranu.dashchan.chan.dvach;
 
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.net.Uri;
-
 import chan.content.model.Attachment;
 import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
-import chan.util.CommonUtils;
+import chan.content.model.ThreadSummary;
+import chan.text.JsonSerial;
+import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DvachModelMapper {
 	private static final Pattern PATTERN_BADGE = Pattern.compile("<img.+?src=\"(.+?)\".+?(?:title=\"(.+?)\")?.+?/?>");
-	private static final Pattern PATTERN_CODE = Pattern.compile("\\[code(?:\\s+lang=.+?)?\\](?:<br ?/?>)*(.+?)" +
-			"(?:<br ?/?>)*\\[/code\\]", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PATTERN_CODE = Pattern.compile("\\[code(?:\\s+lang=.+?)?](?:<br ?/?>)*(.+?)" +
+			"(?:<br ?/?>)*\\[/code]", Pattern.CASE_INSENSITIVE);
 	private static final Pattern PATTERN_HASHLINK = Pattern.compile("<a [^<>]*class=\"hashlink\"[^<>]*>");
 	private static final Pattern PATTERN_HASHLINK_TITLE = Pattern.compile("title=\"(.*?)\"");
 
-	private static final Uri URI_ICON_OS = Uri.parse("chan:///res/raw/raw_os");
-	private static final Uri URI_ICON_ANDROID = Uri.parse("chan:///res/raw/raw_os_android");
-	private static final Uri URI_ICON_APPLE = Uri.parse("chan:///res/raw/raw_os_apple");
-	private static final Uri URI_ICON_LINUX = Uri.parse("chan:///res/raw/raw_os_linux");
-	private static final Uri URI_ICON_WINDOWS = Uri.parse("chan:///res/raw/raw_os_windows");
+	public static class Extra {
+		public int uniquePosters;
+		public String tags;
 
-	private static final Uri URI_ICON_BROWSER = Uri.parse("chan:///res/raw/raw_browser");
-	private static final Uri URI_ICON_CHROME = Uri.parse("chan:///res/raw/raw_browser_chrome");
-	private static final Uri URI_ICON_EDGE = Uri.parse("chan:///res/raw/raw_browser_edge");
-	private static final Uri URI_ICON_FIREFOX = Uri.parse("chan:///res/raw/raw_browser_firefox");
-	private static final Uri URI_ICON_OPERA = Uri.parse("chan:///res/raw/raw_browser_opera");
-	private static final Uri URI_ICON_SAFARI = Uri.parse("chan:///res/raw/raw_browser_safari");
+		private ArrayList<Post> posts;
+		private boolean hasPosts;
+		private int postsCount;
+		private int postsWithFilesCount;
+	}
+
+	public static class BoardConfiguration {
+		public String title;
+		public String description;
+		public String defaultName;
+		public int bumpLimit;
+		public int maxCommentLength;
+		public int pagesCount;
+		public String icons;
+
+		public Boolean imagesEnabled;
+		public Boolean namesEnabled;
+		public Boolean tripcodesEnabled;
+		public Boolean subjectsEnabled;
+		public Boolean sageEnabled;
+		public Boolean flagsEnabled;
+
+		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+		public boolean handle(JsonSerial.Reader reader, String name) throws IOException, ParseException {
+			switch (name) {
+				case "BoardName": {
+					title = reader.nextString();
+					return true;
+				}
+				case "BoardInfoOuter": {
+					description = reader.nextString();
+					return true;
+				}
+				case "default_name": {
+					defaultName = reader.nextString();
+					return true;
+				}
+				case "bump_limit": {
+					bumpLimit = reader.nextInt();
+					return true;
+				}
+				case "max_comment": {
+					maxCommentLength = reader.nextInt();
+					return true;
+				}
+				case "pages": {
+					int count = 0;
+					reader.startArray();
+					while (!reader.endStruct()) {
+						count++;
+						reader.skip();
+					}
+					pagesCount = count;
+					return true;
+				}
+				case "icons": {
+					try (JsonSerial.Writer writer = JsonSerial.writer()) {
+						writer.startArray();
+						reader.startArray();
+						while (!reader.endStruct()) {
+							reader.startObject();
+							writer.startObject();
+							while (!reader.endStruct()) {
+								switch (reader.nextName()) {
+									case "name": {
+										writer.name("name");
+										writer.value(reader.nextString());
+										break;
+									}
+									case "num": {
+										writer.name("num");
+										writer.value(reader.nextString());
+										break;
+									}
+									default: {
+										reader.skip();
+										break;
+									}
+								}
+							}
+							writer.endObject();
+						}
+						writer.endArray();
+						icons = new String(writer.build());
+					}
+					return true;
+				}
+				case "enable_images": {
+					imagesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_names": {
+					namesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_trips": {
+					tripcodesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_subject": {
+					subjectsEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_sage": {
+					sageEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_flags": {
+					flagsEnabled = reader.nextBoolean();
+					return true;
+				}
+				default: {
+					return false;
+				}
+			}
+		}
+	}
 
 	private static String fixAttachmentPath(String boardName, String path) {
 		if (!StringUtils.isEmpty(path)) {
@@ -53,109 +161,260 @@ public class DvachModelMapper {
 		}
 	}
 
-	public static FileAttachment createFileAttachment(JSONObject jsonObject, DvachChanLocator locator,
-			String boardName, String archiveDate) throws JSONException {
-		String file = fixAttachmentPath(boardName, CommonUtils.getJsonString(jsonObject, "path"));
-		String thumbnail = fixAttachmentPath(boardName, CommonUtils.optJsonString(jsonObject, "thumbnail"));
-		String originalName = StringUtils.nullIfEmpty(CommonUtils.optJsonString(jsonObject, "fullname"));
-		Uri fileUri = file != null ? locator.buildPath(archiveDate != null
-				? file.replace("/src/", "/arch/" + archiveDate + "/src/") : file) : null;
-		Uri thumbnailUri = thumbnail != null ? locator.buildPath(archiveDate != null
-				? thumbnail.replace("/thumb/", "/arch/" + archiveDate + "/thumb/") : thumbnail) : null;
-		int size = jsonObject.optInt("size") * 1024;
-		int width = jsonObject.optInt("width");
-		int height = jsonObject.optInt("height");
-		return new FileAttachment().setFileUri(locator, fileUri).setThumbnailUri(locator, thumbnailUri)
-				.setSize(size).setWidth(width).setHeight(height).setOriginalName(originalName);
-	}
-
-	public static Post createPost(JSONObject jsonObject, DvachChanLocator locator, String boardName,
-			String archiveDate, boolean sageEnabled) throws JSONException {
-		Post post = new Post();
-		String num = CommonUtils.getJsonString(jsonObject, "num");
-		String parent = CommonUtils.getJsonString(jsonObject, "parent");
-		post.setPostNumber(num);
-		if (!"0".equals(parent)) {
-			post.setParentPostNumber(parent);
-		}
-		if (jsonObject.optInt("op") != 0) {
-			post.setOriginalPoster(true);
-		}
-		if (jsonObject.optInt("sticky") != 0) {
-			post.setSticky(true);
-		}
-		if (jsonObject.optInt("closed") != 0) {
-			post.setClosed(true);
-		}
-		if (jsonObject.optInt("endless") != 0) {
-			post.setCyclical(true);
-		}
-		int banned = jsonObject.optInt("banned");
-		if (banned == 1) {
-			post.setPosterBanned(true);
-		} else if (banned == 2) {
-			post.setPosterWarned(true);
-		}
-		post.setTimestamp(jsonObject.optLong("timestamp") * 1000L);
-		String subject = CommonUtils.optJsonString(jsonObject, "subject");
-		if (!StringUtils.isEmpty(subject)) {
-			post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
-		}
-		String comment = CommonUtils.getJsonString(jsonObject, "comment");
-		if (!StringUtils.isEmpty(comment)) {
-			comment = comment.replace(" (OP)</a>", "</a>");
-			comment = comment.replace("&#47;", "/");
-		}
-		comment = StringUtils.replaceAll(comment, PATTERN_HASHLINK, matcher -> {
-			String title = null;
-			Matcher matcher2 = PATTERN_HASHLINK_TITLE.matcher(matcher.group());
-			if (matcher2.find()) {
-				title = matcher2.group(1);
-			}
-			if (title != null) {
-				Uri uri = locator.createCatalogSearchUri(boardName, title);
-				String encodedUri = uri.toString().replace("&", "&amp;").replace("\"", "&quot;");
-				return "<a href=\"" + encodedUri + "\">";
-			} else {
-				return matcher.group();
-			}
-		});
-		if ("pr".equals(boardName) && comment != null) {
-			comment = PATTERN_CODE.matcher(comment).replaceAll("<fakecode>$1</fakecode>");
-		}
-		post.setComment(comment);
-		// TODO Remove this after server side fix of subjects
-		if (post.getParentPostNumber() == null && post.getSubject() != null) {
-			String clearComment = StringUtils.clearHtml(comment).replaceAll("\\s", "");
-			if (clearComment.startsWith(post.getSubject().replaceAll("\\s", ""))) {
-				post.setSubject(null);
-			}
-		}
-		ArrayList<Attachment> attachments = null;
-		try {
-			JSONArray filesArray = jsonObject.getJSONArray("files");
-			if (filesArray.length() > 0) {
-				for (int i = 0, length = filesArray.length(); i < length; i++) {
-					if (attachments == null) {
-						attachments = new ArrayList<>();
-					}
-					attachments.add(createFileAttachment(filesArray.getJSONObject(i), locator, boardName, archiveDate));
+	private static FileAttachment createFileAttachment(JsonSerial.Reader reader, DvachChanLocator locator,
+			String boardName, String archiveDate) throws IOException, ParseException {
+		FileAttachment fileAttachment = new FileAttachment();
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "path": {
+					String file = fixAttachmentPath(boardName, reader.nextString());
+					Uri fileUri = file != null ? locator.buildPath(archiveDate != null
+							? file.replace("/src/", "/arch/" + archiveDate + "/src/") : file) : null;
+					fileAttachment.setFileUri(locator, fileUri);
+					break;
+				}
+				case "thumbnail": {
+					String thumbnail = fixAttachmentPath(boardName, reader.nextString());
+					Uri thumbnailUri = thumbnail != null ? locator.buildPath(archiveDate != null
+							? thumbnail.replace("/thumb/", "/arch/" + archiveDate + "/thumb/") : thumbnail) : null;
+					fileAttachment.setThumbnailUri(locator, thumbnailUri);
+					break;
+				}
+				case "fullname": {
+					String originalName = StringUtils.nullIfEmpty(reader.nextString());
+					fileAttachment.setOriginalName(originalName);
+					break;
+				}
+				case "size": {
+					fileAttachment.setSize(reader.nextInt() * 1024);
+					break;
+				}
+				case "width": {
+					fileAttachment.setWidth(reader.nextInt());
+					break;
+				}
+				case "height": {
+					fileAttachment.setHeight(reader.nextInt());
+					break;
+				}
+				default: {
+					reader.skip();
+					break;
 				}
 			}
-		} catch (JSONException e) {
-			attachments = null;
 		}
-		post.setAttachments(attachments);
+		return fileAttachment;
+	}
 
-		String name = CommonUtils.optJsonString(jsonObject, "name");
-		String tripcode = CommonUtils.optJsonString(jsonObject, "trip");
-		String email = CommonUtils.optJsonString(jsonObject, "email");
-		boolean sage = sageEnabled && !StringUtils.isEmpty(email) && email.equals("mailto:sage");
-		String userAgentData = null;
-		if (sage) {
-			email = null;
-			post.setSage(true);
+	public static Post createPost(JsonSerial.Reader reader, Object linked, String boardName,
+			String archiveDate, boolean sageEnabled, Extra extra) throws IOException, ParseException {
+		DvachChanLocator locator = DvachChanLocator.get(linked);
+		DvachChanConfiguration configuration = DvachChanConfiguration.get(linked);
+		Post post = new Post();
+		String subject = null;
+		String tags = null;
+		String comment = null;
+		String name = null;
+		String tripcode = null;
+		ArrayList<Icon> icons = null;
+
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "num": {
+					post.setPostNumber(reader.nextString());
+					break;
+				}
+				case "parent": {
+					String parent = reader.nextString();
+					if (!"0".equals(parent)) {
+						post.setParentPostNumber(parent);
+					}
+					break;
+				}
+				case "op": {
+					post.setOriginalPoster(reader.nextBoolean());
+					break;
+				}
+				case "sticky": {
+					post.setSticky(reader.nextBoolean());
+					break;
+				}
+				case "closed": {
+					post.setClosed(reader.nextBoolean());
+					break;
+				}
+				case "endless": {
+					post.setCyclical(reader.nextBoolean());
+					break;
+				}
+				case "banned": {
+					int banned = reader.nextInt();
+					if (banned == 1) {
+						post.setPosterBanned(true);
+					} else if (banned == 2) {
+						post.setPosterWarned(true);
+					}
+					break;
+				}
+				case "timestamp": {
+					post.setTimestamp(reader.nextLong() * 1000L);
+					break;
+				}
+				case "subject": {
+					subject = reader.nextString();
+					if (!StringUtils.isEmpty(subject)) {
+						subject = StringUtils.clearHtml(subject).trim();
+					}
+					break;
+				}
+				case "comment": {
+					comment = reader.nextString();
+					if (!StringUtils.isEmpty(comment)) {
+						comment = comment.replace(" (OP)</a>", "</a>");
+						comment = comment.replace(" \u2192</a>", "</a>");
+						comment = comment.replace("&#47;", "/");
+					}
+					if (comment.contains("\"hashlink\"")) {
+						comment = StringUtils.replaceAll(comment, PATTERN_HASHLINK, matcher -> {
+							String title = null;
+							Matcher matcher2 = PATTERN_HASHLINK_TITLE.matcher(matcher.group());
+							if (matcher2.find()) {
+								title = matcher2.group(1);
+							}
+							if (title != null) {
+								Uri uri = locator.createCatalogSearchUri(boardName, title);
+								String encodedUri = uri.toString().replace("&", "&amp;").replace("\"", "&quot;");
+								return "<a href=\"" + encodedUri + "\">";
+							} else {
+								return matcher.group();
+							}
+						});
+					}
+					if ("pr".equals(boardName) && comment.contains("[code")) {
+						comment = PATTERN_CODE.matcher(comment).replaceAll("<fakecode>$1</fakecode>");
+					}
+					break;
+				}
+				case "name": {
+					name = reader.nextString();
+					break;
+				}
+				case "trip": {
+					tripcode = reader.nextString();
+					break;
+				}
+				case "email": {
+					String email = reader.nextString();
+					boolean sage = sageEnabled && !StringUtils.isEmpty(email) && email.equals("mailto:sage");
+					if (sage) {
+						post.setSage(true);
+					} else {
+						post.setEmail(email);
+					}
+					break;
+				}
+				case "files": {
+					ArrayList<Attachment> attachments = null;
+					reader.startArray();
+					while (!reader.endStruct()) {
+						if (attachments == null) {
+							attachments = new ArrayList<>();
+						}
+						attachments.add(createFileAttachment(reader, locator, boardName, archiveDate));
+					}
+					post.setAttachments(attachments);
+					break;
+				}
+				case "icon": {
+					Matcher matcher = PATTERN_BADGE.matcher(reader.nextString());
+					while (matcher.find()) {
+						String path = matcher.group(1);
+						String title = matcher.group(2);
+						Uri uri = locator.buildPath(path);
+						if (StringUtils.isEmpty(title)) {
+							title = uri.getLastPathSegment();
+							title = title.substring(0, title.lastIndexOf('.'));
+						}
+						if (icons == null) {
+							icons = new ArrayList<>();
+						}
+						title = StringUtils.clearHtml(title);
+						icons.add(new Icon(locator, uri, title));
+					}
+					break;
+				}
+				case "unique_posters": {
+					if (extra != null) {
+						extra.uniquePosters = reader.nextInt();
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "tags": {
+					tags = reader.nextString();
+					if (extra != null) {
+						extra.tags = tags;
+					}
+					break;
+				}
+				case "posts_count": {
+					if (extra != null) {
+						extra.postsCount = reader.nextInt();
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "files_count":
+				case "images_count": {
+					if (extra != null) {
+						extra.postsWithFilesCount = Math.max(extra.postsWithFilesCount, reader.nextInt());
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "posts": {
+					if (extra != null && extra.posts != null) {
+						extra.hasPosts = true;
+						reader.startArray();
+						while (!reader.endStruct()) {
+							extra.posts.add(createPost(reader, locator, boardName, null, sageEnabled, null));
+						}
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				default: {
+					reader.skip();
+					break;
+				}
+			}
 		}
+
+		// TODO Remove this after server side fix of subjects
+		if (post.getParentPostNumber() == null && subject != null) {
+			String clearComment = StringUtils.clearHtml(comment).replaceAll("\\s", "");
+			if (clearComment.startsWith(subject.replaceAll("\\s", ""))) {
+				subject = null;
+			}
+		}
+
+		if (!StringUtils.isEmpty(tags)) {
+			tags = "/" + tags + "/";
+			subject = StringUtils.isEmpty(subject) ? tags : subject + " " + tags;
+		}
+		post.setSubject(subject);
+		if (comment != null && !comment.isEmpty() && post.getParentPostNumber() == null && post.isSticky()) {
+			comment = comment.replace("\\r\\n", "").replace("\\t", "");
+		}
+		post.setComment(comment);
+
+		String userAgentData = null;
 		String identifier = null;
 		if (!StringUtils.isEmpty(name)) {
 			int index = "s".equals(boardName) ? name.indexOf("&nbsp;<span style=\"color:rgb(164,164,164);\">") : -1;
@@ -191,27 +450,7 @@ public class DvachModelMapper {
 		post.setIdentifier(identifier);
 		post.setTripcode(tripcode);
 		post.setCapcode(capcode);
-		post.setEmail(email);
 
-		String icon = CommonUtils.optJsonString(jsonObject, "icon");
-		ArrayList<Icon> icons = null;
-		if (!StringUtils.isEmpty(icon)) {
-			Matcher matcher = PATTERN_BADGE.matcher(icon);
-			while (matcher.find()) {
-				String path = matcher.group(1);
-				String title = matcher.group(2);
-				Uri uri = locator.buildPath(path);
-				if (StringUtils.isEmpty(title)) {
-					title = uri.getLastPathSegment();
-					title = title.substring(0, title.lastIndexOf('.'));
-				}
-				if (icons == null) {
-					icons = new ArrayList<>();
-				}
-				title = StringUtils.clearHtml(title);
-				icons.add(new Icon(locator, uri, title));
-			}
-		}
 		if (userAgentData != null) {
 			int index1 = userAgentData.indexOf('(');
 			int index2 = userAgentData.indexOf(')');
@@ -222,42 +461,42 @@ public class DvachModelMapper {
 					String os = StringUtils.clearHtml(userAgentData.substring(0, index));
 					String browser = StringUtils.clearHtml(userAgentData.substring(index + 2));
 					if (!"Неизвестно".equals(os)) {
-						Uri osIconUri = URI_ICON_OS;
+						int osIconResId = R.raw.raw_os;
 						if (os.contains("Windows")) {
-							osIconUri = URI_ICON_WINDOWS;
+							osIconResId = R.raw.raw_os_windows;
 						} else if (os.contains("Linux")) {
-							osIconUri = URI_ICON_LINUX;
+							osIconResId = R.raw.raw_os_linux;
 						} else if (os.contains("Apple")) {
-							osIconUri = URI_ICON_APPLE;
+							osIconResId = R.raw.raw_os_apple;
 						} else if (os.contains("Android")) {
-							osIconUri = URI_ICON_ANDROID;
+							osIconResId = R.raw.raw_os_android;
 						}
 						if (icons == null) {
 							icons = new ArrayList<>();
 						}
-						icons.add(new Icon(locator, osIconUri, os));
+						icons.add(new Icon(locator, configuration.getResourceUri(osIconResId), os));
 					}
 					if (!"Неизвестно".equals(browser)) {
-						Uri browserIconUri = URI_ICON_BROWSER;
+						int browserIconResId = R.raw.raw_browser;
 						if (browser.contains("Chrom")) {
-							browserIconUri = URI_ICON_CHROME;
+							browserIconResId = R.raw.raw_browser_chrome;
 						} else if (browser.contains("Microsoft Edge")) {
-							browserIconUri = URI_ICON_EDGE;
+							browserIconResId = R.raw.raw_browser_edge;
 						} else if (browser.contains("Internet Explorer")) {
-							browserIconUri = URI_ICON_EDGE;
+							browserIconResId = R.raw.raw_browser_edge;
 						} else if (browser.contains("Firefox")) {
-							browserIconUri = URI_ICON_FIREFOX;
+							browserIconResId = R.raw.raw_browser_firefox;
 						} else if (browser.contains("Iceweasel")) {
-							browserIconUri = URI_ICON_FIREFOX;
+							browserIconResId = R.raw.raw_browser_firefox;
 						} else if (browser.contains("Opera")) {
-							browserIconUri = URI_ICON_OPERA;
+							browserIconResId = R.raw.raw_browser_opera;
 						} else if (browser.contains("Safari")) {
-							browserIconUri = URI_ICON_SAFARI;
+							browserIconResId = R.raw.raw_browser_safari;
 						}
 						if (icons == null) {
 							icons = new ArrayList<>();
 						}
-						icons.add(new Icon(locator, browserIconUri, browser));
+						icons.add(new Icon(locator, configuration.getResourceUri(browserIconResId), browser));
 					}
 				}
 			}
@@ -266,100 +505,146 @@ public class DvachModelMapper {
 		return post;
 	}
 
-	public static Post[] createPosts(JSONArray jsonArray, DvachChanLocator locator, String boardName,
-			String archiveDate, boolean sageEnabled) throws JSONException {
-		if (jsonArray.length() > 0) {
-			Post[] posts = new Post[jsonArray.length()];
-			for (int i = 0; i < posts.length; i++) {
-				posts[i] = createPost(jsonArray.getJSONObject(i), locator, boardName, archiveDate, sageEnabled);
-			}
-			if (archiveDate != null) {
-				posts[0].setArchived(true);
-			}
-			return posts;
+	public static ArrayList<Post> createPosts(JsonSerial.Reader reader, Object linked, String boardName,
+			String archiveDate, boolean sageEnabled, Extra extra) throws IOException, ParseException {
+		boolean firstPost = true;
+		ArrayList<Post> posts = new ArrayList<>();
+		reader.startArray();
+		while (!reader.endStruct()) {
+			posts.add(createPost(reader, linked, boardName, archiveDate, sageEnabled, firstPost ? extra : null));
+			firstPost = false;
 		}
-		return null;
+		if (archiveDate != null && !posts.isEmpty()) {
+			posts.get(0).setArchived(true);
+		}
+		return posts;
 	}
 
-	public static Posts createThread(JSONObject jsonObject, DvachChanLocator locator, String boardName,
-			boolean sageEnabled) throws JSONException {
-		int postsCount = jsonObject.optInt("posts_count");
-		int postsWithFilesCount = Math.max(jsonObject.optInt("files_count"), jsonObject.optInt("images_count"));
-		Post[] posts;
-		if (jsonObject.has("posts")) {
-			JSONArray jsonArray = jsonObject.getJSONArray("posts");
-			try {
-				jsonArray = jsonArray.getJSONArray(0);
-			} catch (JSONException e) {
-				// Ignore exception
-			}
-			posts = new Post[jsonArray.length()];
-			for (int i = 0; i < posts.length; i++) {
-				posts[i] = createPost(jsonArray.getJSONObject(i), locator, boardName, null, sageEnabled);
-			}
-		} else {
-			posts = new Post[] {createPost(jsonObject, locator, boardName, null, sageEnabled)};
+	public static Posts createThread(JsonSerial.Reader reader, Object linked, String boardName,
+			boolean sageEnabled) throws IOException, ParseException {
+		Extra extra = new Extra();
+		extra.posts = new ArrayList<>();
+		Post post = createPost(reader, linked, boardName, null, sageEnabled, extra);
+		// Different data format for thread lists and catalog
+		List<Post> posts = extra.hasPosts ? extra.posts : Collections.singletonList(post);
+		if (!posts.isEmpty() && posts.get(0).getAttachmentsCount() > 0) {
+			extra.postsWithFilesCount++;
 		}
-		if (posts.length > 0 && posts[0].getAttachmentsCount() > 0) {
-			postsWithFilesCount++;
-		}
-		postsCount += posts.length;
-		return new Posts(posts).addPostsCount(postsCount).addPostsWithFilesCount(postsWithFilesCount);
+		extra.postsCount += posts.size();
+		return new Posts(posts).addPostsCount(extra.postsCount).addPostsWithFilesCount(extra.postsWithFilesCount);
 	}
 
-	public static Post createWakabaArchivePost(JSONObject jsonObject, DvachChanLocator locator, String boardName)
-			throws JSONException {
+	public static Post createWakabaArchivePost(JsonSerial.Reader reader,
+			Object linked, String boardName) throws IOException, ParseException {
+		DvachChanLocator locator = DvachChanLocator.get(linked);
 		Post post = new Post();
 		post.setArchived(true);
-		String num = CommonUtils.getJsonString(jsonObject, "num");
-		String parent = CommonUtils.getJsonString(jsonObject, "parent");
-		post.setPostNumber(num);
-		if (!"0".equals(parent)) {
-			post.setParentPostNumber(parent);
+		String image = null;
+		String thumbnail = null;
+		int width = 0;
+		int height = 0;
+		int size = 0;
+		String video = null;
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "num": {
+					post.setPostNumber(reader.nextString());
+					break;
+				}
+				case "parent": {
+					String parent = reader.nextString();
+					if (!"0".equals(parent)) {
+						post.setParentPostNumber(parent);
+					}
+					break;
+				}
+				case "op": {
+					post.setOriginalPoster(reader.nextBoolean());
+					break;
+				}
+				case "sticky": {
+					post.setSticky(reader.nextBoolean());
+					break;
+				}
+				case "closed": {
+					post.setClosed(reader.nextBoolean());
+					break;
+				}
+				case "banned": {
+					int banned = reader.nextInt();
+					if (banned == 1) {
+						post.setPosterBanned(true);
+					} else if (banned == 2) {
+						post.setPosterWarned(true);
+					}
+					break;
+				}
+				case "comment": {
+					post.setComment(reader.nextString());
+					break;
+				}
+				case "name": {
+					String name = reader.nextString();
+					if (!StringUtils.isEmpty(name)) {
+						post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(name).trim()));
+					}
+					break;
+				}
+				case "subject": {
+					String subject = reader.nextString();
+					if (!StringUtils.isEmpty(subject)) {
+						post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
+					}
+					break;
+				}
+				case "timestamp": {
+					post.setTimestamp(reader.nextLong() * 1000L);
+					break;
+				}
+				case "image": {
+					image = reader.nextString();
+					break;
+				}
+				case "thumbnail": {
+					thumbnail = reader.nextString();
+					break;
+				}
+				case "width": {
+					width = reader.nextInt();
+					break;
+				}
+				case "height": {
+					height = reader.nextInt();
+					break;
+				}
+				case "size": {
+					size = reader.nextInt() * 1024;
+					break;
+				}
+				case "video": {
+					video = reader.nextString();
+					break;
+				}
+				default: {
+					reader.skip();
+					break;
+				}
+			}
 		}
-		if (jsonObject.optInt("op") != 0) {
-			post.setOriginalPoster(true);
-		}
-		if (jsonObject.optInt("sticky") != 0) {
-			post.setSticky(true);
-		}
-		if (jsonObject.optInt("closed") != 0) {
-			post.setClosed(true);
-		}
-		int banned = jsonObject.optInt("banned");
-		if (banned == 1) {
-			post.setPosterBanned(true);
-		} else if (banned == 2) {
-			post.setPosterWarned(true);
-		}
-		post.setComment(CommonUtils.getJsonString(jsonObject, "comment"));
-		String name = CommonUtils.optJsonString(jsonObject, "name");
-		if (!StringUtils.isEmpty(name)) {
-			post.setName(StringUtils.nullIfEmpty(StringUtils.clearHtml(name).trim()));
-		}
-		String subject = CommonUtils.optJsonString(jsonObject, "suject");
-		if (!StringUtils.isEmpty(subject)) {
-			post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(subject).trim()));
-		}
-		post.setTimestamp(jsonObject.optLong("timestamp") * 1000L);
 		ArrayList<Attachment> attachments = null;
-		String image = CommonUtils.optJsonString(jsonObject, "image");
 		if (!StringUtils.isEmpty(image)) {
-			String thumbnail = CommonUtils.optJsonString(jsonObject, "thumbnail");
 			FileAttachment attachment = new FileAttachment();
 			attachment.setFileUri(locator, locator.buildPath(boardName, "arch", "wakaba", image));
 			if (!StringUtils.isEmpty(thumbnail)) {
 				attachment.setThumbnailUri(locator, locator.buildPath(boardName, "arch", "wakaba", thumbnail));
 			}
-			attachment.setWidth(jsonObject.optInt("width"));
-			attachment.setHeight(jsonObject.optInt("height"));
-			attachment.setSize(jsonObject.optInt("size") * 1024);
-			if (attachments == null) {
-				attachments = new ArrayList<>();
-			}
+			attachment.setWidth(width);
+			attachment.setHeight(height);
+			attachment.setSize(size);
+			attachments = new ArrayList<>();
 			attachments.add(attachment);
 		}
-		String video = CommonUtils.optJsonString(jsonObject, "video");
 		if (!StringUtils.isEmpty(video)) {
 			EmbeddedAttachment attachment = EmbeddedAttachment.obtain(video);
 			if (attachment != null) {
@@ -373,5 +658,39 @@ public class DvachModelMapper {
 			post.setAttachments(attachments);
 		}
 		return post;
+	}
+
+	public static List<ThreadSummary> createArchive(JsonSerial.Reader reader, String boardName)
+			throws IOException, ParseException {
+		ArrayList<ThreadSummary> threadSummaries = new ArrayList<>();
+		reader.startArray();
+		while (!reader.endStruct()) {
+			String threadNumber = null;
+			String subject = null;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "num": {
+						threadNumber = reader.nextString();
+						break;
+					}
+					case "subject": {
+						subject = StringUtils.clearHtml(reader.nextString()).trim();
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			if (threadNumber != null) {
+				if (StringUtils.isEmpty(subject) || "Нет темы".equals(subject)) {
+					subject = "#" + threadNumber;
+				}
+				threadSummaries.add(new ThreadSummary(boardName, threadNumber, subject));
+			}
+		}
+		return threadSummaries;
 	}
 }

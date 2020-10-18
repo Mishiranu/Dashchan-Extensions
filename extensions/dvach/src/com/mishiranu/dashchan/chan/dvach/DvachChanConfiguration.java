@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DvachChanConfiguration extends ChanConfiguration {
@@ -128,64 +127,46 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		return get(boardName, KEY_SAGE_ENABLED, true);
 	}
 
-	public void updateFromBoardsJson(JSONArray jsonArray) {
-		try {
-			for (int i = 0; i < jsonArray.length(); i++) {
-				JSONObject jsonObject = jsonArray.getJSONObject(i);
-				String boardName = CommonUtils.getJsonString(jsonObject, "id");
-				String defaultName = CommonUtils.optJsonString(jsonObject, "default_name");
-				int bumpLimit = jsonObject.optInt("bump_limit");
-				if (!StringUtils.isEmpty(defaultName)) {
-					storeDefaultName(boardName, defaultName);
-				}
-				if (bumpLimit > 0) {
-					storeBumpLimit(boardName, bumpLimit);
-				}
-			}
-		} catch (JSONException e) {
-			// Ignore exception
+	public void updateFromBoardsJson(String boardName, String defaultName, Integer bumpLimit) {
+		if (!StringUtils.isEmpty(defaultName)) {
+			storeDefaultName(boardName, defaultName);
+		}
+		if (bumpLimit != null && bumpLimit > 0) {
+			storeBumpLimit(boardName, bumpLimit);
 		}
 	}
 
-	public void updateFromThreadsPostsJson(String boardName, JSONObject jsonObject) {
-		String title = CommonUtils.optJsonString(jsonObject, "BoardName");
-		String description = CommonUtils.optJsonString(jsonObject, "BoardInfoOuter");
-		description = transformBoardDescription(description);
-		String defaultName = CommonUtils.optJsonString(jsonObject, "default_name");
-		int bumpLimit = jsonObject.optInt("bump_limit");
-		int maxCommentLength = jsonObject.optInt("max_comment");
-		if (!StringUtils.isEmpty(title)) {
-			storeBoardTitle(boardName, title);
+	public void updateFromThreadsPostsJson(String boardName, DvachModelMapper.BoardConfiguration configuration) {
+		String description = transformBoardDescription(configuration.description);
+		if (!StringUtils.isEmpty(configuration.title)) {
+			storeBoardTitle(boardName, configuration.title);
 		}
 		if (!StringUtils.isEmpty(description)) {
 			storeBoardDescription(boardName, description);
 		}
-		if (!StringUtils.isEmpty(defaultName)) {
-			storeDefaultName(boardName, defaultName);
+		if (!StringUtils.isEmpty(configuration.defaultName)) {
+			storeDefaultName(boardName, configuration.defaultName);
 		}
-		if (bumpLimit > 0) {
-			storeBumpLimit(boardName, bumpLimit);
+		if (configuration.bumpLimit > 0) {
+			storeBumpLimit(boardName, configuration.bumpLimit);
 		}
-		if (maxCommentLength > 0) {
-			set(boardName, KEY_MAX_COMMENT_LENGTH, maxCommentLength);
+		if (configuration.maxCommentLength > 0) {
+			set(boardName, KEY_MAX_COMMENT_LENGTH, configuration.maxCommentLength);
 		}
-		editBoards(boardName, jsonObject, KEY_IMAGES_ENABLED, "enable_images");
-		editBoards(boardName, jsonObject, KEY_NAMES_ENABLED, "enable_names");
-		editBoards(boardName, jsonObject, KEY_TRIPCODES_ENABLED, "enable_trips");
-		editBoards(boardName, jsonObject, KEY_SUBJECTS_ENABLED, "enable_subject");
-		editBoards(boardName, jsonObject, KEY_SAGE_ENABLED, "enable_sage");
-		editBoards(boardName, jsonObject, KEY_FLAGS_ENABLED, "enable_flags");
-		JSONArray pagesArray = jsonObject.optJSONArray("pages");
-		if (pagesArray != null) {
-			storePagesCount(boardName, pagesArray.length());
+		editBoards(boardName, KEY_IMAGES_ENABLED, configuration.imagesEnabled);
+		editBoards(boardName, KEY_NAMES_ENABLED, configuration.namesEnabled);
+		editBoards(boardName, KEY_TRIPCODES_ENABLED, configuration.tripcodesEnabled);
+		editBoards(boardName, KEY_SUBJECTS_ENABLED, configuration.subjectsEnabled);
+		editBoards(boardName, KEY_SAGE_ENABLED, configuration.sageEnabled);
+		editBoards(boardName, KEY_FLAGS_ENABLED, configuration.flagsEnabled);
+		if (configuration.pagesCount > 0) {
+			storePagesCount(boardName, configuration.pagesCount);
 		}
-		JSONArray iconsArray = jsonObject.optJSONArray("icons");
-		set(boardName, KEY_ICONS, iconsArray != null ? iconsArray.toString() : null);
+		set(boardName, KEY_ICONS, "[]".equals(configuration.icons) ? null : configuration.icons);
 	}
 
-	private void editBoards(String boardName, JSONObject jsonObject, String key, String name) {
-		if (jsonObject.has(name)) {
-			boolean value = jsonObject.optInt(name, 1) != 0;
+	private void editBoards(String boardName, String key, Boolean value) {
+		if (value != null) {
 			set(boardName, key, value);
 		}
 	}
