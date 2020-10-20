@@ -11,7 +11,6 @@ import chan.http.HttpResponse;
 import chan.text.ParseException;
 import chan.util.DataFile;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -97,11 +96,11 @@ public class LocalChanPerformer extends ChanPerformer {
 		String path = data.uri.getPath();
 		if ("localhost".equals(data.uri.getAuthority()) && path != null) {
 			DataFile file = configuration.getLocalDownloadDirectory().getChild(path);
-			byte[] fileData = readFile(file, null, null);
-			if (fileData == null) {
+			try {
+				return new ReadContentResult(new HttpResponse(file.openInputStream()));
+			} catch (IOException e) {
 				throw HttpException.createNotFoundException();
 			}
-			return new ReadContentResult(new HttpResponse(fileData));
 		} else {
 			return super.onReadContent(data);
 		}
@@ -159,11 +158,9 @@ public class LocalChanPerformer extends ChanPerformer {
 			output = new ByteArrayOutputStream();
 		}
 		if (buffer == null) {
-			buffer = new byte[4096];
+			buffer = new byte[8192];
 		}
-		InputStream input = null;
-		try {
-			input = file.openInputStream();
+		try (InputStream input = file.openInputStream()) {
 			int count;
 			while ((count = input.read(buffer)) > 0) {
 				output.write(buffer, 0, count);
@@ -171,18 +168,6 @@ public class LocalChanPerformer extends ChanPerformer {
 			return output.toByteArray();
 		} catch (IOException e) {
 			return null;
-		} finally {
-			closeStream(input);
-		}
-	}
-
-	private void closeStream(Closeable closeable) {
-		if (closeable != null) {
-			try {
-				closeable.close();
-			} catch (IOException e) {
-				// Ignore
-			}
 		}
 	}
 }
