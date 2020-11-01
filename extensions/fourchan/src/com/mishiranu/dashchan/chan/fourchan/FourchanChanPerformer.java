@@ -18,9 +18,12 @@ import chan.http.HttpValidator;
 import chan.http.MultipartEntity;
 import chan.http.SimpleEntity;
 import chan.http.UrlEncodedEntity;
+import chan.text.JsonSerial;
 import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,9 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class FourchanChanPerformer extends ChanPerformer {
 	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
@@ -82,77 +82,113 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		Uri uri = locator.createApiUri(data.boardName, (data.isCatalog() ? "catalog"
 				: Integer.toString(data.pageNumber + 1)) + ".json");
 		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
-		String responseText = response.readString();
-		if (!data.isCatalog()) {
-			try {
-				JSONObject jsonObject = new JSONObject(responseText);
-				JSONArray threadsArray = jsonObject.getJSONArray("threads");
-				Posts[] threads = new Posts[threadsArray.length()];
-				for (int i = 0; i < threads.length; i++) {
-					threads[i] = FourchanModelMapper.createThread(threadsArray.getJSONObject(i),
-							locator, data.boardName, false);
-				}
-				HttpValidator validator = response.getValidator();
-				if (data.pageNumber == 0) {
-					updateBoardRules(data, data.boardName, Arrays.asList(threads));
-				}
-				return new ReadThreadsResult(threads).setValidator(validator);
-			} catch (JSONException e) {
-				throw new InvalidResponseException(e);
-			}
-		} else if (data.isCatalog()) {
-			try {
-				JSONArray jsonArray = new JSONArray(responseText);
-				ArrayList<Posts> threads = new ArrayList<>();
-				for (int i = 0; i < jsonArray.length(); i++) {
-					JSONArray threadsArray = jsonArray.getJSONObject(i).getJSONArray("threads");
-					for (int j = 0; j < threadsArray.length(); j++) {
-						threads.add(FourchanModelMapper.createThread(threadsArray.getJSONObject(j),
-								locator, data.boardName, true));
+		HttpValidator validator = response.getValidator();
+		ArrayList<Posts> threads = new ArrayList<>();
+		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			if (data.isCatalog()) {
+				reader.startArray();
+				while (!reader.endStruct()) {
+					reader.startObject();
+					while (!reader.endStruct()) {
+						switch (reader.nextName()) {
+							case "threads": {
+								reader.startArray();
+								while (!reader.endStruct()) {
+									threads.add(FourchanModelMapper.createThread(reader,
+											locator, data.boardName, handleMathTags, true));
+								}
+								break;
+							}
+							default: {
+								reader.skip();
+								break;
+							}
+						}
 					}
 				}
-				HttpValidator validator = response.getValidator();
-				updateBoardRules(data, data.boardName, threads);
-				return new ReadThreadsResult(threads).setValidator(validator);
-			} catch (JSONException e) {
-				throw new InvalidResponseException(e);
+			} else {
+				reader.startObject();
+				while (!reader.endStruct()) {
+					switch (reader.nextName()) {
+						case "threads": {
+							reader.startArray();
+							while (!reader.endStruct()) {
+								threads.add(FourchanModelMapper.createThread(reader,
+										locator, data.boardName, handleMathTags, false));
+							}
+							break;
+						}
+						default: {
+							reader.skip();
+							break;
+						}
+					}
+				}
 			}
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
-		throw new InvalidResponseException();
+		if (data.pageNumber == 0) {
+			updateBoardRules(data, data.boardName, threads);
+		}
+		return new ReadThreadsResult(threads).setValidator(validator);
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + ".json");
-		try {
-			JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data)
-					.setValidator(data.validator).perform().readString());
-			JSONArray jsonArray = jsonObject.getJSONArray("posts");
-			if (jsonArray.length() > 0) {
-				int uniquePosters = 0;
-				Post[] posts = new Post[jsonArray.length()];
-				for (int i = 0; i < posts.length; i++) {
-					jsonObject = jsonArray.getJSONObject(i);
-					posts[i] = FourchanModelMapper.createPost(jsonObject, locator, data.boardName);
-					if (i == 0) {
-						uniquePosters = jsonObject.optInt("unique_ips");
+		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
+		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			ArrayList<Post> posts = new ArrayList<>();
+			int uniquePosters = 0;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "posts": {
+						FourchanModelMapper.Extra extra = new FourchanModelMapper.Extra();
+						reader.startArray();
+						while (!reader.endStruct()) {
+							posts.add(FourchanModelMapper.createPost(reader,
+									locator, data.boardName, handleMathTags, extra));
+							if (extra != null) {
+								uniquePosters = extra.uniquePosters;
+								extra = null;
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
 					}
 				}
-				return new ReadPostsResult(new Posts(posts).setUniquePosters(uniquePosters));
 			}
-			return null;
-		} catch (JSONException e) {
+			return new ReadPostsResult(new Posts(posts).setUniquePosters(uniquePosters));
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
@@ -162,13 +198,6 @@ public class FourchanChanPerformer extends ChanPerformer {
 		try {
 			categoryMap = new FourchanBoardsParser(responseText, this).parse();
 		} catch (ParseException e) {
-			throw new InvalidResponseException(e);
-		}
-		uri = locator.createApiUri("boards.json");
-		JSONObject jsonObject;
-		try {
-			jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
-		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 		String uncategorized = "Uncategorized";
@@ -184,19 +213,33 @@ public class FourchanChanPerformer extends ChanPerformer {
 				boardToCategory.put(boardName, entry.getKey());
 			}
 		}
-		try {
-			JSONArray jsonArray = jsonObject.getJSONArray("boards");
-			for (int i = 0; i < jsonArray.length(); i++) {
-				JSONObject boardObject = jsonArray.getJSONObject(i);
-				String boardName = CommonUtils.getJsonString(boardObject, "board");
-				String title = CommonUtils.getJsonString(boardObject, "title");
-				Board board = new Board(boardName, title);
-				String category = boardToCategory.get(boardName);
-				ArrayList<Board> boards = boardsMap.get(category);
-				if (boards == null) {
-					boards = boardsMap.get(uncategorized);
+		uri = locator.createApiUri("boards.json");
+		HttpResponse response = new HttpRequest(uri, data).perform();
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "boards": {
+						reader.startArray();
+						while (!reader.endStruct()) {
+							Board board = configuration.updateBoard(reader);
+							if (board != null) {
+								String category = boardToCategory.get(board.getBoardName());
+								ArrayList<Board> boards = boardsMap.get(category);
+								if (boards == null) {
+									boards = boardsMap.get(uncategorized);
+								}
+								Objects.requireNonNull(boards).add(board);
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
 				}
-				Objects.requireNonNull(boards).add(board);
 			}
 			ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 			for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boardsMap.entrySet()) {
@@ -206,10 +249,11 @@ public class FourchanChanPerformer extends ChanPerformer {
 					boardCategories.add(new BoardCategory(entry.getKey(), boards));
 				}
 			}
-			configuration.updateFromBoardsJson(jsonObject);
 			return new ReadBoardsResult(boardCategories);
-		} catch (JSONException e) {
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 

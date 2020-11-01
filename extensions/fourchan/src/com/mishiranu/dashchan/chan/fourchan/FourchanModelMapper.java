@@ -5,93 +5,209 @@ import chan.content.model.FileAttachment;
 import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
-import chan.util.CommonUtils;
+import chan.text.JsonSerial;
+import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.regex.Pattern;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class FourchanModelMapper {
 	private static final Pattern PATTERN_MATH = Pattern.compile("\\[(math|eqn)](.*?)\\[/\\1]");
 
-	public static Post createPost(JSONObject jsonObject, FourchanChanLocator locator, String boardName)
-			throws JSONException {
+	public static class Extra {
+		public int uniquePosters;
+
+		private ArrayList<Post> lastReplies;
+		private int replies;
+		private int images;
+	}
+
+	public static Post createPost(JsonSerial.Reader reader, FourchanChanLocator locator,
+			String boardName, boolean handleMathTags, Extra extra) throws IOException, ParseException {
 		Post post = new Post();
-		if (jsonObject.optInt("sticky") != 0) {
-			post.setSticky(true);
+		String country = null;
+		String countryName = null;
+		String tim = null;
+		String filename = null;
+		String ext = null;
+		int size = 0;
+		int width = 0;
+		int height = 0;
+
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "no": {
+					post.setPostNumber(reader.nextString());
+					break;
+				}
+				case "resto": {
+					String resto = reader.nextString();
+					if (!"0".equals(resto)) {
+						post.setParentPostNumber(resto);
+					}
+					break;
+				}
+				case "time": {
+					post.setTimestamp(reader.nextLong() * 1000L);
+					break;
+				}
+				case "sticky": {
+					post.setSticky(reader.nextBoolean());
+					break;
+				}
+				case "closed": {
+					post.setClosed(reader.nextBoolean());
+					break;
+				}
+				case "archived": {
+					post.setArchived(reader.nextBoolean());
+					break;
+				}
+				case "name": {
+					post.setName(StringUtils.clearHtml(reader.nextString()).trim());
+					break;
+				}
+				case "trip": {
+					post.setTripcode(reader.nextString());
+					break;
+				}
+				case "id": {
+					post.setIdentifier(reader.nextString());
+					break;
+				}
+				case "capcode": {
+					String capcode = reader.nextString();
+					if ("admin".equals(capcode) || "admin_highlight".equals(capcode)) {
+						post.setCapcode("Admin");
+					} else if ("mod".equals(capcode)) {
+						post.setCapcode("Mod");
+					} else if ("developer".equals(capcode)) {
+						post.setCapcode("Developer");
+					} else {
+						post.setCapcode(capcode);
+					}
+					break;
+				}
+				case "sub": {
+					post.setSubject(StringUtils.clearHtml(reader.nextString()).trim());
+					break;
+				}
+				case "com": {
+					StringBuilder builder = new StringBuilder(reader.nextString());
+					while (true) {
+						int start = builder.indexOf("<wbr");
+						if (start < 0) {
+							break;
+						}
+						int end = builder.indexOf(">", start) + 1;
+						if (end > start) {
+							builder.delete(start, end);
+						} else {
+							break;
+						}
+					}
+					int exifAbbr = builder.indexOf("<span class=\"abbr\">[EXIF data available. Click");
+					if (exifAbbr >= 0) {
+						builder.setLength(exifAbbr);
+					}
+					String com = StringUtils.linkify(builder.toString());
+					if (handleMathTags && (com.contains("[math]") || com.contains("[eqn]"))) {
+						com = StringUtils.replaceAll(com, PATTERN_MATH, matcher -> "<a href=\"" +
+								locator.buildMathUri(StringUtils.clearHtml(matcher.group(2))).toString()
+										.replaceAll("\"", "&quot;") + "\">" + StringUtils.clearHtml(matcher.group(2))
+								.replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</a>");
+					}
+					post.setComment(com);
+					break;
+				}
+				case "country": {
+					country = reader.nextString();
+					break;
+				}
+				case "country_name": {
+					countryName = reader.nextString();
+					break;
+				}
+				case "tim": {
+					tim = reader.nextString();
+					break;
+				}
+				case "filename": {
+					filename = StringUtils.clearHtml(reader.nextString());
+					break;
+				}
+				case "ext": {
+					ext = reader.nextString();
+					break;
+				}
+				case "fsize": {
+					size = reader.nextInt();
+					break;
+				}
+				case "w": {
+					width = reader.nextInt();
+					break;
+				}
+				case "h": {
+					height = reader.nextInt();
+					break;
+				}
+				case "unique_ips": {
+					if (extra != null) {
+						extra.uniquePosters = reader.nextInt();
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "replies": {
+					if (extra != null) {
+						extra.replies = reader.nextInt();
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "images": {
+					if (extra != null) {
+						extra.images = reader.nextInt();
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				case "last_replies": {
+					if (extra != null && extra.lastReplies != null) {
+						reader.startArray();
+						while (!reader.endStruct()) {
+							extra.lastReplies.add(createPost(reader, locator, boardName, handleMathTags, null));
+						}
+					} else {
+						reader.skip();
+					}
+					break;
+				}
+				default: {
+					reader.skip();
+					break;
+				}
+			}
 		}
-		if (jsonObject.optInt("closed") != 0) {
-			post.setClosed(true);
-		}
-		if (jsonObject.optInt("archived") != 0) {
-			post.setArchived(true);
-		}
-		String no = CommonUtils.getJsonString(jsonObject, "no");
-		String resto = CommonUtils.getJsonString(jsonObject, "resto");
-		post.setPostNumber(no);
-		if (!"0".equals(resto)) {
-			post.setParentPostNumber(resto);
-		}
-		post.setTimestamp(jsonObject.getLong("time") * 1000L);
-		String name = CommonUtils.optJsonString(jsonObject, "name");
-		if (name != null) {
-			name = StringUtils.nullIfEmpty(StringUtils.clearHtml(name).trim());
-			post.setName(name);
-		}
-		post.setTripcode(CommonUtils.optJsonString(jsonObject, "trip"));
-		post.setIdentifier(CommonUtils.optJsonString(jsonObject, "id"));
-		String capcode = CommonUtils.optJsonString(jsonObject, "capcode");
-		if ("admin".equals(capcode) || "admin_highlight".equals(capcode)) {
-			post.setCapcode("Admin");
-		}
-		if ("mod".equals(capcode)) {
-			post.setCapcode("Mod");
-		}
-		if ("developer".equals(capcode)) {
-			post.setCapcode("Developer");
-		}
-		String country = CommonUtils.optJsonString(jsonObject, "country");
-		String countryName = CommonUtils.optJsonString(jsonObject, "country_name");
+
 		if (country != null) {
 			Uri uri = locator.createIconUri(country);
 			String title = countryName == null ? country.toUpperCase(Locale.US) : countryName;
 			post.setIcons(new Icon(locator, uri, title));
 		}
-		String sub = CommonUtils.optJsonString(jsonObject, "sub");
-		if (sub != null) {
-			sub = StringUtils.nullIfEmpty(StringUtils.clearHtml(sub).trim());
-			post.setSubject(sub);
-		}
-		String com = CommonUtils.optJsonString(jsonObject, "com");
-		if (com != null) {
-			com = com.replaceAll("<wbr ?/?>", "");
-			int index = com.indexOf("<span class=\"abbr\">[EXIF data available. Click");
-			if (index >= 0) {
-				com = com.substring(0, index);
-			}
-			com = StringUtils.linkify(com);
-			FourchanChanConfiguration configuration = FourchanChanConfiguration.get(locator);
-			if (configuration.isMathTagsHandlingEnabled()) {
-				com = StringUtils.replaceAll(com, PATTERN_MATH, matcher -> "<a href=\"" +
-						locator.buildMathUri(StringUtils.clearHtml(matcher.group(2))).toString()
-						.replaceAll("\"", "&quot;") + "\">" + StringUtils.clearHtml(matcher.group(2))
-						.replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</a>");
-			}
-			post.setComment(com);
-		}
-		String tim = CommonUtils.optJsonString(jsonObject, "tim");
+
 		if (tim != null) {
 			FileAttachment attachment = new FileAttachment();
-			String filename = CommonUtils.getJsonString(jsonObject, "filename");
-			if (filename != null) {
-				filename = StringUtils.clearHtml(filename);
-			}
-			String ext = CommonUtils.getJsonString(jsonObject, "ext");
-			attachment.setSize(jsonObject.optInt("fsize"));
-			attachment.setWidth(jsonObject.optInt("w"));
-			attachment.setHeight(jsonObject.optInt("h"));
+			attachment.setSize(size);
+			attachment.setWidth(width);
+			attachment.setHeight(height);
 			attachment.setFileUri(locator, locator.buildAttachmentPath(boardName, tim + ext));
 			attachment.setThumbnailUri(locator, locator.buildAttachmentPath(boardName, tim + "s.jpg"));
 			attachment.setOriginalName(filename);
@@ -100,34 +216,42 @@ public class FourchanModelMapper {
 		return post;
 	}
 
-	public static Posts createThread(JSONObject jsonObject, FourchanChanLocator locator, String boardName,
-			boolean fromCatalog) throws JSONException {
-		Post[] posts;
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
+	public static Posts createThread(JsonSerial.Reader reader, FourchanChanLocator locator, String boardName,
+			boolean handleMathTags, boolean fromCatalog) throws IOException, ParseException {
+		ArrayList<Post> posts = new ArrayList<>();
 		int postsCount = 0;
 		int postsWithFilesCount = 0;
 		if (fromCatalog) {
-			Post originalPost = createPost(jsonObject, locator, boardName);
-			postsCount = jsonObject.getInt("replies") + 1;
-			postsWithFilesCount = jsonObject.getInt("images") + originalPost.getAttachmentsCount();
-			JSONArray jsonArray = jsonObject.optJSONArray("last_replies");
-			if (jsonArray != null && jsonArray.length() > 0) {
-				posts = new Post[jsonArray.length() + 1];
-				for (int i = 1; i < posts.length; i++) {
-					posts[i] = createPost(jsonArray.getJSONObject(i - 1), locator, boardName);
-				}
-			} else {
-				posts = new Post[1];
-			}
-			posts[0] = originalPost;
+			Extra extra = new Extra();
+			extra.lastReplies = new ArrayList<>();
+			Post originalPost = createPost(reader, locator, boardName, handleMathTags, extra);
+			postsCount = extra.replies + 1;
+			postsWithFilesCount = extra.images + originalPost.getAttachmentsCount();
+			posts.add(originalPost);
+			posts.addAll(extra.lastReplies);
 		} else {
-			JSONArray jsonArray = jsonObject.getJSONArray("posts");
-			posts = new Post[jsonArray.length()];
-			for (int i = 0; i < posts.length; i++) {
-				jsonObject = jsonArray.getJSONObject(i);
-				posts[i] = createPost(jsonObject, locator, boardName);
-				if (i == 0) {
-					postsCount = jsonObject.getInt("replies") + 1;
-					postsWithFilesCount = jsonObject.getInt("images") + posts[0].getAttachmentsCount();
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "posts": {
+						Extra extra = new Extra();
+						reader.startArray();
+						while (!reader.endStruct()) {
+							Post post = createPost(reader, locator, boardName, handleMathTags, extra);
+							posts.add(post);
+							if (extra != null) {
+								postsCount = extra.replies + 1;
+								postsWithFilesCount = extra.images + post.getAttachmentsCount();
+								extra = null;
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
 				}
 			}
 		}

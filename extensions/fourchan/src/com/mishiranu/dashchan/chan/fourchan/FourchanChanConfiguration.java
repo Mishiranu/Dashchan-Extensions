@@ -4,12 +4,11 @@ import android.content.res.Resources;
 import android.util.Pair;
 import chan.content.ChanConfiguration;
 import chan.content.ChanMarkup;
-import chan.util.CommonUtils;
+import chan.text.JsonSerial;
+import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
 import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class FourchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
@@ -116,32 +115,94 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		return get(boardName, KEY_SAFE_FOR_WORK, false);
 	}
 
-	public void updateFromBoardsJson(JSONObject jsonObject) {
-		try {
-			JSONArray jsonArray = jsonObject.getJSONArray("boards");
-			for (int i = 0; i < jsonArray.length(); i++) {
-				jsonObject = jsonArray.getJSONObject(i);
-				String boardName = CommonUtils.getJsonString(jsonObject, "board");
-				boolean areSpoilersEnabled = jsonObject.optInt("spoilers") != 0;
-				boolean isCodeEnabled = jsonObject.optInt("code_tags") != 0;
-				boolean areFlagsEnabled = jsonObject.optInt("country_flags") != 0;
-				int bumpLimit = jsonObject.optInt("bump_limit");
-				int maxCommentLength = jsonObject.optInt("max_comment_chars");
-				boolean safeForWork = jsonObject.optInt("ws_board", 0) != 0;
-				set(boardName, KEY_SPOILERS_ENABLED, areSpoilersEnabled);
-				set(boardName, KEY_CODE_ENABLED, isCodeEnabled);
-				set(boardName, KEY_FLAGS_ENABLED, areFlagsEnabled);
-				if (bumpLimit != 0) {
-					storeBumpLimit(boardName, bumpLimit);
+	public chan.content.model.Board updateBoard(JsonSerial.Reader reader) throws IOException, ParseException {
+		String boardName = null;
+		String title = null;
+		String description = null;
+		boolean areSpoilersEnabled = false;
+		boolean isCodeEnabled = false;
+		boolean areFlagsEnabled = false;
+		int bumpLimit = 0;
+		int maxCommentLength = 0;
+		boolean safeForWork = false;
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "board": {
+					boardName = reader.nextString();
+					break;
 				}
-				if (maxCommentLength > 0) {
-					set(boardName, KEY_MAX_COMMENT_LENGTH, maxCommentLength);
+				case "title": {
+					title = reader.nextString();
+					break;
 				}
-				set(boardName, KEY_SAFE_FOR_WORK, safeForWork);
+				case "meta_description": {
+					description = StringUtils.clearHtml(reader.nextString());
+					break;
+				}
+				case "spoilers": {
+					areSpoilersEnabled = reader.nextBoolean();
+					break;
+				}
+				case "code_tags": {
+					isCodeEnabled = reader.nextBoolean();
+					break;
+				}
+				case "country_flags": {
+					areFlagsEnabled = reader.nextBoolean();
+					break;
+				}
+				case "bump_limit": {
+					bumpLimit = reader.nextInt();
+					break;
+				}
+				case "max_comment_chars": {
+					maxCommentLength = reader.nextInt();
+					break;
+				}
+				case "ws_board": {
+					safeForWork = reader.nextBoolean();
+					break;
+				}
+				default: {
+					reader.skip();
+					break;
+				}
 			}
-		} catch (JSONException e) {
-			// Ignore exception
 		}
+		if (boardName != null && title != null) {
+			if (description != null) {
+				String find = " is 4chan's ";
+				int index = description.indexOf(find);
+				if (index < 0) {
+					find = " is the ";
+					index = description.indexOf(find);
+				}
+				if (index < 0) {
+					find = " is a ";
+					index = description.indexOf(find);
+				}
+				if (index >= 0) {
+					index += find.length();
+					if (index + 1 < description.length()) {
+						description = Character.toUpperCase(description.charAt(index)) +
+								description.substring(index + 1);
+					}
+				}
+			}
+			set(boardName, KEY_SPOILERS_ENABLED, areSpoilersEnabled);
+			set(boardName, KEY_CODE_ENABLED, isCodeEnabled);
+			set(boardName, KEY_FLAGS_ENABLED, areFlagsEnabled);
+			if (bumpLimit != 0) {
+				storeBumpLimit(boardName, bumpLimit);
+			}
+			if (maxCommentLength > 0) {
+				set(boardName, KEY_MAX_COMMENT_LENGTH, maxCommentLength);
+			}
+			set(boardName, KEY_SAFE_FOR_WORK, safeForWork);
+			return new chan.content.model.Board(boardName, title, description);
+		}
+		return null;
 	}
 
 	public void updateReportingConfiguration(String boardName, List<ReportReason> reportReasons) {
