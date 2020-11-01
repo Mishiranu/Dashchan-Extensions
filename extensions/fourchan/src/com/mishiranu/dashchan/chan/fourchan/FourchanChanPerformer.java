@@ -24,6 +24,7 @@ import chan.util.CommonUtils;
 import chan.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -151,13 +152,69 @@ public class FourchanChanPerformer extends ChanPerformer {
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
+		boolean tail = data.partialThreadLoading && data.lastPostNumber != null;
+		ArrayList<Post> posts = new ArrayList<>();
+		int uniquePosters = 0;
+		if (tail) {
+			Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + "-tail.json");
+			HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator)
+					.setSuccessOnly(false).perform();
+			if (response.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				TRY: try (InputStream input = response.open();
+						JsonSerial.Reader reader = JsonSerial.reader(input)) {
+					reader.startObject();
+					while (!reader.endStruct()) {
+						switch (reader.nextName()) {
+							case "posts": {
+								reader.startArray();
+								String sincePostNumber = null;
+								reader.startObject();
+								while (!reader.endStruct()) {
+									switch (reader.nextName()) {
+										case "unique_ips": {
+											uniquePosters = reader.nextInt();
+											break;
+										}
+										case "tail_id": {
+											sincePostNumber = reader.nextString();
+											break;
+										}
+										default: {
+											reader.skip();
+											break;
+										}
+									}
+								}
+								if (sincePostNumber != null && Integer.parseInt(data.lastPostNumber)
+										>= Integer.parseInt(sincePostNumber)) {
+									while (!reader.endStruct()) {
+										posts.add(FourchanModelMapper.createPost(reader,
+												locator, data.boardName, handleMathTags, null));
+									}
+									return new ReadPostsResult(new Posts(posts).setUniquePosters(uniquePosters));
+								} else {
+									// Load full thread
+									break TRY;
+								}
+							}
+							default: {
+								reader.skip();
+								break;
+							}
+						}
+					}
+				} catch (ParseException e) {
+					throw new InvalidResponseException(e);
+				} catch (IOException e) {
+					throw response.fail(e);
+				}
+			}
+		}
 		Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + ".json");
 		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
-		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
-			ArrayList<Post> posts = new ArrayList<>();
-			int uniquePosters = 0;
 			reader.startObject();
 			while (!reader.endStruct()) {
 				switch (reader.nextName()) {
@@ -180,7 +237,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 					}
 				}
 			}
-			return new ReadPostsResult(new Posts(posts).setUniquePosters(uniquePosters));
+			return new ReadPostsResult(new Posts(posts).setUniquePosters(uniquePosters)).setFullThread(true);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		} catch (IOException e) {
