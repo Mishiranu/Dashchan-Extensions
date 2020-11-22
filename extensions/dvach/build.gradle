@@ -1,5 +1,5 @@
 rootProject.configureExtension(project, [
-		versionName: '1.37',
+		versionName: '1.38',
 		apiVersion: 1,
 		hosts: ['2ch.hk', '2ch.pm', '2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so']
 ])
