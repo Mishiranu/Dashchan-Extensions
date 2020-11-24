@@ -112,8 +112,13 @@ public class FourchanChanLocator extends ChanLocator {
 		return buildPathWithHost(HOST_API, segments);
 	}
 
-	public Uri createIconUri(String country) {
-		return buildPathWithSchemeHost(true, HOST_STATIC, "image", "country", country.toLowerCase(Locale.US) + ".gif");
+	public Uri createIconUri(String country, boolean trollFlag) {
+		String fileName = country.toLowerCase(Locale.US) + ".gif";
+		if (trollFlag) {
+			return buildPathWithSchemeHost(true, HOST_STATIC, "image", "country", "troll", fileName);
+		} else {
+			return buildPathWithSchemeHost(true, HOST_STATIC, "image", "country", fileName);
+		}
 	}
 
 	public Uri createSysUri(String... segments) {

@@ -7,6 +7,7 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.JsonSerial;
 import chan.text.ParseException;
+import chan.util.CommonUtils;
 import chan.util.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class FourchanModelMapper {
 	public static Post createPost(JsonSerial.Reader reader, FourchanChanLocator locator,
 			String boardName, boolean handleMathTags, Extra extra) throws IOException, ParseException {
 		Post post = new Post();
+		boolean trollFlag = false;
 		String country = null;
 		String countryName = null;
 		String tim = null;
@@ -127,6 +129,11 @@ public class FourchanModelMapper {
 					country = reader.nextString();
 					break;
 				}
+				case "troll_country": {
+					country = reader.nextString();
+					trollFlag = true;
+					break;
+				}
 				case "country_name": {
 					countryName = reader.nextString();
 					break;
@@ -197,8 +204,11 @@ public class FourchanModelMapper {
 			}
 		}
 
+		if (CommonUtils.equals(post.getIdentifier(), post.getCapcode())) {
+			post.setIdentifier(null);
+		}
 		if (country != null) {
-			Uri uri = locator.createIconUri(country);
+			Uri uri = locator.createIconUri(country, trollFlag);
 			String title = countryName == null ? country.toUpperCase(Locale.US) : countryName;
 			post.setIcons(new Icon(locator, uri, title));
 		}
