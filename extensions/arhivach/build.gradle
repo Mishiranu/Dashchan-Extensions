@@ -1,5 +1,5 @@
 rootProject.configureExtension(project, [
-		versionName: '1.11',
+		versionName: '1.12',
 		apiVersion: 1,
 		icon: 'ic_storage',
 		hosts: ['arhivach.net', 'arhivach.org', 'arhivach.cf', 'arhivach.ng', 'arhivachovtj2jrp.onion']
