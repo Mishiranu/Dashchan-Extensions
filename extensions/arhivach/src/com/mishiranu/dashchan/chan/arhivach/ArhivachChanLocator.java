@@ -9,9 +9,10 @@ public class ArhivachChanLocator extends ChanLocator {
 	private static final Pattern THREAD_PATH = Pattern.compile("/thread/\\d+/?");
 
 	public ArhivachChanLocator() {
-		addChanHost("arhivach.ng");
+		addChanHost("arhivach.net");
 		addConvertableChanHost("arhivach.org");
 		addConvertableChanHost("arhivach.cf");
+		addConvertableChanHost("arhivach.ng");
 		addChanHost("arhivachovtj2jrp.onion");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}

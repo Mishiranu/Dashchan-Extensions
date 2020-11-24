@@ -2,7 +2,7 @@ rootProject.configureExtension(project, [
 		versionName: '1.11',
 		apiVersion: 1,
 		icon: 'ic_storage',
-		hosts: ['arhivach.ng', 'arhivach.org', 'arhivach.cf', 'arhivachovtj2jrp.onion']
+		hosts: ['arhivach.net', 'arhivach.org', 'arhivach.cf', 'arhivach.ng', 'arhivachovtj2jrp.onion']
 ])
 
 dependencies {
