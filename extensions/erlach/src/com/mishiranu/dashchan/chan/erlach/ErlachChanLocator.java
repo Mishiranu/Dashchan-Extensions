@@ -12,7 +12,8 @@ public class ErlachChanLocator extends ChanLocator {
 	private static final Pattern ATTACHMENT_PATH = Pattern.compile("/static/attachments/[^/]+/[^/]+/[^/]+\\.\\w+");
 
 	public ErlachChanLocator() {
-		addChanHost("erlach.co");
+		addChanHost("erlach.services");
+		addConvertableChanHost("erlach.co");
 		addConvertableChanHost("www.erlach.co");
 		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
