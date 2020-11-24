@@ -25,9 +25,11 @@ import chan.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -445,38 +447,44 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
-	private static final String CAPTCHA_TYPE = "captchaType";
 	private static final String CAPTCHA_PASS_COOKIE = "captchaPassCookie";
+
+	private static final String REQUIREMENT_BANNED = "banned";
+	private static final String REQUIREMENT_REPORT = "report";
 
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
-		String token = data.captchaPass != null ? data.captchaPass[0] : null;
-		String pin = data.captchaPass != null ? data.captchaPass[1] : null;
-		String captchaPassCookie = null;
-		if (token != null || pin != null) {
-			if (getCaptchaPassData(token, pin).equals(lastCaptchaPassData)) {
-				captchaPassCookie = lastCaptchaPassCookie;
-			} else {
-				captchaPassCookie = readCaptchaPass(data, token, pin);
+		boolean banned = REQUIREMENT_BANNED.equals(data.requirement);
+		if (!banned) {
+			String token = data.captchaPass != null ? data.captchaPass[0] : null;
+			String pin = data.captchaPass != null ? data.captchaPass[1] : null;
+			String captchaPassCookie = null;
+			if (token != null || pin != null) {
+				if (getCaptchaPassData(token, pin).equals(lastCaptchaPassData)) {
+					captchaPassCookie = lastCaptchaPassCookie;
+				} else {
+					captchaPassCookie = readCaptchaPass(data, token, pin);
+				}
 			}
-		}
-		if (captchaPassCookie != null) {
-			CaptchaData captchaData = new CaptchaData();
-			captchaData.put(CAPTCHA_PASS_COOKIE, captchaPassCookie);
-			return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
-					.setValidity(FourchanChanConfiguration.Captcha.Validity.LONG_LIFETIME);
+			if (captchaPassCookie != null) {
+				CaptchaData captchaData = new CaptchaData();
+				captchaData.put(CAPTCHA_PASS_COOKIE, captchaPassCookie);
+				return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
+						.setValidity(FourchanChanConfiguration.Captcha.Validity.LONG_LIFETIME);
+			}
 		}
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		CaptchaData captchaData = new CaptchaData();
 		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
-		captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
+		if (banned) {
+			captchaData.put(CaptchaData.REFERER, locator.buildPath("banned").toString());
+		} else {
+			captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
+		}
 		String captchaType = data.captchaType;
-		if (data.threadNumber == null && data.requirement == null) {
+		if (banned || data.threadNumber == null && data.requirement == null) {
 			// Threads can be created only using reCAPTCHA 2
 			captchaType = FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
-		}
-		if ("report".equals(data.requirement)) {
-			captchaData.put(CAPTCHA_TYPE, captchaType);
 		}
 		ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
 				.setValidity(FourchanChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
@@ -484,6 +492,60 @@ public class FourchanChanPerformer extends ChanPerformer {
 			result.setCaptchaType(captchaType);
 		}
 		return result;
+	}
+
+	private static final SimpleDateFormat DATE_FORMAT_BAN = new SimpleDateFormat("MMMM d yyyy", Locale.US);
+
+	private static long parseBanDate(String value) {
+		if (value == null) {
+			return -1;
+		}
+		value = value.replaceAll("(st|nd|rd|th),", "");
+		try {
+			Date date = DATE_FORMAT_BAN.parse(value);
+			return date != null ? date.getTime() : 0;
+		} catch (java.text.ParseException e) {
+			return 0;
+		}
+	}
+
+	private ApiException.BanExtra readBanExtra(HttpRequest.Preset preset) throws HttpException {
+		FourchanChanLocator locator = FourchanChanLocator.get(this);
+		Uri uri = locator.buildPath("banned");
+		String responseText = new HttpRequest(uri, preset).perform().readString();
+		while (responseText.contains(RECAPTCHA_API_KEY)) {
+			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_BANNED, null, null, false);
+			if (captchaData == null) {
+				return null;
+			}
+			MultipartEntity entity = new MultipartEntity();
+			entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
+			responseText = new HttpRequest(uri, preset).setPostMethod(entity).perform().readString();
+		}
+		HashMap<String, String> fields = new HashMap<>();
+		for (String name : Arrays.asList("reason", "startDate", "endDate")) {
+			for (String tag : Arrays.asList("b", "span")) {
+				String open = "<" + tag + " class=\"" + name + "\">";
+				int start = responseText.indexOf(open);
+				if (start < 0) {
+					continue;
+				}
+				start += open.length();
+				int end = responseText.indexOf("</" + tag + ">", start);
+				if (end < start) {
+					continue;
+				}
+				if (responseText.charAt(end - 1) == '.') {
+					end--;
+				}
+				fields.put(name, responseText.substring(start, end));
+				break;
+			}
+		}
+		return new ApiException.BanExtra()
+				.setMessage(fields.get("reason"))
+				.setStartDate(parseBanDate(fields.get("startDate")))
+				.setExpireDate(parseBanDate(fields.get("endDate")));
 	}
 
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
@@ -543,6 +605,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 			String errorMessage = matcher.group(1);
 			if (errorMessage != null) {
 				int errorType = 0;
+				Object extra = null;
 				if (errorMessage.contains("CAPTCHA")) {
 					errorType = ApiException.SEND_ERROR_CAPTCHA;
 				} else if (errorMessage.contains("No text entered")) {
@@ -567,11 +630,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 					errorType = ApiException.SEND_ERROR_FILE_EXISTS;
 				} else if (errorMessage.contains("has been blocked due to abuse") || errorMessage.contains("banned")) {
 					errorType = ApiException.SEND_ERROR_BANNED;
+					extra = readBanExtra(data);
 				} else if (errorMessage.contains("image replies has been reached")) {
 					errorType = ApiException.SEND_ERROR_FILES_LIMIT;
 				}
 				if (errorType != 0) {
-					throw new ApiException(errorType);
+					throw new ApiException(errorType, extra);
 				}
 			}
 			CommonUtils.writeLog("4chan send message", errorMessage);
@@ -636,7 +700,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		boolean retry = false;
 		String message;
 		while (true) {
-			CaptchaData captchaData = requireUserCaptcha("report", data.boardName, data.threadNumber, retry);
+			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_REPORT, data.boardName, data.threadNumber, retry);
 			retry = true;
 			if (captchaData == null) {
 				throw new ApiException(ApiException.REPORT_ERROR_NO_ACCESS);
