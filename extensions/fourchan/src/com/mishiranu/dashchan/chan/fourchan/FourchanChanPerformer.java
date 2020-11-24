@@ -521,7 +521,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "post");
+		// Add "Accept" and "Accept-Language" headers and empty "__cfduid" cookie to fix strange 4chan bug
+		// when posts with images couldn't have been sent successfully on some boards (e.g. /b/)
 		String responseText = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie))
+				.addHeader("Accept", "text/html").addHeader("Accept-Language", "en").addCookie("__cfduid", "")
 				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
 
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
