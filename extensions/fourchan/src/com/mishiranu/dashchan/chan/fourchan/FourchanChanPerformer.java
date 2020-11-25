@@ -61,19 +61,21 @@ public class FourchanChanPerformer extends ChanPerformer {
 				postNumber = post.getPostNumber();
 			}
 		}
-		String responseText = null;
+		HttpResponse response = null;
 		if (postNumber != null) {
 			FourchanChanLocator locator = FourchanChanLocator.get(this);
 			Uri uri = locator.createSysUri(boardName, "imgboard.php").buildUpon()
 					.appendQueryParameter("mode", "report").appendQueryParameter("no", postNumber).build();
-			responseText = new HttpRequest(uri, preset).setSuccessOnly(false).perform().readString();
+			response = new HttpRequest(uri, preset).setSuccessOnly(false).perform();
 		}
 		List<ReportReason> reportReasons = Collections.emptyList();
-		if (responseText != null) {
-			try {
-				reportReasons = new FourchanRulesParser(responseText).parse();
+		if (response != null) {
+			try (InputStream input = response.open()) {
+				reportReasons = new FourchanRulesParser().parse(input);
 			} catch (ParseException e) {
-				// Ignore exception
+				// Ignore
+			} catch (IOException e) {
+				throw response.fail(e);
 			}
 		}
 		if (!reportReasons.isEmpty()) {
@@ -251,12 +253,14 @@ public class FourchanChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.buildPath();
-		String responseText = new HttpRequest(uri, data).perform().readString();
+		HttpResponse response = new HttpRequest(uri, data).perform();
 		Map<String, List<String>> categoryMap;
-		try {
-			categoryMap = new FourchanBoardsParser(responseText, this).parse();
+		try (InputStream input = response.open()) {
+			categoryMap = new FourchanBoardsParser(this).parse(input);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 		String uncategorized = "Uncategorized";
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
@@ -272,7 +276,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 		}
 		uri = locator.createApiUri("boards.json");
-		HttpResponse response = new HttpRequest(uri, data).perform();
+		response = new HttpRequest(uri, data).perform();
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
 			HashMap<String, String> flags = new HashMap<>();

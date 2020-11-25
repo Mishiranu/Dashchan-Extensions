@@ -15,6 +15,8 @@ import chan.http.HttpResponse;
 import chan.http.RequestEntity;
 import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,21 +24,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CirnoChanPerformer extends WakabaChanPerformer {
-	private static final Pattern PATTERN_REDIRECT = Pattern.compile("<meta http-equiv=\"Refresh\" " +
-			"content=\"0; ?url=(.*?)\" />");
-
-	private static void checkThreadsRedirect(String responseText) throws RedirectException {
-		Matcher matcher = PATTERN_REDIRECT.matcher(responseText);
-		if (matcher.find()) {
-			throw RedirectException.toUri(Uri.parse(matcher.group(1)));
-		}
-	}
-
 	@Override
-	protected List<Posts> parseThreads(String boardName, String responseText)
-			throws ParseException, RedirectException {
-		checkThreadsRedirect(responseText);
-		return new CirnoPostsParser(responseText, this, boardName).convertThreads();
+	protected List<Posts> parseThreads(String boardName, InputStream input)
+			throws IOException, ParseException, InvalidResponseException, RedirectException {
+		try {
+			return new CirnoPostsParser(this, boardName).convertThreads(input);
+		} catch (CirnoPostsParser.RedirectException e) {
+			String content = e.content;
+			int index = content.indexOf("url=");
+			if (index >= 0) {
+				throw RedirectException.toUri(Uri.parse(content.substring(index + 4)));
+			} else {
+				throw new InvalidResponseException(e);
+			}
+		}
 	}
 
 	@Override
@@ -45,12 +46,23 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 		if (data.isCatalog()) {
 			CirnoChanLocator locator = CirnoChanLocator.get(this);
 			Uri uri = locator.buildPath(data.boardName, "catalogue.html");
-			String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
-			checkThreadsRedirect(responseText);
-			try {
-				return new ReadThreadsResult(new CirnoCatalogParser(responseText, this).convert());
+			HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator)
+					.setSuccessOnly(false).perform();
+			if (response.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+				// Check for redirect
+				ReadThreadsResult result = super.onReadThreads(data);
+				if (result != null) {
+					throw new InvalidResponseException();
+				}
+			} else {
+				response.checkResponseCode();
+			}
+			try (InputStream input = response.open()) {
+				return new ReadThreadsResult(new CirnoCatalogParser(this).convert(input));
 			} catch (ParseException e) {
 				throw new InvalidResponseException(e);
+			} catch (IOException e) {
+				throw response.fail(e);
 			}
 		} else {
 			return super.onReadThreads(data);
@@ -71,8 +83,8 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 	}
 
 	@Override
-	protected List<Post> parsePosts(String boardName, String responseText) throws ParseException {
-		return new CirnoPostsParser(responseText, this, boardName).convertPosts();
+	protected List<Post> parsePosts(String boardName, InputStream input) throws IOException, ParseException {
+		return new CirnoPostsParser(this, boardName).convertPosts(input);
 	}
 
 	@Override
@@ -139,7 +151,7 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 		RequestEntity entity = createSendPostEntity(data, field ->
 				field.startsWith("field") ? "nya" + field.substring(5) : field);
 		entity.add("postredir", "1");
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
+		Pair<HttpResponse, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			if (response.second != null) {
 				CirnoChanLocator locator = CirnoChanLocator.get(this);
@@ -152,7 +164,7 @@ public class CirnoChanPerformer extends WakabaChanPerformer {
 			}
 			return null;
 		}
-		handleError(ErrorSource.POST, response.first);
+		handleError(ErrorSource.POST, response.first.readString());
 		throw new InvalidResponseException();
 	}
 }

@@ -5,14 +5,15 @@ import chan.content.model.BoardCategory;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NowereBoardsParser {
-	private final String source;
-
 	private final ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 	private final ArrayList<Board> boards = new ArrayList<>();
 
@@ -21,12 +22,8 @@ public class NowereBoardsParser {
 
 	private static final Pattern BOARD_NAME_PATTERN = Pattern.compile("/(\\w+)/");
 
-	public NowereBoardsParser(String source) {
-		this.source = source;
-	}
-
-	public ArrayList<BoardCategory> convert() throws ParseException {
-		PARSER.parse(source, this);
+	public ArrayList<BoardCategory> convert(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		closeCategory();
 		for (BoardCategory boardCategory : boardCategories) {
 			Arrays.sort(boardCategory.getBoards());

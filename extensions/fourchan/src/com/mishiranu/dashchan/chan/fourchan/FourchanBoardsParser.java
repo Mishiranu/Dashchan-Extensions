@@ -4,6 +4,9 @@ import android.net.Uri;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,20 +14,18 @@ import java.util.Map;
 
 public class FourchanBoardsParser {
 	private final FourchanChanLocator locator;
-	private final String source;
 
 	private final Map<String, List<String>> map = new LinkedHashMap<>();
 	private final List<String> list = new ArrayList<>();
 
 	private String boardTitle;
 
-	public FourchanBoardsParser(String source, Object linked) {
+	public FourchanBoardsParser(Object linked) {
 		this.locator = FourchanChanLocator.get(linked);
-		this.source = source;
 	}
 
-	public Map<String, List<String>> parse() throws ParseException {
-		PARSER.parse(source, this);
+	public Map<String, List<String>> parse(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		closeBoard();
 		return map;
 	}

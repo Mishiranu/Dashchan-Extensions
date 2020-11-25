@@ -5,8 +5,12 @@ import chan.content.WakabaPostsParser;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,13 +39,14 @@ public class CirnoPostsParser extends WakabaPostsParser
 	private static final Pattern ADMIN_NAME = Pattern.compile("<span class=\"adminname\">(.*)</span>");
 	private static final Pattern BUMP_LIMIT = Pattern.compile("Максимальное количество бампов треда: (\\d+).");
 
-	public CirnoPostsParser(String source, Object linked, String boardName) {
-		super(PARSER, DATE_FORMAT, source, linked, boardName);
+	public CirnoPostsParser(Object linked, String boardName) {
+		super(PARSER, DATE_FORMAT, linked, boardName);
 	}
 
 	@Override
-	protected void parseThis(TemplateParser<CirnoPostsParser> parser, String source) throws ParseException {
-		parser.parse(source, this);
+	protected void parseThis(TemplateParser<CirnoPostsParser> parser, InputStream input)
+			throws IOException, ParseException {
+		parser.parse(new InputStreamReader(input), this);
 	}
 
 	@Override
@@ -77,7 +82,7 @@ public class CirnoPostsParser extends WakabaPostsParser
 			.content((instance, holder, text) -> {
 				Matcher matcher = BUMP_LIMIT.matcher(text);
 				if (matcher.find()) {
-					int bumpLimit = Integer.parseInt(matcher.group(1));
+					int bumpLimit = Integer.parseInt(Objects.requireNonNull(matcher.group(1)));
 					holder.configuration.storeBumpLimit(holder.boardName, bumpLimit);
 				}
 			})
@@ -97,5 +102,21 @@ public class CirnoPostsParser extends WakabaPostsParser
 				holder.hasSpoilerCheckBox = true;
 				return false;
 			})
+			.equals("meta", "http-equiv", "Refresh")
+			.open((instance, holder, tagName, attributes) -> {
+				String content = attributes.get("content");
+				if (content != null) {
+					throw new RedirectException(content);
+				}
+				return false;
+			})
 			.prepare();
+
+	public static class RedirectException extends ParseException {
+		public final String content;
+
+		public RedirectException(String content) {
+			this.content = content;
+		}
+	}
 }

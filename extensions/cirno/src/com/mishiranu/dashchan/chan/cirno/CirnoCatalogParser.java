@@ -7,12 +7,15 @@ import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CirnoCatalogParser {
-	private final String source;
 	private final CirnoChanLocator locator;
 
 	private Post post;
@@ -20,13 +23,12 @@ public class CirnoCatalogParser {
 
 	private static final Pattern LINK_TITLE = Pattern.compile("#(\\d+) \\((.*)\\)");
 
-	public CirnoCatalogParser(String source, Object linked) {
-		this.source = source;
+	public CirnoCatalogParser(Object linked) {
 		locator = CirnoChanLocator.get(linked);
 	}
 
-	public ArrayList<Posts> convert() throws ParseException {
-		PARSER.parse(source, this);
+	public ArrayList<Posts> convert(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		return threads;
 	}
 
@@ -36,12 +38,12 @@ public class CirnoCatalogParser {
 			.open((instance, holder, tagName, attributes) -> {
 				Matcher matcher = LINK_TITLE.matcher(StringUtils.emptyIfNull(attributes.get("title")));
 				if (matcher.matches()) {
-					String number = matcher.group(1);
-					String date = matcher.group(2);
+					String number = Objects.requireNonNull(matcher.group(1));
+					String date = Objects.requireNonNull(matcher.group(2));
 					Post post = new Post();
 					post.setPostNumber(number);
 					try {
-						post.setTimestamp(CirnoPostsParser.DATE_FORMAT.parse(date).getTime());
+						post.setTimestamp(Objects.requireNonNull(CirnoPostsParser.DATE_FORMAT.parse(date)).getTime());
 					} catch (java.text.ParseException e) {
 						// Ignore exception
 					}

@@ -9,8 +9,11 @@ import chan.content.model.Posts;
 import chan.content.model.ThreadSummary;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
+import chan.http.HttpResponse;
 import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,13 +24,13 @@ import java.util.regex.Pattern;
 
 public class NowereChanPerformer extends WakabaChanPerformer {
 	@Override
-	protected List<Posts> parseThreads(String boardName, String responseText) throws ParseException {
-		return new NowerePostsParser(responseText, this, boardName).convertThreads();
+	protected List<Posts> parseThreads(String boardName, InputStream input) throws IOException, ParseException {
+		return new NowerePostsParser(this, boardName).convertThreads(input);
 	}
 
 	@Override
-	protected List<Post> parsePosts(String boardName, String responseText) throws ParseException {
-		return new NowerePostsParser(responseText, this, boardName).convertPosts();
+	protected List<Post> parsePosts(String boardName, InputStream input) throws IOException, ParseException {
+		return new NowerePostsParser(this, boardName).convertPosts(input);
 	}
 
 	@Override
@@ -57,11 +60,13 @@ public class NowereChanPerformer extends WakabaChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		NowereChanLocator locator = NowereChanLocator.get(this);
 		Uri uri = locator.buildPath("nav.html");
-		String responseText = new HttpRequest(uri, data).perform().readString();
-		try {
-			return new ReadBoardsResult(new NowereBoardsParser(responseText).convert());
+		HttpResponse response = new HttpRequest(uri, data).perform();
+		try (InputStream input = response.open()) {
+			return new ReadBoardsResult(new NowereBoardsParser().convert(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -80,7 +85,7 @@ public class NowereChanPerformer extends WakabaChanPerformer {
 		ArrayList<Pair<Integer, ThreadSummary>> threadSummaries = new ArrayList<>();
 		Matcher matcher = PATTERN_ARCHIVED_THREAD.matcher(responseText);
 		while (matcher.find()) {
-			String threadNumber = matcher.group(1);
+			String threadNumber = StringUtils.emptyIfNull(matcher.group(1));
 			threadSummaries.add(new Pair<>(Integer.parseInt(threadNumber), new ThreadSummary(data.boardName,
 					threadNumber, "#" + threadNumber + ", " + StringUtils.emptyIfNull(matcher.group(2)).trim())));
 		}

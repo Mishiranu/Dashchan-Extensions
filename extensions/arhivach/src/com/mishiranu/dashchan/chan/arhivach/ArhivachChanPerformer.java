@@ -17,6 +17,8 @@ import chan.text.ParseException;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,11 +36,13 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("index/" + (data.pageNumber * PAGE_SIZE));
-		String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
-		try {
-			return new ReadThreadsResult(new ArhivachThreadsParser(responseText, this, true).convertThreads());
+		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
+		try (InputStream input = response.open()) {
+			return new ReadThreadsResult(new ArhivachThreadsParser(this, true).convertThreads(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -46,11 +50,13 @@ public class ArhivachChanPerformer extends ChanPerformer {
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		ArhivachChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createThreadUri(null, data.threadNumber);
-		String responseText = new HttpRequest(uri, data).setValidator(data.validator).perform().readString();
-		try {
-			return new ReadPostsResult(new ArhivachPostsParser(responseText, this, data.threadNumber).convert());
+		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
+		try (InputStream input = response.open()) {
+			return new ReadPostsResult(new ArhivachPostsParser(this, data.threadNumber).convert(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -147,11 +153,12 @@ public class ArhivachChanPerformer extends ChanPerformer {
 			return new ReadSearchPostsResult();
 		}
 		response.checkResponseCode();
-		try {
-			return new ReadSearchPostsResult(new ArhivachThreadsParser
-					(response.readString(), this, false).convertPosts());
+		try (InputStream input = response.open()) {
+			return new ReadSearchPostsResult(new ArhivachThreadsParser(this, false).convertPosts(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 

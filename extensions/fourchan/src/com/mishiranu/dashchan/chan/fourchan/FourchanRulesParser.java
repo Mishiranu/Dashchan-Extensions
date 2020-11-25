@@ -3,12 +3,13 @@ package com.mishiranu.dashchan.chan.fourchan;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FourchanRulesParser {
-	private final String source;
-
 	private final ArrayList<ReportReason> reportReasons = new ArrayList<>();
 	private final ArrayList<ReportReason> categoryReportReasons = new ArrayList<>();
 
@@ -16,12 +17,8 @@ public class FourchanRulesParser {
 	private String categoryTitle;
 	private String value;
 
-	public FourchanRulesParser(String source) {
-		this.source = source;
-	}
-
-	public List<ReportReason> parse() throws ParseException {
-		PARSER.parse(source, this);
+	public List<ReportReason> parse(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		return reportReasons;
 	}
 

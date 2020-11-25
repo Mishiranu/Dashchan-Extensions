@@ -1,10 +1,14 @@
 package com.mishiranu.dashchan.chan.yakujimoe;
 
+import android.annotation.SuppressLint;
 import chan.content.model.Board;
 import chan.content.model.BoardCategory;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,8 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class YakujiMoeBoardsParser {
-	private final String source;
-
 	private final LinkedHashMap<String, BoardCategory> boardCategories = new LinkedHashMap<>();
 	private final ArrayList<Board> boards = new ArrayList<>();
 
@@ -38,12 +40,8 @@ public class YakujiMoeBoardsParser {
 		VALID_BOARD_TITLES.put("hau", "Higurashi no Naku Koro ni");
 	}
 
-	public YakujiMoeBoardsParser(String source) {
-		this.source = source;
-	}
-
-	public ArrayList<BoardCategory> convert() throws ParseException {
-		PARSER.parse(source, this);
+	public ArrayList<BoardCategory> convert(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		closeCategory();
 		for (BoardCategory boardCategory : boardCategories.values()) {
 			Arrays.sort(boardCategory.getBoards());
@@ -65,6 +63,7 @@ public class YakujiMoeBoardsParser {
 		}
 	}
 
+	@SuppressLint("ConstantLocale")
 	private static final TemplateParser<YakujiMoeBoardsParser> PARSER = TemplateParser
 			.<YakujiMoeBoardsParser>builder()
 			.equals("td", "class", "header")

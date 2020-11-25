@@ -10,7 +10,6 @@ import chan.http.HttpException;
 import chan.http.HttpResponse;
 import chan.text.ParseException;
 import chan.util.DataFile;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -28,8 +27,6 @@ public class LocalChanPerformer extends ChanPerformer {
 		LocalChanConfiguration configuration = ChanConfiguration.get(this);
 		Thread thread = Thread.currentThread();
 		ArrayList<Posts> threads = new ArrayList<>();
-		byte[] buffer = new byte[4096];
-		ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
 		int from = THREADS_PER_PAGE * data.pageNumber;
 		int to = from + THREADS_PER_PAGE;
 		int current = 0;
@@ -42,14 +39,10 @@ public class LocalChanPerformer extends ChanPerformer {
 				if (!file.isDirectory() && name.endsWith(".html")) {
 					if (current >= from && current < to) {
 						String threadNumber = name.substring(0, name.length() - 5);
-						byte[] fileData = readFile(file, output, buffer);
-						if (fileData != null && fileData.length > 0) {
-							try {
-								threads.add(new LocalPostsParser(new String(fileData), this,
-										threadNumber).convertThread());
-							} catch (ParseException e) {
-								// Ignore
-							}
+						try (InputStream input = file.openInputStream()) {
+							threads.add(new LocalPostsParser(this, threadNumber).convertThread(input));
+						} catch (IOException | ParseException e) {
+							// Ignore
 						}
 						if (thread.isInterrupted()) {
 							return null;
@@ -75,19 +68,13 @@ public class LocalChanPerformer extends ChanPerformer {
 		LocalChanConfiguration configuration = ChanConfiguration.get(this);
 		DataFile localDownloadDirectory = configuration.getLocalDownloadDirectory();
 		DataFile file = localDownloadDirectory.getChild(data.threadNumber + ".html");
-		byte[] fileData = readFile(file, null, null);
-		if (fileData == null) {
+		try (InputStream input = file.openInputStream()) {
+			return new ReadPostsResult(new LocalPostsParser(this, data.threadNumber).convertPosts(input));
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		} catch (IOException e) {
 			throw HttpException.createNotFoundException();
 		}
-		if (fileData.length > 0) {
-			try {
-				return new ReadPostsResult(new LocalPostsParser(new String(fileData), this,
-						data.threadNumber).convertPosts());
-			} catch (ParseException e) {
-				// Ignore
-			}
-		}
-		throw new InvalidResponseException();
 	}
 
 	@Override
@@ -107,30 +94,34 @@ public class LocalChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data) throws ApiException {
+	public SendDeletePostsResult onSendDeletePosts(SendDeletePostsData data)
+			throws ApiException, InvalidResponseException {
 		LocalChanConfiguration configuration = ChanConfiguration.get(this);
 		DataFile localDownloadDirectory = configuration.getLocalDownloadDirectory();
 		DataFile file = localDownloadDirectory.getChild(data.threadNumber + ".html");
-		byte[] fileData = readFile(file, null, null);
-		Posts thread = null;
-		if (fileData != null && fileData.length > 0) {
-			try {
-				thread = new LocalPostsParser(new String(fileData), this, data.threadNumber).convertThread();
-			} catch (ParseException e) {
-				// Ignore
+		Post[] posts;
+		try (InputStream input = file.openInputStream()) {
+			Posts thread = new LocalPostsParser(this, data.threadNumber).convertThread(input);
+			if (thread == null) {
+				throw new ApiException(ApiException.DELETE_ERROR_NOT_FOUND);
 			}
-		}
-		if (thread != null) {
-			Post[] posts = thread.getPosts();
-			if (posts.length > 0 && data.postNumbers.get(0).equals(posts[0].getPostNumber())) {
-				removeDirectory(localDownloadDirectory.getChild(data.threadNumber));
-				if (!Thread.currentThread().isInterrupted()) {
-					file.delete();
-				}
-				return null;
+			posts = thread.getPosts();
+			if (posts == null || posts.length == 0) {
+				throw new ApiException(ApiException.DELETE_ERROR_NOT_FOUND);
 			}
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw new ApiException(ApiException.DELETE_ERROR_NOT_FOUND);
 		}
-		throw new ApiException(ApiException.DELETE_ERROR_NO_ACCESS);
+		if (!data.postNumbers.get(0).equals(posts[0].getPostNumber())) {
+			throw new ApiException(ApiException.DELETE_ERROR_NO_ACCESS);
+		}
+		removeDirectory(localDownloadDirectory.getChild(data.threadNumber));
+		if (!Thread.currentThread().isInterrupted()) {
+			file.delete();
+		}
+		return null;
 	}
 
 	private void removeDirectory(DataFile directory) {
@@ -149,25 +140,5 @@ public class LocalChanPerformer extends ChanPerformer {
 			}
 		}
 		directory.delete();
-	}
-
-	private byte[] readFile(DataFile file, ByteArrayOutputStream output, byte[] buffer) {
-		if (output != null) {
-			output.reset();
-		} else {
-			output = new ByteArrayOutputStream();
-		}
-		if (buffer == null) {
-			buffer = new byte[8192];
-		}
-		try (InputStream input = file.openInputStream()) {
-			int count;
-			while ((count = input.read(buffer)) > 0) {
-				output.write(buffer, 0, count);
-			}
-			return output.toByteArray();
-		} catch (IOException e) {
-			return null;
-		}
 	}
 }

@@ -2,6 +2,8 @@ package chan.text;
 
 import android.util.Pair;
 import chan.util.CommonUtils;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -225,6 +227,25 @@ public final class TemplateParser<H> {
 		}
 		try {
 			GroupParser.parse(source, new Implementation<>(this, holder));
+		} catch (FinishException e) {
+			// finish() was called
+		}
+	}
+
+	/**
+	 * <p>Starts a new parsing process.</p>
+	 *
+	 * @param reader Input to parse.
+	 * @param holder Intermediate data holder during parsing process.
+	 * @throws IOException when reading process was interrupted due to I/O problem.
+	 * @throws ParseException when parsing process was interrupted.
+	 */
+	public void parse(Reader reader, H holder) throws IOException, ParseException {
+		if (!ready) {
+			throw new IllegalStateException("prepare() was not called");
+		}
+		try {
+			GroupParser.parse(reader, new Implementation<>(this, holder));
 		} catch (FinishException e) {
 			// finish() was called
 		}

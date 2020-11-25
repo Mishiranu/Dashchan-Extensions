@@ -9,16 +9,19 @@ import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArhivachPostsParser {
-	private final String source;
 	private final ArhivachChanLocator locator;
 	private final String threadNumber;
 
@@ -47,14 +50,13 @@ public class ArhivachPostsParser {
 	static final List<String> MONTHS_2 = Arrays.asList("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг",
 			"Сен", "Окт", "Ноя", "Дек");
 
-	public ArhivachPostsParser(String source, Object linked, String threadNumber) {
-		this.source = source;
+	public ArhivachPostsParser(Object linked, String threadNumber) {
 		this.locator = ChanLocator.get(linked);
 		this.threadNumber = threadNumber;
 	}
 
-	public Posts convert() throws ParseException {
-		PARSER.parse(source, this);
+	public Posts convert(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		return new Posts(posts).setArchivedThreadUri(threadUri);
 	}
 
@@ -153,17 +155,17 @@ public class ArhivachPostsParser {
 				day = calendar.get(GregorianCalendar.DAY_OF_MONTH);
 				month = calendar.get(GregorianCalendar.MONTH);
 			} else {
-				day = Integer.parseInt(dayString);
+				day = Integer.parseInt(Objects.requireNonNull(dayString));
 				month = ArhivachPostsParser.MONTHS_1.indexOf(monthString);
 			}
 			String yearString = matcher.group(5);
 			if (!StringUtils.isEmpty(yearString)) {
 				hour = 0;
 				minute = 0;
-				year = Integer.parseInt(yearString);
+				year = Integer.parseInt(Objects.requireNonNull(yearString));
 			} else {
-				hour = Integer.parseInt(matcher.group(3));
-				minute = Integer.parseInt(matcher.group(4));
+				hour = Integer.parseInt(Objects.requireNonNull(matcher.group(3)));
+				minute = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
 				year = calendar.get(GregorianCalendar.YEAR);
 			}
 			calendar = new GregorianCalendar(year, month, day, hour, minute, 0);
@@ -176,12 +178,12 @@ public class ArhivachPostsParser {
 	private static long parseTimestamp(String date) {
 		Matcher matcher = PATTERN_DATE_1.matcher(date);
 		if (matcher.find()) {
-			int day = Integer.parseInt(matcher.group(1));
-			int month = Integer.parseInt(matcher.group(2)) - 1;
-			int year = Integer.parseInt(matcher.group(3)) + 2000;
-			int hour = Integer.parseInt(matcher.group(4));
-			int minute = Integer.parseInt(matcher.group(5));
-			int second = Integer.parseInt(matcher.group(6));
+			int day = Integer.parseInt(Objects.requireNonNull(matcher.group(1)));
+			int month = Integer.parseInt(Objects.requireNonNull(matcher.group(2))) - 1;
+			int year = Integer.parseInt(Objects.requireNonNull(matcher.group(3))) + 2000;
+			int hour = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
+			int minute = Integer.parseInt(Objects.requireNonNull(matcher.group(5)));
+			int second = Integer.parseInt(Objects.requireNonNull(matcher.group(6)));
 			GregorianCalendar calendar = new GregorianCalendar(year, month, day, hour, minute, second);
 			calendar.setTimeZone(TIMEZONE_GMT);
 			calendar.add(GregorianCalendar.HOUR, -3);
@@ -189,7 +191,7 @@ public class ArhivachPostsParser {
 		} else {
 			matcher = PATTERN_DATE_2.matcher(date);
 			if (matcher.find()) {
-				int day = Integer.parseInt(matcher.group(1));
+				int day = Integer.parseInt(Objects.requireNonNull(matcher.group(1)));
 				String monthString = matcher.group(2);
 				int month = MONTHS_1.indexOf(monthString);
 				if (month == -1) {
@@ -198,10 +200,10 @@ public class ArhivachPostsParser {
 				if (month == -1) {
 					return 0L;
 				}
-				int year = Integer.parseInt(matcher.group(3));
-				int hour = Integer.parseInt(matcher.group(4));
-				int minute = Integer.parseInt(matcher.group(5));
-				int second = Integer.parseInt(matcher.group(6));
+				int year = Integer.parseInt(Objects.requireNonNull(matcher.group(3)));
+				int hour = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
+				int minute = Integer.parseInt(Objects.requireNonNull(matcher.group(5)));
+				int second = Integer.parseInt(Objects.requireNonNull(matcher.group(6)));
 				GregorianCalendar calendar = new GregorianCalendar(year, month, day, hour, minute, second);
 				calendar.setTimeZone(TIMEZONE_GMT);
 				calendar.add(GregorianCalendar.HOUR, -3);

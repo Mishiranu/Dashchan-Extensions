@@ -6,6 +6,8 @@ import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -17,7 +19,6 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 		ChanLocator extends WakabaChanLocator, Holder extends
 		WakabaPostsParser<ChanConfiguration, ChanLocator, Holder>> {
 	private final TemplateParser<Holder> parser;
-	private final String source;
 
 	private final SimpleDateFormat dateFormat;
 
@@ -40,9 +41,8 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 	private static final Pattern NUMBER = Pattern.compile("\\d+");
 
 	public WakabaPostsParser(TemplateParser<Holder> parser, SimpleDateFormat dateFormat,
-			String source, Object linked, String boardName) {
+			Object linked, String boardName) {
 		this.parser = parser;
-		this.source = source;
 		this.dateFormat = dateFormat;
 		this.configuration = WakabaChanConfiguration.get(linked);
 		this.locator = WakabaChanLocator.get(linked);
@@ -63,9 +63,9 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 		}
 	}
 
-	public ArrayList<Posts> convertThreads() throws ParseException {
+	public ArrayList<Posts> convertThreads(InputStream input) throws IOException, ParseException {
 		threads = new ArrayList<>();
-		parseThis(parser, source);
+		parseThis(parser, input);
 		closeThread();
 		if (threads.size() > 0) {
 			updateConfiguration();
@@ -74,8 +74,8 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 		return null;
 	}
 
-	public ArrayList<Post> convertPosts() throws ParseException {
-		parseThis(parser, source);
+	public ArrayList<Post> convertPosts(InputStream input) throws IOException, ParseException {
+		parseThis(parser, input);
 		if (posts.size() > 0) {
 			updateConfiguration();
 			return posts;
@@ -83,7 +83,8 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 		return null;
 	}
 
-	protected abstract void parseThis(TemplateParser<Holder> parser, String source) throws ParseException;
+	protected abstract void parseThis(TemplateParser<Holder> parser, InputStream input)
+			throws IOException, ParseException;
 
 	protected void updateConfiguration() {}
 
@@ -186,15 +187,15 @@ public abstract class WakabaPostsParser<ChanConfiguration extends WakabaChanConf
 				.content((instance, holder, text) -> {
 					Matcher matcher = FILE_SIZE.matcher(text);
 					if (matcher.matches()) {
-						float size = Float.parseFloat(matcher.group(1));
+						float size = Float.parseFloat(Objects.requireNonNull(matcher.group(1)));
 						String dim = StringUtils.emptyIfNull(matcher.group(2)).toUpperCase(Locale.US);
 						if ("KB".equals(dim)) {
 							size *= 1024f;
 						} else if ("MB".equals(dim)) {
 							size *= 1024f * 1024f;
 						}
-						int width = Integer.parseInt(matcher.group(3));
-						int height = Integer.parseInt(matcher.group(4));
+						int width = Integer.parseInt(Objects.requireNonNull(matcher.group(3)));
+						int height = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
 						String originalName = StringUtils.nullIfEmpty(matcher.group(5));
 						holder.attachment.setSize((int) size);
 						holder.attachment.setWidth(width);

@@ -5,20 +5,18 @@ import chan.content.model.BoardCategory;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class FoolFuukaBoardsParser {
-	private final String source;
 	private final ArrayList<Board> boards = new ArrayList<>();
 
 	private String boardCategoryTitle;
 
-	public FoolFuukaBoardsParser(String source) {
-		this.source = source;
-	}
-
-	public BoardCategory convert() throws ParseException {
-		PARSER.parse(source, this);
+	public BoardCategory convert(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		return new BoardCategory("Archives", boards);
 	}
 

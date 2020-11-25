@@ -281,11 +281,13 @@ public class DobrochanChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.buildPath("frame.xhtml");
-		String responseText = new HttpRequest(uri, data).perform().readString();
-		try {
-			return new ReadBoardsResult(new DobrochanBoardsParser(responseText).convert());
+		HttpResponse response = new HttpRequest(uri, data).perform();
+		try (InputStream input = response.open()) {
+			return new ReadBoardsResult(new DobrochanBoardsParser().convert(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 

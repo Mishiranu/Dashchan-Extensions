@@ -8,6 +8,9 @@ import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
@@ -15,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArhivachThreadsParser {
-	private final String source;
 	private final ArhivachChanConfiguration configuration;
 	private final ArhivachChanLocator locator;
 	private final boolean handlePagesCount;
@@ -29,15 +31,14 @@ public class ArhivachThreadsParser {
 	private static final Pattern PATTERN_SUBJECT = Pattern.compile("^<b>(.*?)</b> &mdash; ");
 	private static final Pattern PATTERN_NOT_ARCHIVED = Pattern.compile("<a.*?>\\[.*?] Ожидание обновления</a>");
 
-	public ArhivachThreadsParser(String source, Object linked, boolean handlePagesCount) {
-		this.source = source;
+	public ArhivachThreadsParser(Object linked, boolean handlePagesCount) {
 		this.configuration = ChanConfiguration.get(linked);
 		this.locator = ChanLocator.get(linked);
 		this.handlePagesCount = handlePagesCount;
 	}
 
-	public ArrayList<Posts> convertThreads() throws ParseException {
-		PARSER.parse(source, this);
+	public ArrayList<Posts> convertThreads(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		if (postHolders.size() > 0) {
 			ArrayList<Posts> threads = new ArrayList<>(postHolders.size());
 			for (LinkedHashMap.Entry<Post, Integer> entry : postHolders.entrySet()) {
@@ -48,8 +49,8 @@ public class ArhivachThreadsParser {
 		return null;
 	}
 
-	public ArrayList<Post> convertPosts() throws ParseException {
-		PARSER.parse(source, this);
+	public ArrayList<Post> convertPosts(InputStream input) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		if (postHolders.size() > 0) {
 			ArrayList<Post> posts = new ArrayList<>(postHolders.size());
 			posts.addAll(postHolders.keySet());
@@ -120,7 +121,7 @@ public class ArhivachThreadsParser {
 				matcher = PATTERN_SUBJECT.matcher(text);
 				if (matcher.find()) {
 					holder.post.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(matcher.group(1)).trim()));
-					text = text.substring(matcher.group(0).length());
+					text = text.substring(StringUtils.emptyIfNull(matcher.group(0)).length());
 				}
 				if (text.length() > 500 && !text.endsWith(".")) {
 					text += '\u2026';

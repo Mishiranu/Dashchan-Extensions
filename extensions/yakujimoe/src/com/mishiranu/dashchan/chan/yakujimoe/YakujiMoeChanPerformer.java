@@ -9,19 +9,22 @@ import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
+import chan.http.HttpResponse;
 import chan.http.RequestEntity;
 import chan.text.ParseException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class YakujiMoeChanPerformer extends WakabaChanPerformer {
 	@Override
-	protected List<Posts> parseThreads(String boardName, String responseText) throws ParseException {
-		return new YakujiMoePostsParser(responseText, this, boardName).convertThreads();
+	protected List<Posts> parseThreads(String boardName, InputStream input) throws IOException, ParseException {
+		return new YakujiMoePostsParser(this, boardName).convertThreads(input);
 	}
 
 	@Override
-	protected List<Post> parsePosts(String boardName, String responseText) throws ParseException {
-		return new YakujiMoePostsParser(responseText, this, boardName).convertPosts();
+	protected List<Post> parsePosts(String boardName, InputStream input) throws IOException, ParseException {
+		return new YakujiMoePostsParser(this, boardName).convertPosts(input);
 	}
 
 	@Override
@@ -41,11 +44,13 @@ public class YakujiMoeChanPerformer extends WakabaChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		YakujiMoeChanLocator locator = YakujiMoeChanLocator.get(this);
 		Uri uri = locator.buildPath("n", "list.html");
-		String responseText = new HttpRequest(uri, data).perform().readString();
-		try {
-			return new ReadBoardsResult(new YakujiMoeBoardsParser(responseText).convert());
+		HttpResponse response = new HttpRequest(uri, data).perform();
+		try (InputStream input = response.open()) {
+			return new ReadBoardsResult(new YakujiMoeBoardsParser().convert(input));
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -53,11 +58,11 @@ public class YakujiMoeChanPerformer extends WakabaChanPerformer {
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
 		RequestEntity entity = createSendPostEntity(data, field ->
 				field.startsWith("field") ? "nya" + field.substring(5) : field);
-		Pair<String, Uri> response = executeWakaba(data.boardName, entity, data);
+		Pair<HttpResponse, Uri> response = executeWakaba(data.boardName, entity, data);
 		if (response.first == null) {
 			return null;
 		}
-		handleError(ErrorSource.POST, response.first);
+		handleError(ErrorSource.POST, response.first.readString());
 		throw new InvalidResponseException();
 	}
 }

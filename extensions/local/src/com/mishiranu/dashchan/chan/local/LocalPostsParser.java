@@ -9,10 +9,12 @@ import chan.content.model.Posts;
 import chan.text.GroupParser;
 import chan.text.ParseException;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class LocalPostsParser implements GroupParser.Callback {
-	private final String source;
 	private final LocalChanLocator locator;
 	private final String threadNumber;
 
@@ -36,21 +38,20 @@ public class LocalPostsParser implements GroupParser.Callback {
 
 	private static class OriginalPostParsedException extends ParseException {}
 
-	public LocalPostsParser(String source, Object linked, String threadNumber) {
-		this.source = source;
+	public LocalPostsParser(Object linked, String threadNumber) {
 		this.locator = ChanLocator.get(linked);
 		this.threadNumber = threadNumber;
 	}
 
-	public Posts convertPosts() throws ParseException {
-		GroupParser.parse(source, this);
+	public Posts convertPosts(InputStream input) throws IOException, ParseException {
+		GroupParser.parse(new InputStreamReader(input), this);
 		return posts.size() > 0 ? new Posts(posts).setArchivedThreadUri(threadUri) : null;
 	}
 
-	public Posts convertThread() throws ParseException {
+	public Posts convertThread(InputStream input) throws IOException, ParseException {
 		onlyOriginalPost = true;
 		try {
-			GroupParser.parse(source, this);
+			GroupParser.parse(new InputStreamReader(input), this);
 		} catch (OriginalPostParsedException e) {
 			// Ignore
 		}

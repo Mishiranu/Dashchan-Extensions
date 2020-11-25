@@ -7,14 +7,17 @@ import chan.content.model.Posts;
 import chan.text.ParseException;
 import chan.text.TemplateParser;
 import chan.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FoolFuukaPostsParser {
-	private final String source;
 	private final FoolFuukaChanLocator locator;
 
 	private boolean needResTo = false;
@@ -29,8 +32,7 @@ public class FoolFuukaPostsParser {
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZZZ", Locale.US);
 	private static final Pattern PATTERN_FILE = Pattern.compile("(?:(.*), )?(\\d+)(\\w+), (\\d+)x(\\d+)(?:, (.*))?");
 
-	public FoolFuukaPostsParser(String source, Object linked) {
-		this.source = source;
+	public FoolFuukaPostsParser(Object linked) {
 		locator = FoolFuukaChanLocator.get(linked);
 	}
 
@@ -48,21 +50,21 @@ public class FoolFuukaPostsParser {
 		}
 	}
 
-	public ArrayList<Posts> convertThreads() throws ParseException {
+	public ArrayList<Posts> convertThreads(InputStream input) throws IOException, ParseException {
 		threads = new ArrayList<>();
-		PARSER.parse(source, this);
+		PARSER.parse(new InputStreamReader(input), this);
 		closeThread();
 		return threads;
 	}
 
-	public Posts convertPosts(Uri threadUri) throws ParseException {
-		PARSER.parse(source, this);
+	public Posts convertPosts(InputStream input, Uri threadUri) throws IOException, ParseException {
+		PARSER.parse(new InputStreamReader(input), this);
 		return posts.size() > 0 ? new Posts(posts).setArchivedThreadUri(threadUri) : null;
 	}
 
-	public ArrayList<Post> convertSearch() throws ParseException {
+	public ArrayList<Post> convertSearch(InputStream input) throws IOException, ParseException {
 		needResTo = true;
-		PARSER.parse(source, this);
+		PARSER.parse(new InputStreamReader(input), this);
 		return posts;
 	}
 
@@ -109,8 +111,8 @@ public class FoolFuukaPostsParser {
 			.name("time")
 			.open((instance, holder, tagName, attributes) -> {
 				try {
-					holder.post.setTimestamp(DATE_FORMAT.parse(StringUtils
-							.emptyIfNull(attributes.get("datetime"))).getTime());
+					holder.post.setTimestamp(Objects.requireNonNull(DATE_FORMAT.parse(StringUtils
+							.emptyIfNull(attributes.get("datetime")))).getTime());
 				} catch (java.text.ParseException e) {
 					// Ignore exception
 				}
@@ -143,15 +145,15 @@ public class FoolFuukaPostsParser {
 				text = StringUtils.clearHtml(text).trim();
 				Matcher matcher = PATTERN_FILE.matcher(text);
 				if (matcher.find()) {
-					int size = Integer.parseInt(matcher.group(2));
+					int size = Integer.parseInt(Objects.requireNonNull(matcher.group(2)));
 					String dim = matcher.group(3);
 					if ("KiB".equals(dim)) {
 						size *= 1024;
 					} else if ("MiB".equals(dim)) {
 						size *= 1024 * 1024;
 					}
-					int width = Integer.parseInt(matcher.group(4));
-					int height = Integer.parseInt(matcher.group(5));
+					int width = Integer.parseInt(Objects.requireNonNull(matcher.group(4)));
+					int height = Integer.parseInt(Objects.requireNonNull(matcher.group(5)));
 					holder.attachment.setSize(size);
 					holder.attachment.setWidth(width);
 					holder.attachment.setHeight(height);

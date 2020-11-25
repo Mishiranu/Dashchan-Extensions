@@ -22,26 +22,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ErlachChanPerformer extends ChanPerformer {
-	private String splitHtml(String response) throws InvalidResponseException {
+	private String splitHtml(String responseText) throws InvalidResponseException {
 		StringBuilder builder = new StringBuilder();
 		int index = 0;
 		String[] what = {"qi('posts').insertAdjacentHTML('beforeend', '", "outerHTML='"};
 		while (true) {
-			index = StringUtils.nearestIndexOf(response, index, what);
+			index = StringUtils.nearestIndexOf(responseText, index, what);
 			if (index == -1) {
 				break;
 			}
 			for (String s : what) {
-				if (response.indexOf(s, index) == index) {
+				if (responseText.indexOf(s, index) == index) {
 					index += s.length();
 					break;
 				}
 			}
-			for (int i = index; i < response.length(); i++) {
-				if (response.charAt(i) == '\'' && response.charAt(i - 1) != '\\') {
+			for (int i = index; i < responseText.length(); i++) {
+				if (responseText.charAt(i) == '\'' && responseText.charAt(i - 1) != '\\') {
 					try {
 						// Hack to extract escaped string
-						JSONObject jsonObject = new JSONObject("{'html':'" + response.substring(index, i) + "'}");
+						JSONObject jsonObject = new JSONObject("{'html':'" + responseText.substring(index, i) + "'}");
 						builder.append(jsonObject.getString("html"));
 					} catch (JSONException e) {
 						throw new InvalidResponseException(e);
@@ -166,8 +166,8 @@ public class ErlachChanPerformer extends ChanPerformer {
 	private static final Pattern PATTERN_POST_SUCCESS = Pattern.compile("qi\\('.*?'\\).dataset.id='(\\w+)'|" +
 			"<a class=\"post-topic\" id=\"auto-\\d+\" href=\"/[^/]+/(\\w+)\">");
 
-	private static ArrayList<String> findSendData(String response, String id) {
-		Matcher matcher = PATTERN_WEBSOCKET_SEND.matcher(response);
+	private static ArrayList<String> findSendData(String responseText, String id) {
+		Matcher matcher = PATTERN_WEBSOCKET_SEND.matcher(responseText);
 		while (matcher.find()) {
 			String foundId = matcher.group(1);
 			if (CommonUtils.equals(id, foundId)) {
