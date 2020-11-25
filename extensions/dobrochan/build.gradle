@@ -1,5 +1,5 @@
 rootProject.configureExtension(project, [
-		versionName: '1.14',
+		versionName: '1.15',
 		apiVersion: 1,
 		hosts: ['dobrochan.net', 'dobrochan.com', 'dobrochan.org', 'dobrochan.ru',
 				'www.dobrochan.net', 'www.dobrochan.com', 'www.dobrochan.org', 'www.dobrochan.ru']
