@@ -10,6 +10,7 @@ import chan.content.ChanConfiguration;
 import chan.content.ChanLocator;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
+import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.http.CookieBuilder;
 import chan.http.HttpException;
@@ -17,22 +18,24 @@ import chan.http.HttpRequest;
 import chan.http.HttpResponse;
 import chan.http.MultipartEntity;
 import chan.http.UrlEncodedEntity;
+import chan.text.JsonSerial;
 import chan.text.ParseException;
 import chan.util.CommonUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class DobrochanChanPerformer extends ChanPerformer {
 	private static final int DELAY = 1000;
 	private static final String COOKIE_HANABIRA = "hanabira";
 	private static final String COOKIE_HANABIRA_TEMP = "hanabira_temp";
 
-	private HttpResponse performRepeatable(HttpRequest request) throws HttpException {
+	private synchronized HttpResponse performRepeatable(HttpRequest request) throws HttpException {
 		request.addCookie(buildCookies());
 		HttpException exception = null;
 		for (int i = 0; i < 5; i++) {
@@ -68,30 +71,65 @@ public class DobrochanChanPerformer extends ChanPerformer {
 		return buildCookies(null);
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
 		DobrochanChanConfiguration configuration = ChanConfiguration.get(this);
 		Uri uri = locator.buildPath(data.boardName, data.pageNumber + ".json");
-		try {
-			JSONObject response = new JSONObject(performRepeatable(new HttpRequest(uri, data)
-					.setValidator(data.validator)).readString());
-			JSONObject jsonObject = response.getJSONObject("boards").getJSONObject(data.boardName);
-			configuration.updateFromThreadsJson(data.boardName, jsonObject);
-			JSONArray threadsArray = jsonObject.getJSONArray("threads");
-			Posts[] threads = null;
-			if (threadsArray.length() > 0) {
-				threads = new Posts[threadsArray.length()];
-				for (int i = 0; i < threads.length; i++) {
-					threads[i] = DobrochanModelMapper.createThread(threadsArray.getJSONObject(i), locator);
+		HttpResponse response = performRepeatable(new HttpRequest(uri, data).setValidator(data.validator));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			ArrayList<Posts> threads = new ArrayList<>();
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "boards": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							if (reader.nextName().equals(data.boardName)) {
+								reader.startObject();
+								while (!reader.endStruct()) {
+									switch (reader.nextName()) {
+										case "threads": {
+											reader.startArray();
+											while (!reader.endStruct()) {
+												threads.add(DobrochanModelMapper.createThread(reader, locator));
+											}
+											break;
+										}
+										case "pages": {
+											int pagesCount = reader.nextInt();
+											configuration.storePagesCount(data.boardName, pagesCount);
+											break;
+										}
+										default: {
+											reader.skip();
+											break;
+										}
+									}
+								}
+							} else {
+								reader.skip();
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
 				}
 			}
 			return new ReadThreadsResult(threads);
-		} catch (JSONException e) {
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
+	@SuppressWarnings({"SwitchStatementWithTooFewBranches", "StatementWithEmptyBody"})
 	@Override
 	public ReadPostsResult onReadPosts(ReadPostsData data) throws HttpException, InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
@@ -104,38 +142,138 @@ public class DobrochanChanPerformer extends ChanPerformer {
 			uri = locator.createApiUri("thread", data.boardName, data.threadNumber + "/all.json",
 					"new_format", "1", "message_html", "1", "board", "1");
 		}
-		try {
-			JSONObject jsonObject = new JSONObject(performRepeatable(new HttpRequest(uri, data)
-					.setValidator(data.validator)).readString());
-			handleMobileApiError(jsonObject);
-			jsonObject = jsonObject.getJSONObject("result");
-			configuration.updateFromPostsJson(data.boardName, jsonObject);
-			jsonObject = jsonObject.getJSONArray("threads").getJSONObject(0);
-			JSONArray jsonArray = jsonObject.optJSONArray("posts");
-			if (jsonArray == null) {
+		HttpResponse response = performRepeatable(new HttpRequest(uri, data).setValidator(data.validator));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			DobrochanModelMapper.BoardConfiguration boardConfiguration = new DobrochanModelMapper.BoardConfiguration();
+			List<Post> posts = null;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "error": {
+						handleMobileApiError(reader);
+						break;
+					}
+					case "result": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							String name = reader.nextName();
+							if (!boardConfiguration.handle(reader, name)) {
+								switch (name) {
+									case "threads": {
+										reader.startArray();
+										reader.startObject();
+										while (!reader.endStruct()) {
+											switch (reader.nextName()) {
+												case "posts": {
+													posts = DobrochanModelMapper.createPosts(reader,
+															locator, data.threadNumber);
+													break;
+												}
+												default: {
+													reader.skip();
+													break;
+												}
+											}
+										}
+										while (!reader.endStruct()) {}
+										break;
+									}
+									default: {
+										reader.skip();
+									}
+								}
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			configuration.updateFromPostsJson(data.boardName, boardConfiguration);
+			if (posts == null) {
 				return null;
 			}
-			return new ReadPostsResult(DobrochanModelMapper.createPosts(jsonArray, locator, data.threadNumber));
-		} catch (JSONException e) {
+			return new ReadPostsResult(posts);
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
+	@SuppressWarnings({"SwitchStatementWithTooFewBranches", "StatementWithEmptyBody"})
 	@Override
 	public ReadSinglePostResult onReadSinglePost(ReadSinglePostData data) throws HttpException,
 			InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri("post", data.boardName, data.postNumber + ".json",
 				"new_format", "1", "message_html", "1", "thread", "1");
-		try {
-			JSONObject jsonObject = new JSONObject(performRepeatable(new HttpRequest(uri, data)).readString());
-			handleMobileApiError(jsonObject);
-			jsonObject = jsonObject.getJSONObject("result").getJSONArray("threads").getJSONObject(0);
-			String threadNumber = CommonUtils.getJsonString(jsonObject, "display_id");
-			return new ReadSinglePostResult(DobrochanModelMapper.createPost(jsonObject.getJSONArray("posts")
-					.getJSONObject(0), locator, threadNumber));
-		} catch (JSONException e) {
+		HttpResponse response = performRepeatable(new HttpRequest(uri, data));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			String threadNumber = null;
+			Post post = null;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "error": {
+						handleMobileApiError(reader);
+						break;
+					}
+					case "result": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							switch (reader.nextName()) {
+								case "threads": {
+									reader.startArray();
+									reader.startObject();
+									while (!reader.endStruct()) {
+										switch (reader.nextName()) {
+											case "display_id": {
+												threadNumber = reader.nextString();
+												break;
+											}
+											case "posts": {
+												reader.startArray();
+												post = DobrochanModelMapper.createPost(reader, locator);
+												while (!reader.endStruct()) {}
+												break;
+											}
+											default: {
+												reader.skip();
+												break;
+											}
+										}
+									}
+									while (!reader.endStruct()) {}
+									break;
+								}
+								default: {
+									reader.skip();
+								}
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			if (post == null) {
+				throw new InvalidResponseException();
+			}
+			post.setParentPostNumber(threadNumber);
+			return new ReadSinglePostResult(post);
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -151,34 +289,71 @@ public class DobrochanChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri("thread", data.boardName, data.threadNumber + "/last.json",
 				"count", "0", "new_format", "1");
-		try {
-			JSONObject jsonObject = new JSONObject(performRepeatable(new HttpRequest(uri, data)
-					.setValidator(data.validator)).readString());
-			handleMobileApiError(jsonObject);
-			return new ReadPostsCountResult(jsonObject.getJSONObject("result").getInt("posts_count"));
-		} catch (JSONException e) {
+		HttpResponse response = performRepeatable(new HttpRequest(uri, data).setValidator(data.validator));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			int postCount = 0;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "error": {
+						handleMobileApiError(reader);
+						break;
+					}
+					case "result": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							switch (reader.nextName()) {
+								case "posts_count": {
+									postCount = reader.nextInt();
+									break;
+								}
+								default: {
+									reader.skip();
+									break;
+								}
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			return new ReadPostsCountResult(postCount);
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
-	private void handleMobileApiError(JSONObject jsonObject) throws HttpException, InvalidResponseException {
-		JSONObject errorObject = jsonObject.optJSONObject("error");
-		if (errorObject != null) {
-			String message = CommonUtils.optJsonString(errorObject, "message");
-			if (message != null) {
-				if ("Specified element does not exist.".equals(message) || "Post is deleted.".equals(message)) {
-					throw HttpException.createNotFoundException();
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
+	private void handleMobileApiError(JsonSerial.Reader reader) throws IOException, ParseException,
+			HttpException, InvalidResponseException {
+		reader.startObject();
+		while (!reader.endStruct()) {
+			switch (reader.nextName()) {
+				case "message": {
+					String message = reader.nextString();
+					if ("Specified element does not exist.".equals(message) || "Post is deleted.".equals(message)) {
+						throw HttpException.createNotFoundException();
+					} else {
+						throw new HttpException(0, message);
+					}
 				}
-				throw new HttpException(0, message);
 			}
-			throw new InvalidResponseException();
 		}
+		throw new InvalidResponseException();
 	}
 
 	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
@@ -199,6 +374,7 @@ public class DobrochanChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
@@ -206,23 +382,45 @@ public class DobrochanChanPerformer extends ChanPerformer {
 		if (!configuration.isAlwaysLoadCaptcha()) {
 			if (!isForceCaptcha(data.boardName, data.threadNumber)) {
 				Uri uri = locator.buildPath("api", "user.json");
-				JSONObject jsonObject;
-				try {
-					jsonObject = new JSONObject(performRepeatable(new HttpRequest(uri, data)).readString());
-				} catch (JSONException e) {
-					throw new InvalidResponseException(e);
-				}
-				JSONArray jsonArray = jsonObject.optJSONArray("tokens");
-				if (jsonArray != null) {
-					for (int i = 0; i < jsonArray.length(); i++) {
-						jsonObject = jsonArray.optJSONObject(i);
-						if (jsonObject != null) {
-							String token = CommonUtils.optJsonString(jsonObject, "token");
-							if ("no_user_captcha".equals(token)) {
-								return new ReadCaptchaResult(CaptchaState.SKIP, new CaptchaData());
+				HttpResponse response = performRepeatable(new HttpRequest(uri, data));
+				try (InputStream input = response.open();
+						JsonSerial.Reader reader = JsonSerial.reader(input)) {
+					boolean noCaptcha = false;
+					reader.startObject();
+					while (!reader.endStruct()) {
+						switch (reader.nextName()) {
+							case "tokens": {
+								reader.startArray();
+								while (!reader.endStruct()) {
+									reader.startObject();
+									while (!reader.endStruct()) {
+										switch (reader.nextName()) {
+											case "token": {
+												String token = reader.nextString();
+												noCaptcha |= "no_user_captcha".equals(token);
+												break;
+											}
+											default: {
+												reader.skip();
+												break;
+											}
+										}
+									}
+								}
+								break;
+							}
+							default: {
+								reader.skip();
 							}
 						}
 					}
+					if (noCaptcha) {
+						return new ReadCaptchaResult(CaptchaState.SKIP, new CaptchaData());
+					}
+				} catch (ParseException e) {
+					throw new InvalidResponseException(e);
+				} catch (IOException e) {
+					throw response.fail(e);
 				}
 			} else {
 				setForceCaptcha(data.boardName, data.threadNumber, false);
@@ -260,17 +458,53 @@ public class DobrochanChanPerformer extends ChanPerformer {
 		return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(newImage);
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	public String readThreadId(HttpRequest.Preset preset, String boardName, String threadNumber) throws HttpException,
 			InvalidResponseException {
 		DobrochanChanLocator locator = ChanLocator.get(this);
 		Uri uri = locator.createApiUri("thread", boardName, threadNumber + "/last.json",
 				"count", "0", "new_format", "1");
-		try {
-			JSONObject jsonObject = new JSONObject(performRepeatable(new HttpRequest(uri, preset)).readString());
-			handleMobileApiError(jsonObject);
-			return CommonUtils.getJsonString(jsonObject.getJSONObject("result"), "thread_id");
-		} catch (JSONException e) {
+		HttpResponse response = performRepeatable(new HttpRequest(uri, preset));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			String threadId = null;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "error": {
+						handleMobileApiError(reader);
+						break;
+					}
+					case "result": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							switch (reader.nextName()) {
+								case "thread_id": {
+									threadId = reader.nextString();
+									break;
+								}
+								default: {
+									reader.skip();
+									break;
+								}
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			if (threadId == null) {
+				throw new InvalidResponseException();
+			}
+			return threadId;
+		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 

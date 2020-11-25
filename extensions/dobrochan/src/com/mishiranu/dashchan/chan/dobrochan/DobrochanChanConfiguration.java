@@ -3,7 +3,6 @@ package com.mishiranu.dashchan.chan.dobrochan;
 import android.content.res.Resources;
 import android.util.Pair;
 import chan.content.ChanConfiguration;
-import org.json.JSONObject;
 
 public class DobrochanChanConfiguration extends ChanConfiguration {
 	public static final String CAPTCHA_TYPE_DOBROCHAN = "dobrochan";
@@ -95,18 +94,12 @@ public class DobrochanChanConfiguration extends ChanConfiguration {
 		return get(null, KEY_ALWAYS_LOAD_CAPTCHA, false);
 	}
 
-	public void updateFromThreadsJson(String boardName, JSONObject jsonObject) {
-		int pagesCount = jsonObject.optInt("pages");
-		if (pagesCount > 0) {
-			storePagesCount(boardName, pagesCount);
-		}
-	}
-
-	public void updateFromPostsJson(String boardName, JSONObject jsonObject) {
-		boolean filesEnabled = jsonObject.optBoolean("allow_files", true);
-		boolean namesEnabled = jsonObject.optBoolean("allow_names", true);
-		boolean tripcodesEnabled = !jsonObject.optBoolean("restrict_trip", false);
-		int attachmentsCount = filesEnabled ? jsonObject.optInt("files_max_qty", 5) : 0;
+	public void updateFromPostsJson(String boardName, DobrochanModelMapper.BoardConfiguration boardConfiguration) {
+		boolean filesEnabled = boardConfiguration.filesEnabled == null || boardConfiguration.filesEnabled;
+		boolean namesEnabled = boardConfiguration.namesEnabled == null || boardConfiguration.namesEnabled;
+		boolean tripcodesEnabled = boardConfiguration.tripcodesEnabled == null || boardConfiguration.tripcodesEnabled;
+		int attachmentsCount = filesEnabled ? boardConfiguration.attachmentsCount != null
+				? boardConfiguration.attachmentsCount : 5 : 0;
 		set(boardName, KEY_NAMES_ENABLED, namesEnabled);
 		set(boardName, KEY_TRIPCODES_ENABLED, tripcodesEnabled);
 		set(boardName, KEY_ATTACHMENTS_COUNT, attachmentsCount);
