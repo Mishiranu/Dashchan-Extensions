@@ -1,8 +1,8 @@
 rootProject.configureExtension(project, [
 		versionName: '1.14',
 		apiVersion: 1,
-		hosts: ['dobrochan.com', 'dobrochan.org', 'dobrochan.ru',
-				'www.dobrochan.com', 'www.dobrochan.org', 'www.dobrochan.ru']
+		hosts: ['dobrochan.net', 'dobrochan.com', 'dobrochan.org', 'dobrochan.ru',
+				'www.dobrochan.net', 'www.dobrochan.com', 'www.dobrochan.org', 'www.dobrochan.ru']
 ])
 
 dependencies {

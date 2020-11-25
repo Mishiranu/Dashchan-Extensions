@@ -13,9 +13,12 @@ public class DobrochanChanLocator extends ChanLocator {
 	private static final Pattern THREAD_NUMBER = Pattern.compile("^/\\w+/res/(\\d+)\\.xhtml");
 
 	public DobrochanChanLocator() {
+		setHttpsMode(HttpsMode.CONFIGURABLE);
+		addChanHost("dobrochan.net");
 		addChanHost("dobrochan.com");
 		addChanHost("dobrochan.org");
 		addChanHost("dobrochan.ru");
+		addConvertableChanHost("www.dobrochan.net");
 		addConvertableChanHost("www.dobrochan.com");
 		addConvertableChanHost("www.dobrochan.org");
 		addConvertableChanHost("www.dobrochan.ru");
