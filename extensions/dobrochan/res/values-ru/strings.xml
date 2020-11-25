@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="preference_always_load_captcha">Всегда загружать капчу</string>
+	<string name="preference_always_load_captcha_summary">Загружать и отображать капчу даже когда её
+		ввод не требуется</string>
+
+</resources>

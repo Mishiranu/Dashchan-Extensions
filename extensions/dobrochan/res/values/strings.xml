@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="preference_always_load_captcha">Always load a captcha</string>
+	<string name="preference_always_load_captcha_summary">Load and show a captcha even when it isn\'t
+		required to be solved</string>
+
+</resources>
