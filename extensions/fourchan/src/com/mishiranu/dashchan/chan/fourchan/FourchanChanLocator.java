@@ -19,6 +19,7 @@ public class FourchanChanLocator extends ChanLocator {
 	private static final String HOST_IMAGES_IS1 = "is.4chan.org";
 	private static final String HOST_IMAGES_IS2 = "is2.4chan.org";
 	private static final String HOST_STATIC = "s.4cdn.org";
+	private static final String HOST_SEARCH = "find.4chan.org";
 
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:\\d+|catalog)?)?");
 	private static final Pattern THREAD_PATH = Pattern.compile("/\\w+/thread/(\\d+)(?:/.*)?");
@@ -38,6 +39,7 @@ public class FourchanChanLocator extends ChanLocator {
 		addSpecialChanHost(HOST_IMAGES_IS1);
 		addSpecialChanHost(HOST_IMAGES_IS2);
 		addSpecialChanHost(HOST_STATIC);
+		addSpecialChanHost(HOST_SEARCH);
 		setHttpsMode(HttpsMode.HTTPS_ONLY);
 	}
 
@@ -127,6 +129,10 @@ public class FourchanChanLocator extends ChanLocator {
 
 	public Uri createSysUri(String... segments) {
 		return buildPathWithSchemeHost(true, HOST_SYS, segments);
+	}
+
+	public Uri createSearchApiUri(String... alternation) {
+		return buildQueryWithHost(HOST_SEARCH, "api", alternation);
 	}
 
 	public Uri buildMathUri(String data) {

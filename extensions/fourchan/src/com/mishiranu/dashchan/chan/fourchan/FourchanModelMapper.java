@@ -34,7 +34,7 @@ public class FourchanModelMapper {
 		String tim = null;
 		String filename = null;
 		String ext = null;
-		int size = 0;
+		int size = -1;
 		int width = 0;
 		int height = 0;
 
@@ -88,7 +88,7 @@ public class FourchanModelMapper {
 						post.setCapcode("Mod");
 					} else if ("developer".equals(capcode)) {
 						post.setCapcode("Developer");
-					} else {
+					} else if (!"none".equals(capcode)) {
 						post.setCapcode(capcode);
 					}
 					break;
@@ -213,7 +213,7 @@ public class FourchanModelMapper {
 			post.setIcons(new Icon(locator, uri, title));
 		}
 
-		if (tim != null) {
+		if (tim != null && size >= 0) {
 			FileAttachment attachment = new FileAttachment();
 			attachment.setSize(size);
 			attachment.setWidth(width);

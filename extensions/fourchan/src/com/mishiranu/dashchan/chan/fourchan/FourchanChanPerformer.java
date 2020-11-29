@@ -249,6 +249,73 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
+	@Override
+	public ReadSearchPostsResult onReadSearchPosts(ReadSearchPostsData data)
+			throws HttpException, InvalidResponseException {
+		FourchanChanLocator locator = FourchanChanLocator.get(this);
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
+		Uri uri = locator.createSearchApiUri("b", data.boardName, "q", data.searchQuery,
+				"o", Integer.toString(10 * data.pageNumber));
+		HttpResponse response = new HttpRequest(uri, data).perform();
+		Locale locale = Locale.US;
+		String lowerSearchQuery = data.searchQuery.toLowerCase(locale);
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			ArrayList<Post> posts = new ArrayList<>();
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "threads": {
+						reader.startArray();
+						while (!reader.endStruct()) {
+							reader.startObject();
+							while (!reader.endStruct()) {
+								switch (reader.nextName()) {
+									case "posts": {
+										reader.startArray();
+										while (!reader.endStruct()) {
+											Post post = FourchanModelMapper.createPost(reader, locator,
+													data.boardName, handleMathTags, null);
+											boolean matches = post.getParentPostNumber() != null;
+											if (!matches) {
+												matches = StringUtils.clearHtml(post.getSubject())
+														.toLowerCase(locale).contains(lowerSearchQuery);
+											}
+											if (!matches) {
+												matches = StringUtils.clearHtml(post.getComment())
+														.toLowerCase(locale).contains(lowerSearchQuery);
+											}
+											if (matches) {
+												posts.add(post);
+											}
+										}
+										break;
+									}
+									default: {
+										reader.skip();
+										break;
+									}
+								}
+							}
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
+			}
+			return new ReadSearchPostsResult(posts);
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
+		}
+	}
+
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);

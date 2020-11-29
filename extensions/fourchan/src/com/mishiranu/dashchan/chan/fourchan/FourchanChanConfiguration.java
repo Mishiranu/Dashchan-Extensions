@@ -39,8 +39,8 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 	@Override
 	public Board obtainBoardConfiguration(String boardName) {
 		Board board = new Board();
+		board.allowSearch = true;
 		board.allowCatalog = true;
-		board.allowCatalogSearch = true;
 		board.allowArchive = true;
 		board.allowPosting = true;
 		board.allowDeleting = true;

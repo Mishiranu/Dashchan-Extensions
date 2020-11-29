@@ -225,13 +225,6 @@ public class ChanConfiguration {
 		public boolean allowCatalog;
 
 		/**
-		 * <p>Set {@code true} to allow client to use catalog as search source. In this case {@link #allowCatalog}
-		 * also must be {@code true}. It can be useful if your chan's catalog is very detailed and can show last
-		 * replies to all threads.</p>
-		 */
-		public boolean allowCatalogSearch;
-
-		/**
 		 * <p>Set {@code true} to allow client to read an archive of threads.</p>
 		 */
 		public boolean allowArchive;
