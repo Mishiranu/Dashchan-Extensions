@@ -653,12 +653,20 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		boolean nsfwFix = !configuration.isSafeForWork(data.boardName) && configuration.isFixNsfwBoardsEnabled();
 		Uri uri = locator.createSysUri(data.boardName, "post");
-		// Add "Accept" and "Accept-Language" headers and empty "__cfduid" cookie to fix strange 4chan bug
-		// when posts with images couldn't have been sent successfully on some boards (e.g. /b/)
-		String responseText = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie))
-				.addHeader("Accept", "text/html").addHeader("Accept-Language", "en").addCookie("__cfduid", "")
-				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
+		HttpRequest request = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie));
+		if (nsfwFix) {
+			// More reliable fix: add non-browser User-Agent (breaks CloudFlare bypass)
+			request.addHeader("User-Agent", "curl/7.64.0");
+		} else {
+			// Less reliable fix: works in /b/, doesn't work in /bant/
+			request.addHeader("Accept", "text/html").addHeader("Accept-Language", "en")
+					.addHeader("Referer", uri.toString());
+		}
+		String responseText = request.setPostMethod(entity)
+				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
 
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
 		if (matcher.find()) {

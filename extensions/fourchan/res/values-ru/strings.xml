@@ -4,5 +4,8 @@
 	<string name="preference_math_tags">Обработка [math] тегов</string>
 	<string name="preference_math_tags_summary">Показывать ссылки на изображения используя веб-сервис
 		quicklatex.com</string>
+	<string name="preference_fix_nsfw_boards">Исправление отправки изображений</string>
+	<string name="preference_fix_nsfw_boards_summary">Использовать небраузерный заголовок User-Agent в NSFW разделах
+		(может сломать обход CloudFlare)</string>
 
 </resources>
