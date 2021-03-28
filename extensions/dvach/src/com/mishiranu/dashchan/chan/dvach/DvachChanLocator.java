@@ -80,8 +80,28 @@ public class DvachChanLocator extends ChanLocator {
 		return createThreadUri(boardName, threadNumber).buildUpon().fragment(postNumber).build();
 	}
 
-	public Uri createFcgiUri(String name, String... alternation) {
-		return buildQuery("makaba/" + name + ".fcgi", alternation);
+	public Uri createMobileApiV2Uri(String... segments) {
+		String[] newSegments = new String[segments.length + 3];
+		System.arraycopy(segments, 0, newSegments, 3, segments.length);
+		newSegments[0] = "api";
+		newSegments[1] = "mobile";
+		newSegments[2] = "v2";
+		return buildPath(newSegments);
+	}
+
+	public enum Fcgi {
+		MAKABA("makaba"),
+		POSTING("posting");
+
+		private final String name;
+
+		Fcgi(String name) {
+			this.name = name;
+		}
+	}
+
+	public Uri createFcgiUri(Fcgi fcgi, String... alternation) {
+		return buildQuery("makaba/" + fcgi.name + ".fcgi", alternation);
 	}
 
 	public Uri createCatalogSearchUri(String boardName, String query) {

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,6 @@ public class DvachModelMapper {
 	private static final Pattern PATTERN_HASHLINK_TITLE = Pattern.compile("title=\"(.*?)\"");
 
 	public static class Extra {
-		public int uniquePosters;
 		public String tags;
 
 		private ArrayList<Post> posts;
@@ -345,14 +345,6 @@ public class DvachModelMapper {
 					}
 					break;
 				}
-				case "unique_posters": {
-					if (extra != null) {
-						extra.uniquePosters = reader.nextInt();
-					} else {
-						reader.skip();
-					}
-					break;
-				}
 				case "tags": {
 					tags = reader.nextString();
 					if (extra != null) {
@@ -417,6 +409,7 @@ public class DvachModelMapper {
 		String userAgentData = null;
 		String identifier = null;
 		if (!StringUtils.isEmpty(name)) {
+			Objects.requireNonNull(name);
 			int index = "s".equals(boardName) ? name.indexOf("&nbsp;<span style=\"color:rgb(164,164,164);\">") : -1;
 			if (index >= 0) {
 				userAgentData = name.substring(index + 44);

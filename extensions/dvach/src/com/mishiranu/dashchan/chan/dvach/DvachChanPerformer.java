@@ -167,12 +167,9 @@ public class DvachChanPerformer extends ChanPerformer {
 		Uri uri;
 		HttpRequest.RedirectHandler handler = HttpRequest.RedirectHandler.BROWSER;
 		Uri[] archiveThreadUri = {null};
-		boolean mobileApi = false;
 		if (usePartialApi) {
-			uri = locator.createFcgiUri("mobile", "task", "get_thread", "board", data.boardName,
-					"thread", data.threadNumber, "num", data.lastPostNumber == null ? data.threadNumber
-					: Integer.toString(Integer.parseInt(data.lastPostNumber) + 1));
-			mobileApi = true;
+			uri = locator.createMobileApiV2Uri("after", data.boardName, data.threadNumber, data.lastPostNumber == null
+					? data.threadNumber : Integer.toString(Integer.parseInt(data.lastPostNumber) + 1));
 		} else if (archive) {
 			uri = locator.buildPath(data.boardName, "arch", "res", data.threadNumber + ".json");
 			handler = response -> {
@@ -184,7 +181,7 @@ public class DvachChanPerformer extends ChanPerformer {
 		}
 		HttpRequest request = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass())
 				.setValidator(data.validator).setRedirectHandler(handler);
-		HttpResponse response = (mobileApi ? readMobileApi(request) : request.perform());
+		HttpResponse response = (usePartialApi ? readMobileApi(request) : request.perform());
 		String archiveDate = null;
 		if (archive) {
 			if (archiveThreadUri[0] == null) {
@@ -204,24 +201,47 @@ public class DvachChanPerformer extends ChanPerformer {
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
 			try {
 				if (usePartialApi) {
-					if (reader.valueType() == JsonSerial.ValueType.ARRAY) {
-						DvachModelMapper.Extra extra = new DvachModelMapper.Extra();
-						ArrayList<Post> posts = DvachModelMapper.createPosts(reader,
-								locator, data.boardName, null,
-								configuration.isSageEnabled(data.boardName), extra);
-						if (!posts.isEmpty()) {
-							Post post = posts.get(0);
-							String parentPostNumber = post.getParentPostNumber();
-							if (parentPostNumber != null && !parentPostNumber.equals(data.threadNumber)) {
-								throw RedirectException.toThread(data.boardName,
-										parentPostNumber, post.getPostNumber());
+					List<Post> posts = Collections.emptyList();
+					int uniquePosters = 0;
+					int result = 0;
+					reader.startObject();
+					while (!reader.endStruct()) {
+						switch (reader.nextName()) {
+							case "posts": {
+								posts = DvachModelMapper.createPosts(reader,
+										locator, data.boardName, null,
+										configuration.isSageEnabled(data.boardName), null);
+								if (!posts.isEmpty()) {
+									Post post = posts.get(0);
+									String parentPostNumber = post.getParentPostNumber();
+									if (parentPostNumber != null && !parentPostNumber.equals(data.threadNumber)) {
+										throw RedirectException.toThread(data.boardName,
+												parentPostNumber, post.getPostNumber());
+									}
+								}
+								break;
+							}
+							case "unique_posters": {
+								uniquePosters = reader.nextInt();
+								break;
+							}
+							case "error": {
+								throw handleMobileApiV2Error(reader);
+							}
+							case "result": {
+								result = reader.nextInt();
+								break;
+							}
+							default: {
+								reader.skip();
+								break;
 							}
 						}
-						return new Posts(posts).setUniquePosters(extra.uniquePosters);
-					} else {
-						handleMobileApiError(reader);
+					}
+					if (result == 0) {
 						throw new InvalidResponseException();
 					}
+					return new Posts(posts).setUniquePosters(uniquePosters);
 				} else {
 					if (archiveDateFinal != null && archiveDateFinal.equals("wakaba")) {
 						ArrayList<Post> posts = new ArrayList<>();
@@ -318,23 +338,37 @@ public class DvachChanPerformer extends ChanPerformer {
 			InvalidResponseException {
 		DvachChanLocator locator = DvachChanLocator.get(this);
 		DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
-		Uri uri = locator.createFcgiUri("mobile", "task", "get_post", "board", data.boardName,
-				"post", data.postNumber);
+		Uri uri = locator.createMobileApiV2Uri("post", data.boardName, data.postNumber);
 		HttpResponse response = readMobileApi(new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass()));
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
-			if (reader.valueType() == JsonSerial.ValueType.ARRAY) {
-				reader.startArray();
-				Post post = DvachModelMapper.createPost(reader, this, data.boardName, null,
-						configuration.isSageEnabled(data.boardName), null);
-				while (!reader.endStruct()) {
-					reader.skip();
+			Post post = null;
+			int result = 0;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "post": {
+						post = DvachModelMapper.createPost(reader, this, data.boardName, null,
+								configuration.isSageEnabled(data.boardName), null);
+						break;
+					}
+					case "error": {
+						throw handleMobileApiV2Error(reader);
+					}
+					case "result": {
+						result = reader.nextInt();
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
 				}
-				return new ReadSinglePostResult(post);
-			} else {
-				handleMobileApiError(reader);
+			}
+			if (result == 0 || post == null) {
 				throw new InvalidResponseException();
 			}
+			return new ReadSinglePostResult(post);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		} catch (IOException e) {
@@ -342,17 +376,17 @@ public class DvachChanPerformer extends ChanPerformer {
 		}
 	}
 
-	private void handleMobileApiError(JsonSerial.Reader reader) throws IOException, ParseException, HttpException {
+	private HttpException handleMobileApiV2Error(JsonSerial.Reader reader) throws IOException, ParseException {
 		int code = 0;
 		String error = "";
 		reader.startObject();
 		while (!reader.endStruct()) {
 			switch (reader.nextName()) {
-				case "Code": {
+				case "code": {
 					code = Math.abs(reader.nextInt());
 					break;
 				}
-				case "Error": {
+				case "error": {
 					error = reader.nextString();
 					break;
 				}
@@ -362,11 +396,20 @@ public class DvachChanPerformer extends ChanPerformer {
 				}
 			}
 		}
-		if (code == 1 || code == HttpURLConnection.HTTP_NOT_FOUND) {
-			// Board or thread not found
-			throw HttpException.createNotFoundException();
-		} else if (code != 0) {
-			throw new HttpException(code, error);
+		switch (code) {
+			// ErrorNotFound
+			case 667:
+			// ErrorNoBoard
+			case 2:
+			// ErrorNoParent
+			case 3:
+			// ErrorNoPost
+			case 31: {
+				return HttpException.createNotFoundException();
+			}
+			default: {
+				return new HttpException(code, error);
+			}
 		}
 	}
 
@@ -411,7 +454,7 @@ public class DvachChanPerformer extends ChanPerformer {
 				throw response.fail(e);
 			}
 		} else {
-			Uri uri = locator.createFcgiUri("makaba");
+			Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
 			MultipartEntity entity = new MultipartEntity("task", "search", "board", data.boardName,
 					"find", data.searchQuery, "json", "1");
 			HttpResponse response = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass())
@@ -681,22 +724,57 @@ public class DvachChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadPostsCountResult onReadPostsCount(ReadPostsCountData data) throws HttpException,
 			InvalidResponseException {
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.createFcgiUri("mobile", "task", "get_thread_last_info", "board",
-				data.boardName, "thread", data.threadNumber);
-		try {
-			JSONObject jsonObject = new JSONObject(readMobileApi(new HttpRequest(uri, data)
-					.addCookie(buildCookiesWithCaptchaPass())).readString());
-			if (jsonObject.has("posts")) {
-				return new ReadPostsCountResult(jsonObject.getInt("posts") + 1);
-			} else {
-				throw HttpException.createNotFoundException();
+		Uri uri = locator.createMobileApiV2Uri("info", data.boardName, data.threadNumber);
+		HttpResponse response = readMobileApi(new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass()));
+		try (InputStream input = response.open();
+				JsonSerial.Reader reader = JsonSerial.reader(input)) {
+			int count = 0;
+			int result = 0;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "thread": {
+						reader.startObject();
+						while (!reader.endStruct()) {
+							switch (reader.nextName()) {
+								case "posts": {
+									count = reader.nextInt() + 1;
+									break;
+								}
+								default: {
+									reader.skip();
+									break;
+								}
+							}
+						}
+						break;
+					}
+					case "error": {
+						throw handleMobileApiV2Error(reader);
+					}
+					case "result": {
+						result = reader.nextInt();
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
+				}
 			}
-		} catch (JSONException e) {
-			throw new InvalidResponseException();
+			if (result == 0) {
+				throw new InvalidResponseException();
+			}
+			return new ReadPostsCountResult(count);
+		} catch (ParseException e) {
+			throw new InvalidResponseException(e);
+		} catch (IOException e) {
+			throw response.fail(e);
 		}
 	}
 
@@ -723,7 +801,7 @@ public class DvachChanPerformer extends ChanPerformer {
 		configuration.revokeMaxFilesCount();
 		configuration.storeCookie(COOKIE_PASSCODE_AUTH, null, null);
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.createFcgiUri("makaba");
+		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
 		UrlEncodedEntity entity = new UrlEncodedEntity("task", "auth", "usercode", captchaPassData, "json", "1");
 		JSONObject jsonObject;
 		try {
@@ -1010,7 +1088,7 @@ public class DvachChanPerformer extends ChanPerformer {
 			originalPosterCookie = configuration.getCookie(originalPosterCookieName);
 		}
 
-		Uri uri = locator.createFcgiUri("posting", "json", "1");
+		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.POSTING, "json", "1");
 		HttpResponse response = new HttpRequest(uri, data).setPostMethod(entity)
 				.addCookie(buildCookies(captchaPassCookie)).addCookie(originalPosterCookieName, originalPosterCookie)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
@@ -1158,7 +1236,7 @@ public class DvachChanPerformer extends ChanPerformer {
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException {
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.createFcgiUri("makaba");
+		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
 		StringBuilder postsBuilder = new StringBuilder();
 		for (String postNumber : data.postNumbers) {
 			postsBuilder.append(postNumber).append(", ");
