@@ -520,6 +520,11 @@ public class ChanConfiguration {
 		public final List<Pair<String, String>> options = BuildConfig.Private.expr();
 
 		/**
+		 * <p>Set {@code true} if the service archives threads automatically.</p>
+		 */
+		public boolean queryOnly;
+
+		/**
 		 * <p>Default constructor for {@link Archivation}.</p>
 		 */
 		public Archivation() {

@@ -35,14 +35,7 @@ public final class HttpRequest {
 			/**
 			 * <p>Follow redirect with previous method including data retransmission for POST.</p>
 			 */
-			RETRANSMIT;
-
-			/**
-			 * <p>Overrides redirected URI.</p>
-			 */
-			public Action setRedirectedUri(Uri redirectedUri) {
-				return BuildConfig.Private.expr(redirectedUri);
-			}
+			RETRANSMIT
 		}
 
 		/**

@@ -8,6 +8,7 @@ import chan.content.model.BoardCategory;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.content.model.ThreadSummary;
+import chan.http.FirewallResolver;
 import chan.http.HttpException;
 import chan.http.HttpRequest;
 import chan.http.HttpResponse;
@@ -76,6 +77,15 @@ public class ChanPerformer {
 	 */
 	public static <T extends ChanPerformer> T get(Object object) {
 		return BuildConfig.Private.expr(object);
+	}
+
+	/**
+	 * <p>Registers firewall protection resolver.</p>
+	 *
+	 * @param firewallResolver Resolver implementation.
+	 */
+	protected final void registerFirewallResolver(FirewallResolver firewallResolver) {
+		BuildConfig.Private.expr(firewallResolver);
 	}
 
 	/**

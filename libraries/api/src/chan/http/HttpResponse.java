@@ -70,9 +70,18 @@ public final class HttpResponse {
 	/**
 	 * <p>Returns the URI to read response from.</p>
 	 *
-	 * @return Redirected URI.
+	 * @return Requested URI.
 	 */
 	public Uri getRequestedUri() {
+		return BuildConfig.Private.expr();
+	}
+
+	/**
+	 * <p>Returns the historical list of URIs.</p>
+	 *
+	 * @return List of requested URIs.
+	 */
+	public List<Uri> getRequestedUris() {
 		return BuildConfig.Private.expr();
 	}
 
