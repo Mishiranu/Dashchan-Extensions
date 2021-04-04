@@ -47,6 +47,14 @@ public class DvachChanPerformer extends ChanPerformer {
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Разное", "Тематика", "Творчество", "Политика",
 		"Техника и софт", "Игры", "Японская культура", "Взрослым", "Пробное"};
 
+	public DvachChanPerformer() {
+		try {
+			registerFirewallResolver(new DvachFirewallResolver());
+		} catch (LinkageError e) {
+			e.printStackTrace();
+		}
+	}
+
 	private CookieBuilder buildCookies(String captchaPassCookie) {
 		DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
 		CookieBuilder builder = new CookieBuilder();
