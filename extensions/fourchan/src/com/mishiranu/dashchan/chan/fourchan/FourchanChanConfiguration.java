@@ -11,18 +11,16 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class FourchanChanConfiguration extends ChanConfiguration {
 	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
-	private static final String KEY_TROLL_FLAGS_ENABLED = "troll_flags_enabled";
+	private static final String KEY_BOARD_FLAGS = "board_flags_enabled";
 	private static final String KEY_SPOILERS_ENABLED = "spoilers_enabled";
 	private static final String KEY_CODE_ENABLED = "code_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
 	private static final String KEY_SAFE_FOR_WORK = "safe_for_work";
-	private static final String KEY_TROLL_FLAGS = "troll_flags";
 	private static final String KEY_REPORT_REASONS = "report_reasons";
 
 	private static final String KEY_MATH_TAGS = "math_tags";
@@ -66,20 +64,18 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		posting.attachmentMimeTypes.add("video/webm");
 		posting.attachmentSpoiler = get(boardName, KEY_SPOILERS_ENABLED, false);
 		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
-		if (get(boardName, KEY_TROLL_FLAGS_ENABLED, false)) {
-			String flags = StringUtils.emptyIfNull(get(null, KEY_TROLL_FLAGS, null));
-			try {
-				JSONObject jsonObject = new JSONObject(flags);
-				Iterator<String> iterator = jsonObject.keys();
-				while (iterator.hasNext()) {
-					String key = iterator.next();
-					String title = jsonObject.getString(key);
-					posting.userIcons.add(new Pair<>(key, title));
-				}
-				Collections.sort(posting.userIcons, (lhs, rhs) -> lhs.first.compareTo(rhs.first));
-			} catch (JSONException e) {
-				// Ignore
+		String flags = StringUtils.emptyIfNull(get(boardName, KEY_BOARD_FLAGS, null));
+		try {
+			JSONObject jsonObject = new JSONObject(flags);
+			Iterator<String> iterator = jsonObject.keys();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				String title = jsonObject.getString(key);
+				posting.userIcons.add(new Pair<>(key, title));
 			}
+			Collections.sort(posting.userIcons, (lhs, rhs) -> lhs.first.compareTo(rhs.first));
+		} catch (JSONException e) {
+			// Ignore
 		}
 		return posting;
 	}
@@ -158,7 +154,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		boolean areSpoilersEnabled = false;
 		boolean isCodeEnabled = false;
 		boolean areFlagsEnabled = false;
-		boolean areTrollFlagsEnabled = false;
+		JSONObject boardFlags = null;
 		int bumpLimit = 0;
 		int maxCommentLength = 0;
 		boolean safeForWork = false;
@@ -189,8 +185,16 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 					areFlagsEnabled = reader.nextBoolean();
 					break;
 				}
-				case "troll_flags": {
-					areTrollFlagsEnabled = reader.nextBoolean();
+				case "board_flags": {
+					boardFlags = new JSONObject();
+					reader.startObject();
+					while (!reader.endStruct()) {
+						try {
+							boardFlags.put(reader.nextName(), reader.nextString());
+						} catch (JSONException e) {
+							throw new RuntimeException(e);
+						}
+					}
 					break;
 				}
 				case "bump_limit": {
@@ -234,7 +238,11 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 			set(boardName, KEY_SPOILERS_ENABLED, areSpoilersEnabled);
 			set(boardName, KEY_CODE_ENABLED, isCodeEnabled);
 			set(boardName, KEY_FLAGS_ENABLED, areFlagsEnabled);
-			set(boardName, KEY_TROLL_FLAGS_ENABLED, areTrollFlagsEnabled);
+			if (boardFlags != null && boardFlags.keys().hasNext()) {
+				set(boardName, KEY_BOARD_FLAGS, boardFlags.toString());
+			} else {
+				set(boardName, KEY_BOARD_FLAGS, null);
+			}
 			if (bumpLimit != 0) {
 				storeBumpLimit(boardName, bumpLimit);
 			}
@@ -245,18 +253,6 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 			return new chan.content.model.Board(boardName, title, description);
 		}
 		return null;
-	}
-
-	public void updateTrollFlags(Map<String, String> flags) {
-		JSONObject jsonObject = new JSONObject();
-		try {
-			for (Map.Entry<String, String> entry : flags.entrySet()) {
-				jsonObject.put(entry.getKey(), entry.getValue());
-			}
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
-		set(null, KEY_TROLL_FLAGS, jsonObject.toString());
 	}
 
 	public void updateReportingConfiguration(String boardName, List<ReportReason> reportReasons) {

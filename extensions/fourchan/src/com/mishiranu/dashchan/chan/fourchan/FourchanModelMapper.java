@@ -28,9 +28,10 @@ public class FourchanModelMapper {
 	public static Post createPost(JsonSerial.Reader reader, FourchanChanLocator locator,
 			String boardName, boolean handleMathTags, Extra extra) throws IOException, ParseException {
 		Post post = new Post();
-		boolean trollFlag = false;
 		String country = null;
 		String countryName = null;
+		String boardFlag = null;
+		String boardFlagName = null;
 		String tim = null;
 		String filename = null;
 		String ext = null;
@@ -129,13 +130,16 @@ public class FourchanModelMapper {
 					country = reader.nextString();
 					break;
 				}
-				case "troll_country": {
-					country = reader.nextString();
-					trollFlag = true;
-					break;
-				}
 				case "country_name": {
 					countryName = reader.nextString();
+					break;
+				}
+				case "board_flag": {
+					boardFlag = reader.nextString();
+					break;
+				}
+				case "flag_name": {
+					boardFlagName = reader.nextString();
 					break;
 				}
 				case "tim": {
@@ -207,10 +211,19 @@ public class FourchanModelMapper {
 		if (CommonUtils.equals(post.getIdentifier(), post.getCapcode())) {
 			post.setIdentifier(null);
 		}
-		if (country != null) {
-			Uri uri = locator.createIconUri(country, trollFlag);
-			String title = countryName == null ? country.toUpperCase(Locale.US) : countryName;
-			post.setIcons(new Icon(locator, uri, title));
+		if (country != null || boardFlag != null) {
+			ArrayList<Icon> icons = new ArrayList<>(2);
+			if (country != null) {
+				Uri uri = locator.createCountryIconUri(country);
+				String title = countryName == null ? country.toUpperCase(Locale.US) : countryName;
+				icons.add(new Icon(locator, uri, title));
+			}
+			if (boardFlag != null) {
+				Uri uri = locator.createBoardFlagIconUri(boardName, boardFlag);
+				String title = boardFlagName == null ? boardFlag.toUpperCase(Locale.US) : boardFlagName;
+				icons.add(new Icon(locator, uri, title));
+			}
+			post.setIcons(icons);
 		}
 
 		if (tim != null && size >= 0) {

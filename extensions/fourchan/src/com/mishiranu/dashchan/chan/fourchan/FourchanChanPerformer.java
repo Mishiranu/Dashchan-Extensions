@@ -316,6 +316,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
 	@Override
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
@@ -346,7 +347,6 @@ public class FourchanChanPerformer extends ChanPerformer {
 		response = new HttpRequest(uri, data).perform();
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
-			HashMap<String, String> flags = new HashMap<>();
 			reader.startObject();
 			while (!reader.endStruct()) {
 				switch (reader.nextName()) {
@@ -365,20 +365,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 						}
 						break;
 					}
-					case "troll_flags": {
-						reader.startObject();
-						while (!reader.endStruct()) {
-							flags.put(reader.nextName(), reader.nextString());
-						}
-						break;
-					}
 					default: {
 						reader.skip();
 						break;
 					}
 				}
 			}
-			configuration.updateTrollFlags(flags);
 			ArrayList<BoardCategory> boardCategories = new ArrayList<>();
 			for (LinkedHashMap.Entry<String, ArrayList<Board>> entry : boardsMap.entrySet()) {
 				ArrayList<Board> boards = entry.getValue();
