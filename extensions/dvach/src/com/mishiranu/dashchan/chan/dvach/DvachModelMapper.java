@@ -663,7 +663,7 @@ public class DvachModelMapper {
 			reader.startObject();
 			while (!reader.endStruct()) {
 				switch (reader.nextName()) {
-					case "num": {
+					case "thread": {
 						threadNumber = reader.nextString();
 						break;
 					}
