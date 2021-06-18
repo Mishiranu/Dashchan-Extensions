@@ -1,0 +1,79 @@
+buildscript {
+	repositories {
+		jcenter()
+		google()
+	}
+
+	dependencies {
+		classpath 'com.android.tools.build:gradle:3.4.2'
+	}
+}
+
+allprojects {
+	repositories {
+		jcenter()
+		google()
+	}
+}
+
+apply plugin: 'com.android.application'
+
+dependencies {
+	compileOnly 'com.github.mishiranu:dashchan.library:+'
+	api 'com.github.mishiranu:dashchan.static:+'
+}
+
+android {
+	compileSdkVersion 28
+	buildToolsVersion '28.0.3'
+
+	sourceSets.main {
+		manifest.srcFile 'AndroidManifest.xml'
+		java.srcDirs = ['src']
+		resources.srcDirs = ['src']
+		aidl.srcDirs = ['src']
+		renderscript.srcDirs = ['src']
+		res.srcDirs = ['res']
+		assets.srcDirs = ['assets']
+	}
+
+	if (new File('keystore.properties').exists()) {
+		Properties keystoreProperties = new Properties()
+		keystoreProperties.load(new FileInputStream(file('keystore.properties')))
+
+		signingConfigs {
+			general {
+				storeFile file(keystoreProperties['store.file'])
+				storePassword keystoreProperties['store.password']
+				keyAlias keystoreProperties['key.alias']
+				keyPassword keystoreProperties['key.password']
+			}
+		}
+
+		buildTypes.debug.signingConfig signingConfigs.general
+		buildTypes.release.signingConfig signingConfigs.general
+	}
+
+	defaultConfig {
+		targetSdkVersion 28
+		minSdkVersion 16
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+		}
+		debug {
+		}
+	}
+
+	lintOptions {
+		abortOnError false
+		disable 'MissingTranslation'
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_8
+		targetCompatibility JavaVersion.VERSION_1_8
+	}
+}

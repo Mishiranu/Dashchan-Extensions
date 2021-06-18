@@ -1,27 +1,15 @@
-# Dashchan Extensions
+# Dashchan VHS Extension
 
-Extensions and libraries.
+Dashchan para o VHS.
 
-Old extensions are placed under their own specific branch. It's planned to move them all into master branch.
+## Tutorial para compilar
 
-## Building Guide
+1. Instalar JDK 8 ou maior
+2. Instalar Android SDK, definir environment variável `ANDROID_HOME` ou definir `sdk.dir` em `local.properties`
+4. Rodar `./gradlew :extensions:vhs:assembleRelease`
 
-1. Install JDK 8 or higher
-2. Install Android SDK, define `ANDROID_HOME` environment variable or set `sdk.dir` in `local.properties`
-4. Run `./gradlew :extensions:%CHAN_NAME%:assembleRelease`
+O APK vai aparecer na pasta `extensions/%CHAN_NAME%/build/outputs/apk`
 
-The resulting APK file will appear in `extensions/%CHAN_NAME%/build/outputs/apk` directory.
-
-### Build Signed Binary
-
-You can create `keystore.properties` in the source code directory with the following properties:
-
-```properties
-store.file=%PATH_TO_KEYSTORE_FILE%
-store.password=%KEYSTORE_PASSWORD%
-key.alias=%KEY_ALIAS%
-key.password=%KEY_PASSWORD%
-```
 
 ## License
 
