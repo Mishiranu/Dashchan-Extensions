@@ -2,9 +2,7 @@ package com.mishiranu.dashchan.chan.dvach;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
-import android.util.SparseIntArray;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
@@ -45,7 +43,7 @@ public class DvachChanPerformer extends ChanPerformer {
 	private static final String COOKIE_PASSCODE_AUTH = "passcode_auth";
 
 	private static final String[] PREFERRED_BOARDS_ORDER = {"Разное", "Тематика", "Творчество", "Политика",
-		"Техника и софт", "Игры", "Японская культура", "Взрослым", "Пробное"};
+			"Техника и софт", "Игры", "Японская культура", "Взрослым", "Пробное"};
 
 	public DvachChanPerformer() {
 		try {
@@ -919,79 +917,23 @@ public class DvachChanPerformer extends ChanPerformer {
 			if (id != null) {
 				CaptchaData captchaData = new CaptchaData();
 				ReadCaptchaResult result;
-				if (DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType) ||
+				if (DvachChanConfiguration.CAPTCHA_TYPE_2CH_CAPTCHA.equals(data.captchaType)) {
+					result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
+					captchaData.put(CaptchaData.CHALLENGE, id);
+					uri = locator.buildPath("api", "captcha", remoteCaptchaType, "show").buildUpon()
+							.appendQueryParameter("id", id).build();
+					Bitmap image = new HttpRequest(uri, data).perform().readBitmap();
+					if (image == null) {
+						throw new InvalidResponseException();
+					}
+					result.setImage(image);
+				} else if (DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType) ||
 						DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE.equals(data.captchaType)) {
 					result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
 					captchaData.put(CaptchaData.API_KEY, id);
 					captchaData.put(CaptchaData.REFERER, locator.buildPath().toString());
 				} else {
-					if (DvachChanConfiguration.CAPTCHA_TYPE_2CHAPTCHA.equals(data.captchaType)) {
-						result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
-						captchaData.put(CaptchaData.CHALLENGE, id);
-						uri = locator.buildPath("api", "captcha", remoteCaptchaType, "image", id);
-						Bitmap image = new HttpRequest(uri, data).perform().readBitmap();
-						if (image == null) {
-							throw new InvalidResponseException();
-						}
-						int width = image.getWidth();
-						int height = image.getHeight();
-						int[] pixels = new int[width * height];
-						image.getPixels(pixels, 0, width, 0, 0, width, height);
-						image.recycle();
-
-						SparseIntArray colorCounts = new SparseIntArray();
-						for (int i = 0; i < width; i++) {
-							int c1 = pixels[i] & 0x00ffffff;
-							int c2 = pixels[width * (height - 1) + i] & 0x00ffffff;
-							colorCounts.put(c1, colorCounts.get(c1) + 1);
-							colorCounts.put(c2, colorCounts.get(c2) + 1);
-						}
-						for (int i = 1; i < height - 1; i++) {
-							int c1 = pixels[i * width] & 0x00ffffff;
-							int c2 = pixels[i * (width + 1) - 1] & 0x00ffffff;
-							colorCounts.put(c1, colorCounts.get(c1) + 1);
-							colorCounts.put(c2, colorCounts.get(c2) + 1);
-						}
-						int backgroundColor = 0;
-						int backgroundColorCount = -1;
-						for (int i = 0; i < colorCounts.size(); i++) {
-							int color = colorCounts.keyAt(i);
-							int count = colorCounts.get(color);
-							if (count > backgroundColorCount) {
-								backgroundColor = color;
-								backgroundColorCount = count;
-							}
-						}
-
-						for (int j = 0; j < height; j++) {
-							for (int i = 0; i < width; i++) {
-								int color = pixels[j * width + i] & 0x00ffffff;
-								if (color == backgroundColor) {
-									pixels[j * width + i] = 0xffffffff;
-								} else {
-									int value = (int) (Color.red(color) * 0.2126f +
-											Color.green(color) * 0.7152f + Color.blue(color) * 0.0722f);
-									pixels[j * width + i] = Color.argb(0xff, value, value, value);
-								}
-							}
-						}
-						for (int i = 0; i < pixels.length; i++) {
-							if (pixels[i] == 0x00000000) {
-								pixels[i] = 0xffffffff;
-							}
-						}
-						image = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
-						Bitmap trimmed = CommonUtils.trimBitmap(image, 0xffffffff);
-						if (trimmed != null) {
-							if (trimmed != image) {
-								image.recycle();
-							}
-							image = trimmed;
-						}
-						result.setImage(image);
-					} else {
-						throw new RuntimeException();
-					}
+					throw new RuntimeException();
 				}
 				return result;
 			} else {
@@ -1025,6 +967,7 @@ public class DvachChanPerformer extends ChanPerformer {
 
 	@Override
 	public SendPostResult onSendPost(SendPostData data) throws HttpException, ApiException, InvalidResponseException {
+		DvachChanLocator locator = DvachChanLocator.get(this);
 		String subject = data.subject;
 		String tag = null;
 		if (data.threadNumber == null && data.subject != null) {
@@ -1052,11 +995,10 @@ public class DvachChanPerformer extends ChanPerformer {
 			}
 		}
 		entity.add("icon", data.userIcon);
-		String captchaPassCookie = null;
 
-		DvachChanLocator locator = DvachChanLocator.get(this);
+		String captchaPassCookie = null;
 		if (data.captchaData != null) {
-			boolean check = false;
+			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
 			String challenge = data.captchaData.get(CaptchaData.CHALLENGE);
 			String input = StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.INPUT));
 
@@ -1064,30 +1006,15 @@ public class DvachChanPerformer extends ChanPerformer {
 			if (remoteCaptchaType != null) {
 				entity.add("captcha_type", remoteCaptchaType);
 			}
-			if (DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType) ||
+			if (DvachChanConfiguration.CAPTCHA_TYPE_2CH_CAPTCHA.equals(data.captchaType)) {
+				entity.add("2chcaptcha_id", challenge);
+				entity.add("2chcaptcha_value", input);
+			} else if (DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType) ||
 					DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE.equals(data.captchaType)) {
 				entity.add("g-recaptcha-response", input);
-			} else if (DvachChanConfiguration.CAPTCHA_TYPE_2CHAPTCHA.equals(data.captchaType)) {
-				entity.add("2chaptcha_id", challenge);
-				entity.add("2chaptcha_value", input);
-				check = true;
-			}
-
-			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
-			if (check && captchaPassCookie == null) {
-				Uri uri = locator.buildPath("api", "captcha", data.captchaType, "check", challenge)
-						.buildUpon().appendQueryParameter("value", input).build();
-				try {
-					JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
-					String apiResult = CommonUtils.optJsonString(jsonObject, "result");
-					if ("0".equals(apiResult)) {
-						throw new ApiException(ApiException.SEND_ERROR_CAPTCHA);
-					}
-				} catch (JSONException e) {
-					// Ignore exception
-				}
 			}
 		}
+
 		String originalPosterCookieName = null;
 		String originalPosterCookie = null;
 		if (data.threadNumber != null && data.optionOriginalPoster) {

@@ -56,7 +56,7 @@ public class DvachFirewallResolver extends FirewallResolver {
 			if (pair != null) {
 				DvachChanConfiguration configuration = session.getChanConfiguration();
 				configuration.storeCookie(key.formatKey(COOKIE_DVACH_FIREWALL),
-						pair.first + "=" + pair.second, key.formatTitle("Dvach Firewall"));
+						pair.first + "=" + pair.second, key.formatTitle("2ch Firewall"));
 				return true;
 			}
 			return false;
