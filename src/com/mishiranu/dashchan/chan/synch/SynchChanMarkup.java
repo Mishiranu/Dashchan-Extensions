@@ -25,6 +25,7 @@ public class SynchChanMarkup extends ChanMarkup {
 		addPreformatted("code", true);
 		addColorable("font");
 		addColorable("span");
+		addColorable("div");
 	}
 
 	@Override
