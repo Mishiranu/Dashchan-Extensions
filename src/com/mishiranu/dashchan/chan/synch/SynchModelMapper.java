@@ -103,6 +103,7 @@ public class SynchModelMapper {
 			// Vichan JSON API bug, sometimes comment is broken
 			com = com.replace("<a  ", "<a ").replaceAll("href=\"\\?", "href=\"");
 			com = com.replace("class=\"public_ban\"", "style=\"color: red\"");
+			com = com.replace("class=\"irony\"", "style=\"color: #FF00FF\"");
 			post.setComment(com);
 		}
 		ArrayList<Attachment> attachments = null;
