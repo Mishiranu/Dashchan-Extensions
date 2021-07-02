@@ -45,7 +45,7 @@ public class DvachFirewallResolver extends FirewallResolver {
 		public boolean onLoad(Uri initialUri, Uri uri) {
 			String initialPath = StringUtils.emptyIfNull(initialUri.getPath());
 			String path = StringUtils.emptyIfNull(uri.getPath());
-			return initialPath.equals(path) || path.equals("/") || path.endsWith(".js");
+			return initialPath.equals(path) || path.equals("/") || path.equals("/challenge") || path.endsWith(".js");
 		}
 	}
 
@@ -73,11 +73,11 @@ public class DvachFirewallResolver extends FirewallResolver {
 		if (contentType == null || contentType.isEmpty() || contentType.get(0).startsWith("text/html")) {
 			String responseText = response.readString();
 			if (responseText != null && responseText.contains("<title>Проверка...</title>")) {
-				// Firewall redirects to /, restore original URI
+				// Firewall redirects to / or /challenge, restore the original URI
 				List<Uri> uris = response.getRequestedUris();
 				for (int i = uris.size() - 1; i >= 0; i--) {
 					Uri uri = uris.get(i);
-					if (!"/".equals(uri.getPath())) {
+					if (!"/".equals(uri.getPath()) && !"/challenge".equals(uri.getPath())) {
 						if (i < uris.size() - 1) {
 							response.setRedirectedUri(uri);
 						}

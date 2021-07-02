@@ -62,7 +62,7 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		if (CAPTCHA_TYPE_2CH_CAPTCHA.equals(captchaType)) {
 			Captcha captcha = new Captcha();
 			captcha.title = "2ch Captcha";
-			captcha.input = Captcha.Input.LATIN;
+			captcha.input = Captcha.Input.ALL;
 			captcha.validity = Captcha.Validity.IN_THREAD;
 			return captcha;
 		}

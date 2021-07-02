@@ -927,6 +927,20 @@ public class DvachChanPerformer extends ChanPerformer {
 						throw new InvalidResponseException();
 					}
 					result.setImage(image);
+					switch (jsonObject.optString("input")) {
+						case "numeric": {
+							result.setInput(DvachChanConfiguration.Captcha.Input.NUMERIC);
+							break;
+						}
+						case "english": {
+							result.setInput(DvachChanConfiguration.Captcha.Input.LATIN);
+							break;
+						}
+						default: {
+							result.setInput(DvachChanConfiguration.Captcha.Input.ALL);
+							break;
+						}
+					}
 				} else if (DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType) ||
 						DvachChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE.equals(data.captchaType)) {
 					result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData);
