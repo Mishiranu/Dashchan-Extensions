@@ -2,9 +2,6 @@ package com.mishiranu.dashchan.chan.fourchan;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.util.Base64;
@@ -50,7 +47,11 @@ import org.json.JSONObject;
 
 public class FourchanChanPerformer extends ChanPerformer {
 	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
-	private static final String CAPTCHA_DATA_KEY_TYPE = "captcha_type";
+
+	private static final String CAPTCHA_DATA_KEY_TYPE = "captchaType";
+	private static final String CAPTCHA_DATA_KEY_PASS_COOKIE = "captchaPassCookie";
+
+	private static final String COOKIE_FOURCHAN_PASS = "4chan_pass";
 
 	private final HashMap<String, Long> lastRulesUpdate = new HashMap<>();
 
@@ -519,14 +520,8 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
-	private static final String CAPTCHA_PASS_COOKIE = "captchaPassCookie";
-
 	private static final String REQUIREMENT_BANNED = "banned";
 	private static final String REQUIREMENT_REPORT = "report";
-
-	// Transforms white into transparent
-	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
-			{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -1f, -1f, -1f, 1f, 0f});
 
 	@SuppressWarnings("BusyWait")
 	@Override
@@ -545,14 +540,16 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 			if (captchaPassCookie != null) {
 				CaptchaData captchaData = new CaptchaData();
-				captchaData.put(CAPTCHA_PASS_COOKIE, captchaPassCookie);
+				captchaData.put(CAPTCHA_DATA_KEY_PASS_COOKIE, captchaPassCookie);
 				return new ReadCaptchaResult(CaptchaState.PASS, captchaData)
 						.setValidity(FourchanChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 			}
 		}
+		String captchaType = banned ? FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2 : data.captchaType;
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
-		if (FourchanChanConfiguration.CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(data.captchaType)) {
+		ReadCaptchaResult result;
+		if (FourchanChanConfiguration.CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(captchaType)) {
 			if (data.mayShowLoadButton) {
 				return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
 			}
@@ -569,7 +566,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 			int wait = 2000;
 			while (true) {
 				try {
-					JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
+					JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data)
+							.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS))
+							.perform().readString());
 					String error = jsonObject.optString("error");
 					if ("You have to wait a while before doing this again".equals(error)) {
 						try {
@@ -581,121 +580,72 @@ public class FourchanChanPerformer extends ChanPerformer {
 					} else {
 						challenge = jsonObject.getString("challenge");
 						byte[] imageBytes = Base64.decode(jsonObject.getString("img"), 0);
-						byte[] backgroundBytes = Base64.decode(jsonObject.getString("bg"), 0);
-						image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-						background = BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.length);
+						byte[] backgroundBytes = Base64.decode(jsonObject.optString("bg"), 0);
+						image = imageBytes.length == 0 ? null
+								: BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+						background = backgroundBytes.length == 0 ? null
+								: BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.length);
 						break;
 					}
 				} catch (JSONException e) {
 					throw new InvalidResponseException(e);
 				}
 			}
-			if (image == null || background == null) {
-				throw new InvalidResponseException(new Exception("Images are null"));
+			if (image == null) {
+				throw new InvalidResponseException(new Exception("Image is null"));
 			}
-			if (image.getHeight() != background.getHeight()) {
-				throw new InvalidResponseException(new Exception("Image heights are not equal"));
-			}
-			if (background.getWidth() < image.getWidth()) {
-				throw new InvalidResponseException(new Exception("Image image sizes"));
-			}
-			int range = background.getWidth() - image.getWidth();
-			// Use binary search to find the most readable image
-			int min = 0;
-			int max = range;
-			int minStep = 3;
-			boolean keepFirst = false;
-			Bitmap[] images = new Bitmap[9];
-			Canvas[] canvases = new Canvas[images.length];
-			try {
-				while (max - min >= 2 * minStep) {
-					int count = Math.min(images.length, (max - min + minStep - 1) / minStep);
-					for (int i = 0; i < count; i++) {
-						if (images[i] == null) {
-							images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
-									Bitmap.Config.ARGB_8888);
-							canvases[i] = new Canvas(images[i]);
-						}
-						// TODO Find the best initial dx taking empty spaces into account
-						int dx = min + (max - min) * i / (count - 1);
-						canvases[i].drawBitmap(background, -dx, 0, null);
-						canvases[i].drawBitmap(image, 0, 0, null);
-					}
-					// TODO Display only "count" images after releasing a bug fix in ForegroundManager
-					for (int i = count; i < images.length; i++) {
-						if (images[i] == null) {
-							images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
-									Bitmap.Config.ARGB_8888);
-							canvases[i] = new Canvas(images[i]);
-						}
-						images[i].eraseColor(0x00000000);
-					}
-					Integer result = requireUserImageSingleChoice(-1, images,
-							configuration.getResources().getString(R.string.select_the_most_readable_captcha), null);
-					if (result == null) {
-						return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
-					} else if (result < 0 || result >= count) {
-						break;
-					} else if (result == 0) {
-						max = min + (max - min) / (count - 1) - 1;
-					} else if (result == count - 1) {
-						min = min + (max - min) * (count - 2) / (count - 1) + 1;
-					} else {
-						int newMin = min + (max - min) * (result - 1) / (count - 1) + 1;
-						int newMax = min + (max - min) * (result + 1) / (count - 1) - 1;
-						min = newMin;
-						max = newMax;
-					}
-				}
-				keepFirst = true;
-				// Prepare at least 2 images
-				for (int i = 0; i < 2; i++) {
-					if (images[i] == null) {
-						images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
-								Bitmap.Config.ARGB_8888);
-						canvases[i] = new Canvas(images[i]);
-					}
-				}
-				canvases[1].drawBitmap(background, -(min + max) / 2f, 0, null);
-				canvases[1].drawBitmap(image, 0, 0, null);
-				Paint paint = new Paint();
-				paint.setColorFilter(CAPTCHA_FILTER);
-				images[0].eraseColor(0x00000000);
-				canvases[0].drawBitmap(images[1], 0, 0, paint);
-				CaptchaData captchaData = new CaptchaData();
-				captchaData.put(CAPTCHA_DATA_KEY_TYPE, data.captchaType);
-				captchaData.put(CaptchaData.CHALLENGE, challenge);
-				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(images[0]);
-			} finally {
-				for (int i = keepFirst ? 1 : 0; i < images.length; i++) {
-					if (images[i] != null) {
-						images[i].recycle();
-					}
+			int centerOffset = 0;
+			if (background != null) {
+				Integer offset = FourchanCaptchaUtils.findCenterOffset(image);
+				if (offset != null) {
+					centerOffset = offset;
+				} else {
+					background.recycle();
+					background = null;
 				}
 			}
-		} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType)) {
+			if (background != null) {
+				if (image.getHeight() != background.getHeight()) {
+					throw new InvalidResponseException(new Exception("Image heights are not equal"));
+				} else if (background.getWidth() < image.getWidth()) {
+					throw new InvalidResponseException(new Exception("Invalid image sizes"));
+				}
+			}
+			int resultOffset = 0;
+			if (background != null) {
+				// Use user-driven binary search to find the offset for the most readable image
+				String description = configuration.getResources().getString(R.string.select_the_most_readable_captcha);
+				Integer offset = FourchanCaptchaUtils.binarySearchOffset(image, background, 9, centerOffset,
+						images -> requireUserImageSingleChoice(-1, images, description, null));
+				if (offset != null) {
+					resultOffset = offset;
+				} else {
+					return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
+				}
+			}
+			Bitmap resultImage = FourchanCaptchaUtils.create(image, background, resultOffset);
 			CaptchaData captchaData = new CaptchaData();
-			captchaData.put(CAPTCHA_DATA_KEY_TYPE, data.captchaType);
+			captchaData.put(CAPTCHA_DATA_KEY_TYPE, captchaType);
+			captchaData.put(CaptchaData.CHALLENGE, challenge);
+			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(resultImage);
+		} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CAPTCHA_DATA_KEY_TYPE, captchaType);
 			captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
 			if (banned) {
 				captchaData.put(CaptchaData.REFERER, locator.buildPath("banned").toString());
 			} else {
 				captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
 			}
-			String captchaType = data.captchaType;
-			if (banned || data.threadNumber == null && data.requirement == null) {
-				// Threads can be created only using reCAPTCHA 2
-				captchaType = FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
-			}
-			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
+			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
 					.setValidity(FourchanChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
-			if (!CommonUtils.equals(data.captchaType, captchaType)) {
-				result.setCaptchaType(captchaType);
-			}
-			return result;
 		} else {
 			throw new IllegalStateException();
 		}
+		if (!CommonUtils.equals(data.captchaType, captchaType)) {
+			result.setCaptchaType(captchaType);
+		}
+		return result;
 	}
 
 	private static final SimpleDateFormat DATE_FORMAT_BAN = new SimpleDateFormat("MMMM d yyyy", Locale.US);
@@ -722,7 +672,6 @@ public class FourchanChanPerformer extends ChanPerformer {
 			if (captchaData == null) {
 				return null;
 			}
-			// TODO Add support for new captcha
 			MultipartEntity entity = new MultipartEntity();
 			entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			responseText = new HttpRequest(uri, preset).setPostMethod(entity).perform().readString();
@@ -751,6 +700,14 @@ public class FourchanChanPerformer extends ChanPerformer {
 				.setMessage(fields.get("reason"))
 				.setStartDate(parseBanDate(fields.get("startDate")))
 				.setExpireDate(parseBanDate(fields.get("endDate")));
+	}
+
+	private void handleFourchanPass(HttpResponse response) {
+		String fourchanPass = response.getCookieValue(COOKIE_FOURCHAN_PASS);
+		if (fourchanPass != null) {
+			FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+			configuration.storeCookie(COOKIE_FOURCHAN_PASS, fourchanPass, "4chan Pass");
+		}
 	}
 
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
@@ -788,14 +745,15 @@ public class FourchanChanPerformer extends ChanPerformer {
 			} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType)) {
 				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
 			}
-			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
+			captchaPassCookie = data.captchaData.get(CAPTCHA_DATA_KEY_PASS_COOKIE);
 		}
 
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		boolean nsfwFix = !configuration.isSafeForWork(data.boardName) && configuration.isFixNsfwBoardsEnabled();
 		Uri uri = locator.createSysUri(data.boardName, "post");
-		HttpRequest request = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie));
+		HttpRequest request = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie))
+				.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS));
 		if (nsfwFix) {
 			// More reliable fix: add non-browser User-Agent (breaks CloudFlare bypass)
 			request.addHeader("User-Agent", "curl/7.64.0");
@@ -804,8 +762,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 			request.addHeader("Accept", "text/html").addHeader("Accept-Language", "en")
 					.addHeader("Referer", uri.toString());
 		}
-		String responseText = request.setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
+		HttpResponse response = request.setPostMethod(entity)
+				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
+		handleFourchanPass(response);
+		String responseText = response.readString();
 
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
 		if (matcher.find()) {
@@ -912,6 +872,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException {
 		ReportReason reportReason = ReportReason.fromKey(data.type);
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.createSysUri(data.boardName, "imgboard.php").buildUpon()
 				.appendQueryParameter("mode", "report").appendQueryParameter("no", data.postNumbers.get(0)).build();
@@ -932,8 +893,11 @@ public class FourchanChanPerformer extends ChanPerformer {
 			} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
 				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			}
-			String responseText = new HttpRequest(uri, data).setPostMethod(entity)
-					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
+			HttpResponse response = new HttpRequest(uri, data).setPostMethod(entity)
+					.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS))
+					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
+			handleFourchanPass(response);
+			String responseText = response.readString();
 			Matcher matcher = PATTERN_REPORT_MESSAGE.matcher(responseText);
 			if (matcher.find()) {
 				message = StringUtils.emptyIfNull(matcher.group(1));
