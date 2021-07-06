@@ -1,7 +1,13 @@
 package com.mishiranu.dashchan.chan.fourchan;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.util.Base64;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
@@ -39,9 +45,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class FourchanChanPerformer extends ChanPerformer {
 	private static final String RECAPTCHA_API_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
+	private static final String CAPTCHA_DATA_KEY_TYPE = "captcha_type";
 
 	private final HashMap<String, Long> lastRulesUpdate = new HashMap<>();
 
@@ -515,6 +524,11 @@ public class FourchanChanPerformer extends ChanPerformer {
 	private static final String REQUIREMENT_BANNED = "banned";
 	private static final String REQUIREMENT_REPORT = "report";
 
+	// Transforms white into transparent
+	private static final ColorMatrixColorFilter CAPTCHA_FILTER = new ColorMatrixColorFilter(new float[]
+			{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -1f, -1f, -1f, 1f, 0f});
+
+	@SuppressWarnings("BusyWait")
 	@Override
 	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws HttpException, InvalidResponseException {
 		boolean banned = REQUIREMENT_BANNED.equals(data.requirement);
@@ -536,25 +550,152 @@ public class FourchanChanPerformer extends ChanPerformer {
 						.setValidity(FourchanChanConfiguration.Captcha.Validity.LONG_LIFETIME);
 			}
 		}
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
-		CaptchaData captchaData = new CaptchaData();
-		captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
-		if (banned) {
-			captchaData.put(CaptchaData.REFERER, locator.buildPath("banned").toString());
+		if (FourchanChanConfiguration.CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(data.captchaType)) {
+			if (data.mayShowLoadButton) {
+				return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
+			}
+			String threadNumber = data.requirement == null ? data.threadNumber : "1";
+			Uri.Builder builder = locator.createSysUri("captcha").buildUpon()
+					.appendQueryParameter("board", data.boardName);
+			if (threadNumber != null) {
+				builder.appendQueryParameter("thread_id", threadNumber);
+			}
+			Uri uri = builder.build();
+			String challenge;
+			Bitmap image;
+			Bitmap background;
+			int wait = 2000;
+			while (true) {
+				try {
+					JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data).perform().readString());
+					String error = jsonObject.optString("error");
+					if ("You have to wait a while before doing this again".equals(error)) {
+						try {
+							Thread.sleep(wait);
+						} catch (InterruptedException e) {
+							throw new HttpException(0, null);
+						}
+						wait += 1000;
+					} else {
+						challenge = jsonObject.getString("challenge");
+						byte[] imageBytes = Base64.decode(jsonObject.getString("img"), 0);
+						byte[] backgroundBytes = Base64.decode(jsonObject.getString("bg"), 0);
+						image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+						background = BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.length);
+						break;
+					}
+				} catch (JSONException e) {
+					throw new InvalidResponseException(e);
+				}
+			}
+			if (image == null || background == null) {
+				throw new InvalidResponseException(new Exception("Images are null"));
+			}
+			if (image.getHeight() != background.getHeight()) {
+				throw new InvalidResponseException(new Exception("Image heights are not equal"));
+			}
+			if (background.getWidth() < image.getWidth()) {
+				throw new InvalidResponseException(new Exception("Image image sizes"));
+			}
+			int range = background.getWidth() - image.getWidth();
+			// Use binary search to find the most readable image
+			int min = 0;
+			int max = range;
+			int minStep = 3;
+			boolean keepFirst = false;
+			Bitmap[] images = new Bitmap[9];
+			Canvas[] canvases = new Canvas[images.length];
+			try {
+				while (max - min >= 2 * minStep) {
+					int count = Math.min(images.length, (max - min + minStep - 1) / minStep);
+					for (int i = 0; i < count; i++) {
+						if (images[i] == null) {
+							images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
+									Bitmap.Config.ARGB_8888);
+							canvases[i] = new Canvas(images[i]);
+						}
+						// TODO Find the best initial dx taking empty spaces into account
+						int dx = min + (max - min) * i / (count - 1);
+						canvases[i].drawBitmap(background, -dx, 0, null);
+						canvases[i].drawBitmap(image, 0, 0, null);
+					}
+					// TODO Display only "count" images after releasing a bug fix in ForegroundManager
+					for (int i = count; i < images.length; i++) {
+						if (images[i] == null) {
+							images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
+									Bitmap.Config.ARGB_8888);
+							canvases[i] = new Canvas(images[i]);
+						}
+						images[i].eraseColor(0x00000000);
+					}
+					Integer result = requireUserImageSingleChoice(-1, images,
+							configuration.getResources().getString(R.string.select_the_most_readable_captcha), null);
+					if (result == null) {
+						return new ReadCaptchaResult(CaptchaState.NEED_LOAD, null);
+					} else if (result < 0 || result >= count) {
+						break;
+					} else if (result == 0) {
+						max = min + (max - min) / (count - 1) - 1;
+					} else if (result == count - 1) {
+						min = min + (max - min) * (count - 2) / (count - 1) + 1;
+					} else {
+						int newMin = min + (max - min) * (result - 1) / (count - 1) + 1;
+						int newMax = min + (max - min) * (result + 1) / (count - 1) - 1;
+						min = newMin;
+						max = newMax;
+					}
+				}
+				keepFirst = true;
+				// Prepare at least 2 images
+				for (int i = 0; i < 2; i++) {
+					if (images[i] == null) {
+						images[i] = Bitmap.createBitmap(image.getWidth(), image.getHeight(),
+								Bitmap.Config.ARGB_8888);
+						canvases[i] = new Canvas(images[i]);
+					}
+				}
+				canvases[1].drawBitmap(background, -(min + max) / 2f, 0, null);
+				canvases[1].drawBitmap(image, 0, 0, null);
+				Paint paint = new Paint();
+				paint.setColorFilter(CAPTCHA_FILTER);
+				images[0].eraseColor(0x00000000);
+				canvases[0].drawBitmap(images[1], 0, 0, paint);
+				CaptchaData captchaData = new CaptchaData();
+				captchaData.put(CAPTCHA_DATA_KEY_TYPE, data.captchaType);
+				captchaData.put(CaptchaData.CHALLENGE, challenge);
+				return new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(images[0]);
+			} finally {
+				for (int i = keepFirst ? 1 : 0; i < images.length; i++) {
+					if (images[i] != null) {
+						images[i].recycle();
+					}
+				}
+			}
+		} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType)) {
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CAPTCHA_DATA_KEY_TYPE, data.captchaType);
+			captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
+			if (banned) {
+				captchaData.put(CaptchaData.REFERER, locator.buildPath("banned").toString());
+			} else {
+				captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
+			}
+			String captchaType = data.captchaType;
+			if (banned || data.threadNumber == null && data.requirement == null) {
+				// Threads can be created only using reCAPTCHA 2
+				captchaType = FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
+			}
+			ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
+					.setValidity(FourchanChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
+			if (!CommonUtils.equals(data.captchaType, captchaType)) {
+				result.setCaptchaType(captchaType);
+			}
+			return result;
 		} else {
-			captchaData.put(CaptchaData.REFERER, locator.createBoardsRootUri(data.boardName).toString());
+			throw new IllegalStateException();
 		}
-		String captchaType = data.captchaType;
-		if (banned || data.threadNumber == null && data.requirement == null) {
-			// Threads can be created only using reCAPTCHA 2
-			captchaType = FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
-		}
-		ReadCaptchaResult result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
-				.setValidity(FourchanChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
-		if (!CommonUtils.equals(data.captchaType, captchaType)) {
-			result.setCaptchaType(captchaType);
-		}
-		return result;
 	}
 
 	private static final SimpleDateFormat DATE_FORMAT_BAN = new SimpleDateFormat("MMMM d yyyy", Locale.US);
@@ -572,15 +713,16 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 	}
 
-	private ApiException.BanExtra readBanExtra(HttpRequest.Preset preset) throws HttpException {
+	private ApiException.BanExtra readBanExtra(HttpRequest.Preset preset, String boardName) throws HttpException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.buildPath("banned");
 		String responseText = new HttpRequest(uri, preset).perform().readString();
 		while (responseText.contains(RECAPTCHA_API_KEY)) {
-			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_BANNED, null, null, false);
+			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_BANNED, boardName, null, false);
 			if (captchaData == null) {
 				return null;
 			}
+			// TODO Add support for new captcha
 			MultipartEntity entity = new MultipartEntity();
 			entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			responseText = new HttpRequest(uri, preset).setPostMethod(entity).perform().readString();
@@ -640,7 +782,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 		String captchaPassCookie = null;
 		if (data.captchaData != null) {
-			entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
+			if (FourchanChanConfiguration.CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(data.captchaType)) {
+				entity.add("t-challenge", data.captchaData.get(CaptchaData.CHALLENGE));
+				entity.add("t-response", data.captchaData.get(CaptchaData.INPUT));
+			} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(data.captchaType)) {
+				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
+			}
 			captchaPassCookie = data.captchaData.get(CAPTCHA_PASS_COOKIE);
 		}
 
@@ -701,7 +848,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 					errorType = ApiException.SEND_ERROR_FILE_EXISTS;
 				} else if (errorMessage.contains("has been blocked due to abuse") || errorMessage.contains("banned")) {
 					errorType = ApiException.SEND_ERROR_BANNED;
-					extra = readBanExtra(data);
+					extra = readBanExtra(data, data.boardName);
 				} else if (errorMessage.contains("image replies has been reached")) {
 					errorType = ApiException.SEND_ERROR_FILES_LIMIT;
 				}
@@ -777,7 +924,14 @@ public class FourchanChanPerformer extends ChanPerformer {
 				throw new ApiException(ApiException.REPORT_ERROR_NO_ACCESS);
 			}
 			UrlEncodedEntity entity = new UrlEncodedEntity("cat", reportReason.category, "cat_id", reportReason.value,
-					"board", data.boardName, "g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
+					"board", data.boardName);
+			String captchaType = captchaData.get(CAPTCHA_DATA_KEY_TYPE);
+			if (FourchanChanConfiguration.CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(captchaType)) {
+				entity.add("t-challenge", captchaData.get(CaptchaData.CHALLENGE));
+				entity.add("t-response", captchaData.get(CaptchaData.INPUT));
+			} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
+				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
+			}
 			String responseText = new HttpRequest(uri, data).setPostMethod(entity)
 					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
 			Matcher matcher = PATTERN_REPORT_MESSAGE.matcher(responseText);

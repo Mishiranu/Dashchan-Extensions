@@ -15,6 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class FourchanChanConfiguration extends ChanConfiguration {
+	public static final String CAPTCHA_TYPE_4CHAN_CAPTCHA = "4chan_captcha";
+
 	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
 	private static final String KEY_BOARD_FLAGS = "board_flags_enabled";
 	private static final String KEY_SPOILERS_ENABLED = "spoilers_enabled";
@@ -31,6 +33,7 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		request(OPTION_ALLOW_CAPTCHA_PASS);
 		setDefaultName("Anonymous");
 		setBumpLimit(300);
+		addCaptchaType(CAPTCHA_TYPE_4CHAN_CAPTCHA);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		addCustomPreference(KEY_MATH_TAGS, false);
 		addCustomPreference(KEY_FIX_NSFW_BOARDS, true);
@@ -46,6 +49,18 @@ public class FourchanChanConfiguration extends ChanConfiguration {
 		board.allowDeleting = true;
 		board.allowReporting = !StringUtils.isEmpty(get(boardName, KEY_REPORT_REASONS, ""));
 		return board;
+	}
+
+	@Override
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if (CAPTCHA_TYPE_4CHAN_CAPTCHA.equals(captchaType)) {
+			Captcha captcha = new Captcha();
+			captcha.title = "4chan Captcha";
+			captcha.input = Captcha.Input.LATIN;
+			captcha.validity = Captcha.Validity.SHORT_LIFETIME;
+			return captcha;
+		}
+		return null;
 	}
 
 	@SuppressWarnings("ComparatorCombinators")
