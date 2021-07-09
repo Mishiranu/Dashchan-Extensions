@@ -1,6 +1,6 @@
 # Dashchan Extensions
 
-Extensions and libraries.
+This repositories contains supported extensions.
 
 Old extensions are placed under their own specific branch. It's planned to move them all into master branch.
 
@@ -8,7 +8,7 @@ Old extensions are placed under their own specific branch. It's planned to move 
 
 1. Install JDK 8 or higher
 2. Install Android SDK, define `ANDROID_HOME` environment variable or set `sdk.dir` in `local.properties`
-4. Run `./gradlew :extensions:%CHAN_NAME%:assembleRelease`
+3. Run `./gradlew :extensions:%CHAN_NAME%:assembleRelease`
 
 The resulting APK file will appear in `extensions/%CHAN_NAME%/build/outputs/apk` directory.
 
@@ -25,4 +25,4 @@ key.password=%KEY_PASSWORD%
 
 ## License
 
-Extensions and libraries are available under the [GNU General Public License, version 3 or later](COPYING).
+Extensions are available under the [GNU General Public License, version 3 or later](COPYING).

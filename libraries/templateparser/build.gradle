@@ -1,5 +1,0 @@
-rootProject.configureLibrary(project)
-
-dependencies {
-    compileOnly project(':libraries:api')
-}

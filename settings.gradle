@@ -1,9 +1,3 @@
-for (f in file('engines').listFiles()) {
-    include ':engines:' + f.getName()
-}
-for (f in file('extensions').listFiles()) {
-    include ':extensions:' + f.getName()
-}
-for (f in file('libraries').listFiles()) {
-    include ':libraries:' + f.getName()
-}
+includeBuild 'library'
+file('engines').listFiles().each { include ":engines:$it.name" }
+file('extensions').listFiles().each { include ":extensions:$it.name" }

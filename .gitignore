@@ -1,6 +1,8 @@
 /*
 !/.gitignore
+!/.gitmodules
 !/build.gradle
+!/chan.properties
 !/COPYING
 !/engines
 /engines/*/*
@@ -15,10 +17,6 @@
 !/gradle
 !/gradlew
 !/gradlew.bat
-!/libraries
-/libraries/*/*
-!/libraries/*/build.gradle
-!/libraries/*/res
-!/libraries/*/src
+!/library
 !/README.md
 !/settings.gradle

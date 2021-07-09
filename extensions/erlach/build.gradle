@@ -1,9 +1,11 @@
-rootProject.configureExtension(project, [
-		versionName: '1.3',
-		apiVersion: 1,
-		hosts: ['erlach.services', 'erlach.co', 'www.erlach.co']
-])
+apply plugin: 'chan-extension'
+
+chan {
+	versionName '1.3'
+	apiVersion 1
+	hosts 'erlach.services', 'erlach.co', 'www.erlach.co'
+}
 
 dependencies {
-	implementation project(':libraries:templateparser')
+	implementation 'chan.library:template-parser:0'
 }

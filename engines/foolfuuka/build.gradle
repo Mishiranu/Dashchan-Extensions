@@ -1,6 +1,6 @@
-rootProject.configureLibrary(project)
+apply plugin: 'chan-library'
 
 dependencies {
-    compileOnly project(':libraries:api')
-    api project(':libraries:templateparser')
+	compileOnly 'chan.library:api:0'
+	api 'chan.library:template-parser:0'
 }

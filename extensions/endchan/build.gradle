@@ -1,5 +1,7 @@
-rootProject.configureExtension(project, [
-		versionName: '1.7',
-		apiVersion: 1,
-		hosts: ['endchan.net', 'endchan.gg', 'endchan.org', 'endchan.xyz']
-])
+apply plugin: 'chan-extension'
+
+chan {
+	versionName '1.7'
+	apiVersion 1
+	hosts 'endchan.net', 'endchan.gg', 'endchan.org', 'endchan.xyz'
+}

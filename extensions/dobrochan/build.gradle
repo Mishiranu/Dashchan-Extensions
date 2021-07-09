@@ -1,10 +1,12 @@
-rootProject.configureExtension(project, [
-		versionName: '1.15',
-		apiVersion: 1,
-		hosts: ['dobrochan.net', 'dobrochan.com', 'dobrochan.org', 'dobrochan.ru',
-				'www.dobrochan.net', 'www.dobrochan.com', 'www.dobrochan.org', 'www.dobrochan.ru']
-])
+apply plugin: 'chan-extension'
+
+chan {
+	versionName '1.15'
+	apiVersion 1
+	hosts 'dobrochan.net', 'dobrochan.com', 'dobrochan.org', 'dobrochan.ru',
+			'www.dobrochan.net', 'www.dobrochan.com', 'www.dobrochan.org', 'www.dobrochan.ru'
+}
 
 dependencies {
-	implementation project(':libraries:templateparser')
+	implementation 'chan.library:template-parser:0'
 }
