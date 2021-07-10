@@ -23,6 +23,9 @@ public class SynchChanMarkup extends ChanMarkup {
 		addTag("span", "style", "text-decoration: underline", TAG_UNDERLINE);
 		addTag("span", "style", "text-decoration: line-through", TAG_STRIKE);
 		addPreformatted("code", true);
+		addColorable("font");
+		addColorable("span");
+		addColorable("div");
 	}
 
 	@Override

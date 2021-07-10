@@ -25,9 +25,12 @@ public class SynchChanConfiguration extends ChanConfiguration {
 		posting.allowEmail = true;
 		posting.allowSubject = true;
 		posting.optionSage = true;
+		posting.allowTripcode = true;
 		posting.attachmentCount = 1;
 		posting.attachmentMimeTypes.add("image/*");
-		posting.attachmentMimeTypes.add("video/webm");
+		posting.attachmentMimeTypes.add("video/*");
+		posting.attachmentMimeTypes.add("audio/*");
+		posting.attachmentMimeTypes.add("application/*");
 		posting.attachmentSpoiler = true;
 		return posting;
 	}
