@@ -1,0 +1,11 @@
+apply plugin: 'chan-extension'
+
+chan {
+	versionName '1.0'
+	apiVersion 1
+	hosts 'soyjak.party', 'basedjak.party'
+}
+
+dependencies {
+	implementation 'chan.library:template-parser:0'
+}
