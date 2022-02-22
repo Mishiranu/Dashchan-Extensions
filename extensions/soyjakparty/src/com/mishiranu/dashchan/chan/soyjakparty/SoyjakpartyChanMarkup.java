@@ -9,13 +9,13 @@ import chan.content.ChanMarkup;
 import chan.text.CommentEditor;
 
 public class SoyjakpartyChanMarkup extends ChanMarkup {
-	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_SPOILER | TAG_HEADING | TAG_QUOTE;
+	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_SPOILER | TAG_EMPHASIS | TAG_QUOTE;
 
 	public SoyjakpartyChanMarkup() {
 		addTag("strong", TAG_BOLD);
 		addTag("em", TAG_ITALIC);
 		addTag("span", "spoiler", TAG_SPOILER);
-		addTag("span", "heading", TAG_HEADING);
+		addTag("span", "heading", TAG_EMPHASIS);
 		addTag("span", "quote", TAG_QUOTE);
 		addColorable("span");
 	}
@@ -25,8 +25,8 @@ public class SoyjakpartyChanMarkup extends ChanMarkup {
 		CommentEditor commentEditor = new CommentEditor();
 		commentEditor.addTag(TAG_BOLD, "'''", "'''", CommentEditor.FLAG_ONE_LINE);
 		commentEditor.addTag(TAG_ITALIC, "''", "''", CommentEditor.FLAG_ONE_LINE);
+		commentEditor.addTag(TAG_EMPHASIS, "==", "==", CommentEditor.FLAG_ONE_LINE);
 		commentEditor.addTag(TAG_SPOILER, "**", "**", CommentEditor.FLAG_ONE_LINE);
-		commentEditor.addTag(TAG_HEADING, "==", "==", CommentEditor.FLAG_ONE_LINE);
 		return commentEditor;
 	}
 
