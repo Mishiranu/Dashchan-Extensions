@@ -3,9 +3,11 @@ package com.mishiranu.dashchan.chan.soyjakparty;
 import chan.content.ChanConfiguration;
 
 public class SoyjakpartyChanConfiguration extends ChanConfiguration {
+	public static final String CAPTCHA_TYPE_NONE = "None";
 
 	public SoyjakpartyChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
+		addCaptchaType(CAPTCHA_TYPE_NONE);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
 		setDefaultName("Chud");
 	}
@@ -52,5 +54,17 @@ public class SoyjakpartyChanConfiguration extends ChanConfiguration {
 		reporting.comment = true;
 		reporting.multiplePosts = true;
 		return reporting;
+	}
+
+	@Override
+	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
+		if (CAPTCHA_TYPE_NONE.equals(captchaType)) {
+			Captcha captcha = new Captcha();
+			captcha.title = "None";
+			captcha.input = Captcha.Input.ALL;
+			captcha.validity = Captcha.Validity.IN_BOARD;
+			return captcha;
+		}
+		return null;
 	}
 }

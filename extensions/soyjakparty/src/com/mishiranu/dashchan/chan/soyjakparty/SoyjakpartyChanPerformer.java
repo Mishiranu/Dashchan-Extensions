@@ -326,6 +326,9 @@ public class SoyjakpartyChanPerformer extends ChanPerformer {
 			captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
 			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
 					.setValidity(SoyjakpartyChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
+		} else if (SoyjakpartyChanConfiguration.CAPTCHA_TYPE_NONE.equals(captchaType)) {
+			captchaType = null;
+			result = new ReadCaptchaResult(CaptchaState.SKIP, null);
 		} else {
 			throw new IllegalStateException();
 		}
