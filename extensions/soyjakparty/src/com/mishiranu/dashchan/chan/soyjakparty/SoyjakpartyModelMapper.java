@@ -155,6 +155,15 @@ public class SoyjakpartyModelMapper {
 					post.setTripcode(reader.nextString());
 					break;
 				}
+				case "email": {
+					String email = reader.nextString();
+					if (email.equals("sage")) {
+						post.setSage(true);
+					} else {
+						post.setEmail(email);
+					}
+					break;
+				}
 				case "id": {
 					post.setIdentifier(reader.nextString());
 					break;
