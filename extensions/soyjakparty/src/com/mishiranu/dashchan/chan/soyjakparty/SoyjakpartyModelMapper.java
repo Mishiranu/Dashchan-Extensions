@@ -26,14 +26,7 @@ public class SoyjakpartyModelMapper {
 													  String tim, String ext, String filename,
 													  int size, int width, int height) {
 		FileAttachment attachment = new FileAttachment();
-		if (ext.equals("deleted")) {
-			attachment.setSize(2733);
-			attachment.setWidth(140);
-			attachment.setHeight(50);
-			attachment.setFileUri(locator, locator.buildPath("static", "deleted.png"));
-			attachment.setThumbnailUri(locator, locator.buildPath("static", "deleted.png"));
-			attachment.setOriginalName("deleted.png");
-		} else {
+		if (!ext.equals("deleted")) {
 			attachment.setSize(size);
 			attachment.setWidth(width);
 			attachment.setHeight(height);
@@ -157,7 +150,7 @@ public class SoyjakpartyModelMapper {
 				}
 				case "email": {
 					String email = reader.nextString();
-					if (email.equals("sage")) {
+					if (email.toLowerCase(Locale.ROOT).equals("sage")) {
 						post.setSage(true);
 					} else {
 						post.setEmail(email);
