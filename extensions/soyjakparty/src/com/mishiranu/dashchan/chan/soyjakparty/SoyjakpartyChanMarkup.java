@@ -35,7 +35,7 @@ public class SoyjakpartyChanMarkup extends ChanMarkup {
 		return (SUPPORTED_TAGS & tag) == tag;
 	}
 
-	private static final Pattern THREAD_LINK = Pattern.compile("(\\d+).html(?:#(\\d+))?$");
+	private static final Pattern THREAD_LINK = Pattern.compile("(\\d+).*\\.html(?:#(\\d+))?$");
 
 	@Override
 	public Pair<String, String> obtainPostLinkThreadPostNumbers(String uriString) {
