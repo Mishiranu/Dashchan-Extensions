@@ -3,6 +3,7 @@ package com.mishiranu.dashchan.chan.dvach;
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.util.Pair;
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
 import chan.content.InvalidResponseException;
@@ -28,6 +29,8 @@ import java.net.HttpURLConnection;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +45,9 @@ public class DvachChanPerformer extends ChanPerformer {
 	private static final String COOKIE_USERCODE_AUTH = "usercode_auth";
 	private static final String COOKIE_PASSCODE_AUTH = "passcode_auth";
 
-	private static final String[] PREFERRED_BOARDS_ORDER = {"Разное", "Тематика", "Творчество", "Политика",
+	private static final String[] ORDERED_BOARD_CATEGORIES = {"Разное", "Тематика", "Творчество", "Политика",
 			"Техника и софт", "Игры", "Японская культура", "Взрослым", "Пробное"};
+	private static final String[] USER_BOARD_CATEGORIES = {"Пользовательские"};
 
 	public DvachChanPerformer() {
 		try {
@@ -98,38 +102,53 @@ public class DvachChanPerformer extends ChanPerformer {
 		HttpResponse response = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass())
 				.setValidator(data.validator).perform();
 		DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
-		DvachModelMapper.BoardConfiguration boardConfiguration = new DvachModelMapper.BoardConfiguration();
+		DvachModelMapper.BoardConfiguration boardConfiguration = null;
 		ArrayList<Posts> threads = new ArrayList<>();
 		int boardSpeed = 0;
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
 			reader.startObject();
 			while (!reader.endStruct()) {
-				String name = reader.nextName();
-				if (!boardConfiguration.handle(reader, name)) {
-					switch (name) {
-						case "threads": {
-							boolean sageEnabled = boardConfiguration.sageEnabled != null
-									? boardConfiguration.sageEnabled : configuration.isSageEnabled(data.boardName);
-							reader.startArray();
-							while (!reader.endStruct()) {
-								threads.add(DvachModelMapper.createThread(reader,
-										locator, data.boardName, sageEnabled));
-							}
-							break;
+				switch (reader.nextName()) {
+					case "threads": {
+						boolean sageEnabled = boardConfiguration != null ? boardConfiguration.sageEnabled
+								: configuration.isSageEnabled(data.boardName);
+						reader.startArray();
+						while (!reader.endStruct()) {
+							threads.add(DvachModelMapper.createThread(reader,
+									locator, data.boardName, sageEnabled));
 						}
-						case "board_speed": {
-							boardSpeed = reader.nextInt();
-							break;
-						}
-						default: {
+						break;
+					}
+					case "board_speed": {
+						boardSpeed = reader.nextInt();
+						break;
+					}
+					case "board": {
+						boardConfiguration = new DvachModelMapper.BoardConfiguration(reader);
+						break;
+					}
+					case "pages": {
+						int pagesCount = 0;
+						reader.startArray();
+						while (!reader.endStruct()) {
+							pagesCount++;
 							reader.skip();
-							break;
 						}
+						if (pagesCount > 0) {
+							configuration.storePagesCount(data.boardName, pagesCount);
+						}
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
 					}
 				}
 			}
-			configuration.updateFromThreadsPostsJson(data.boardName, boardConfiguration);
+			if (boardConfiguration != null) {
+				configuration.updateFromThreadsPostsJson(data.boardName, boardConfiguration);
+			}
 			return new ReadThreadsResult(threads).setBoardSpeed(boardSpeed);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
@@ -276,52 +295,53 @@ public class DvachChanPerformer extends ChanPerformer {
 						}
 						return new Posts(posts);
 					} else {
-						DvachModelMapper.BoardConfiguration boardConfiguration =
-								new DvachModelMapper.BoardConfiguration();
+						DvachModelMapper.BoardConfiguration boardConfiguration = null;
 						ArrayList<Post> posts = null;
 						int uniquePosters = 0;
 						reader.startObject();
 						while (!reader.endStruct()) {
-							String name = reader.nextName();
-							if (!boardConfiguration.handle(reader, name)) {
-								switch (name) {
-									case "threads": {
-										boolean sageEnabled = boardConfiguration.sageEnabled != null
-												? boardConfiguration.sageEnabled
-												: configuration.isSageEnabled(data.boardName);
-										reader.startArray();
-										reader.startObject();
-										while (!reader.endStruct()) {
-											switch (reader.nextName()) {
-												case "posts": {
-													posts = DvachModelMapper.createPosts(reader,
-															locator, data.boardName, archiveDateFinal,
-															sageEnabled, null);
-													break;
-												}
-												default: {
-													reader.skip();
-													break;
-												}
+							switch (reader.nextName()) {
+								case "threads": {
+									boolean sageEnabled = boardConfiguration != null ? boardConfiguration.sageEnabled
+											: configuration.isSageEnabled(data.boardName);
+									reader.startArray();
+									reader.startObject();
+									while (!reader.endStruct()) {
+										switch (reader.nextName()) {
+											case "posts": {
+												posts = DvachModelMapper.createPosts(reader,
+														locator, data.boardName, archiveDateFinal,
+														sageEnabled, null);
+												break;
+											}
+											default: {
+												reader.skip();
+												break;
 											}
 										}
-										while (!reader.endStruct()) {
-											reader.skip();
-										}
-										break;
 									}
-									case "unique_posters": {
-										uniquePosters = reader.nextInt();
-										break;
-									}
-									default: {
+									while (!reader.endStruct()) {
 										reader.skip();
-										break;
 									}
+									break;
+								}
+								case "board": {
+									boardConfiguration = new DvachModelMapper.BoardConfiguration(reader);
+									break;
+								}
+								case "unique_posters": {
+									uniquePosters = reader.nextInt();
+									break;
+								}
+								default: {
+									reader.skip();
+									break;
 								}
 							}
 						}
-						configuration.updateFromThreadsPostsJson(data.boardName, boardConfiguration);
+						if (boardConfiguration != null) {
+							configuration.updateFromThreadsPostsJson(data.boardName, boardConfiguration);
+						}
 						return new Posts(posts).setUniquePosters(uniquePosters);
 					}
 				}
@@ -460,9 +480,8 @@ public class DvachChanPerformer extends ChanPerformer {
 				throw response.fail(e);
 			}
 		} else {
-			Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
-			MultipartEntity entity = new MultipartEntity("task", "search", "board", data.boardName,
-					"find", data.searchQuery, "json", "1");
+			Uri uri = locator.createUserApiUri("search");
+			MultipartEntity entity = new MultipartEntity("board", data.boardName, "text", data.searchQuery);
 			HttpResponse response = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass())
 					.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
 			try (InputStream input = response.open();
@@ -471,13 +490,6 @@ public class DvachChanPerformer extends ChanPerformer {
 				reader.startObject();
 				while (!reader.endStruct()) {
 					switch (reader.nextName()) {
-						case "message": {
-							String errorMessage = reader.nextString();
-							if (!StringUtils.isEmpty(errorMessage)) {
-								throw new HttpException(0, errorMessage);
-							}
-							break;
-						}
 						case "posts": {
 							posts = DvachModelMapper.createPosts(reader, this, data.boardName, null,
 									configuration.isSageEnabled(data.boardName), null);
@@ -499,92 +511,82 @@ public class DvachChanPerformer extends ChanPerformer {
 	}
 
 	@SuppressWarnings("SwitchStatementWithTooFewBranches")
-	@Override
-	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
+	private ArrayList<Pair<String, Board>> readBoards(HttpRequest.Preset preset, Collection<String> includeTypes,
+			Collection<String> excludeTypes) throws HttpException, InvalidResponseException {
 		DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.buildPath("boards.json");
-		HttpResponse response = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass()).perform();
+		Uri uri = locator.createMobileApiV2Uri("boards");
+		HttpResponse response = readMobileApi(new HttpRequest(uri, preset).addCookie(buildCookiesWithCaptchaPass()));
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
-			HashMap<String, ArrayList<Board>> boardsMap = new HashMap<>();
-			reader.startObject();
-			while (!reader.endStruct()) {
-				switch (reader.nextName()) {
-					case "boards": {
-						reader.startArray();
-						while (!reader.endStruct()) {
-							String category = null;
-							String boardName = null;
-							String title = null;
-							String description = null;
-							String defaultName = null;
-							Integer bumpLimit = null;
-							reader.startObject();
-							while (!reader.endStruct()) {
-								switch (reader.nextName()) {
-									case "category": {
-										category = reader.nextString();
-										break;
-									}
-									case "id": {
-										boardName = reader.nextString();
-										break;
-									}
-									case "name": {
-										title = reader.nextString();
-										break;
-									}
-									case "info": {
-										description = reader.nextString();
-										break;
-									}
-									case "default_name": {
-										defaultName = reader.nextString();
-										break;
-									}
-									case "bump_limit": {
-										bumpLimit = reader.nextInt();
-										break;
-									}
-									default: {
-										reader.skip();
-										break;
-									}
-								}
+			ArrayList<Pair<String, Board>> boards = new ArrayList<>();
+			if (reader.valueType() == JsonSerial.ValueType.ARRAY) {
+				reader.startArray();
+				while (!reader.endStruct()) {
+					String category = null;
+					String boardName = null;
+					String title = null;
+					String description = null;
+					String defaultName = null;
+					Integer bumpLimit = null;
+					reader.startObject();
+					while (!reader.endStruct()) {
+						switch (reader.nextName()) {
+							case "category": {
+								category = reader.nextString();
+								break;
 							}
-							if (!StringUtils.isEmpty(category) && !StringUtils.isEmpty(boardName) &&
-									!StringUtils.isEmpty(title)) {
-								ArrayList<Board> boards = boardsMap.get(category);
-								if (boards == null) {
-									boards = new ArrayList<>();
-									boardsMap.put(category, boards);
-								}
-								description = configuration.transformBoardDescription(description);
-								boards.add(new Board(boardName, title, description));
-								configuration.updateFromBoardsJson(boardName, defaultName, bumpLimit);
+							case "id": {
+								boardName = reader.nextString();
+								break;
+							}
+							case "name": {
+								title = reader.nextString();
+								break;
+							}
+							case "info": {
+								description = reader.nextString();
+								break;
+							}
+							case "default_name": {
+								defaultName = reader.nextString();
+								break;
+							}
+							case "bump_limit": {
+								bumpLimit = reader.nextInt();
+								break;
+							}
+							default: {
+								reader.skip();
+								break;
 							}
 						}
-						break;
 					}
-					default: {
-						reader.skip();
-						break;
-					}
-				}
-			}
-			ArrayList<BoardCategory> boardCategories = new ArrayList<>();
-			for (String title : PREFERRED_BOARDS_ORDER) {
-				for (HashMap.Entry<String, ArrayList<Board>> entry : boardsMap.entrySet()) {
-					if (title.equals(entry.getKey())) {
-						ArrayList<Board> boards = entry.getValue();
-						Collections.sort(boards);
-						boardCategories.add(new BoardCategory(title, boards));
-						break;
+					if (!StringUtils.isEmpty(category) &&
+							(includeTypes == null || includeTypes.contains(category)) &&
+							(excludeTypes == null || !excludeTypes.contains(category)) &&
+							!StringUtils.isEmpty(boardName) && !StringUtils.isEmpty(title)) {
+						description = configuration.transformBoardDescription(description);
+						boards.add(new Pair<>(category, new Board(boardName, title, description)));
+						configuration.updateFromBoardsJson(boardName, defaultName, bumpLimit);
 					}
 				}
+				return boards;
+			} else {
+				reader.startObject();
+				while (!reader.endStruct()) {
+					switch (reader.nextName()) {
+						case "error": {
+							throw handleMobileApiV2Error(reader);
+						}
+						default: {
+							reader.skip();
+							break;
+						}
+					}
+				}
+				throw new InvalidResponseException();
 			}
-			return new ReadBoardsResult(boardCategories);
 		} catch (ParseException e) {
 			throw new InvalidResponseException(e);
 		} catch (IOException e) {
@@ -592,66 +594,46 @@ public class DvachChanPerformer extends ChanPerformer {
 		}
 	}
 
-	@SuppressWarnings("SwitchStatementWithTooFewBranches")
+	@Override
+	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
+		ArrayList<Pair<String, Board>> allBoards = readBoards(data, null, Arrays.asList(USER_BOARD_CATEGORIES));
+		HashMap<String, ArrayList<Board>> boardsMap = new HashMap<>();
+		for (Pair<String, Board> pair : allBoards) {
+			ArrayList<Board> boards = boardsMap.get(pair.first);
+			if (boards == null) {
+				boards = new ArrayList<>();
+				boardsMap.put(pair.first, boards);
+			}
+			boards.add(pair.second);
+		}
+		ArrayList<BoardCategory> boardCategories = new ArrayList<>();
+		for (String category : ORDERED_BOARD_CATEGORIES) {
+			ArrayList<Board> boards = boardsMap.remove(category);
+			if (boards != null) {
+				Collections.sort(boards);
+				boardCategories.add(new BoardCategory(category, boards));
+			}
+		}
+		ArrayList<String> missingCategories = new ArrayList<>(boardsMap.keySet());
+		Collections.sort(missingCategories);
+		for (String category : missingCategories) {
+			ArrayList<Board> boards = Objects.requireNonNull(boardsMap.get(category));
+			Collections.sort(boards);
+			boardCategories.add(new BoardCategory(category, boards));
+		}
+		return new ReadBoardsResult(boardCategories);
+	}
+
 	@Override
 	public ReadUserBoardsResult onReadUserBoards(ReadUserBoardsData data) throws HttpException,
 			InvalidResponseException {
-		DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
-		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.buildPath("userboards.json");
-		HttpResponse response = new HttpRequest(uri, data).addCookie(buildCookiesWithCaptchaPass()).perform();
-		try (InputStream input = response.open();
-				JsonSerial.Reader reader = JsonSerial.reader(input)) {
-			ArrayList<Board> boards = new ArrayList<>();
-			reader.startObject();
-			while (!reader.endStruct()) {
-				switch (reader.nextName()) {
-					case "boards": {
-						reader.startArray();
-						while (!reader.endStruct()) {
-							String boardName = null;
-							String title = null;
-							String description = null;
-							reader.startObject();
-							while (!reader.endStruct()) {
-								switch (reader.nextName()) {
-									case "id": {
-										boardName = reader.nextString();
-										break;
-									}
-									case "name": {
-										title = reader.nextString();
-										break;
-									}
-									case "info": {
-										description = reader.nextString();
-										break;
-									}
-									default: {
-										reader.skip();
-										break;
-									}
-								}
-							}
-							if (!StringUtils.isEmpty(boardName) && !StringUtils.isEmpty(title)) {
-								description = configuration.transformBoardDescription(description);
-								boards.add(new Board(boardName, title, description));
-							}
-						}
-						break;
-					}
-					default: {
-						reader.skip();
-						break;
-					}
-				}
-			}
-			return new ReadUserBoardsResult(boards);
-		} catch (ParseException e) {
-			throw new InvalidResponseException(e);
-		} catch (IOException e) {
-			throw response.fail(e);
+		ArrayList<Pair<String, Board>> allBoards = readBoards(data, Arrays.asList(USER_BOARD_CATEGORIES), null);
+		ArrayList<Board> boards = new ArrayList<>();
+		for (Pair<String, Board> pair : allBoards) {
+			boards.add(pair.second);
 		}
+		Collections.sort(boards);
+		return new ReadUserBoardsResult(boards);
 	}
 
 	@SuppressWarnings("SwitchStatementWithTooFewBranches")
@@ -807,19 +789,20 @@ public class DvachChanPerformer extends ChanPerformer {
 		configuration.revokeMaxFilesCount();
 		configuration.storeCookie(COOKIE_PASSCODE_AUTH, null, null);
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
-		UrlEncodedEntity entity = new UrlEncodedEntity("task", "auth", "usercode", captchaPassData, "json", "1");
+		Uri uri = locator.createUserApiUri("passlogin");
+		UrlEncodedEntity entity = new UrlEncodedEntity("passcode", captchaPassData, "json", "1");
 		JSONObject jsonObject;
+		HttpResponse response = readMobileApi(new HttpRequest(uri, preset).addCookie(buildCookies(null))
+				.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT));
+		String captchaPassCookie = response.getCookieValue("passcode_auth");
 		try {
-			jsonObject = new JSONObject(readMobileApi(new HttpRequest(uri, preset).addCookie(buildCookies(null))
-					.setPostMethod(entity).setRedirectHandler(HttpRequest.RedirectHandler.STRICT)).readString());
+			jsonObject = new JSONObject(response.readString());
 		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
 		if (jsonObject.optInt("result") != 1) {
 			return null;
 		}
-		String captchaPassCookie = CommonUtils.optJsonString(jsonObject, "hash");
 		if (StringUtils.isEmpty(captchaPassCookie)) {
 			throw new InvalidResponseException();
 		}
@@ -992,9 +975,10 @@ public class DvachChanPerformer extends ChanPerformer {
 			}
 		}
 		MultipartEntity entity = new MultipartEntity();
-		entity.add("task", "post");
 		entity.add("board", data.boardName);
-		entity.add("thread", data.threadNumber != null ? data.threadNumber : "0");
+		if (data.threadNumber != null) {
+			entity.add("thread", data.threadNumber);
+		}
 		entity.add("subject", subject);
 		entity.add("tags", tag);
 		entity.add("comment", data.comment);
@@ -1004,8 +988,8 @@ public class DvachChanPerformer extends ChanPerformer {
 			entity.add("op_mark", "1");
 		}
 		if (data.attachments != null) {
-			for (int i = 0; i < data.attachments.length; i++) {
-				data.attachments[i].addToEntity(entity, "image" + (i + 1));
+			for (SendPostData.Attachment attachment : data.attachments) {
+				attachment.addToEntity(entity, "file[]");
 			}
 		}
 		entity.add("icon", data.userIcon);
@@ -1037,7 +1021,7 @@ public class DvachChanPerformer extends ChanPerformer {
 			originalPosterCookie = configuration.getCookie(originalPosterCookieName);
 		}
 
-		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.POSTING, "json", "1");
+		Uri uri = locator.createUserApiUri("posting");
 		HttpResponse response = new HttpRequest(uri, data).setPostMethod(entity)
 				.addCookie(buildCookies(captchaPassCookie)).addCookie(originalPosterCookieName, originalPosterCookie)
 				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
@@ -1047,16 +1031,16 @@ public class DvachChanPerformer extends ChanPerformer {
 		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
-		String auth = response.getCookieValue(COOKIE_USERCODE_AUTH);
-		if (!StringUtils.isEmpty(auth)) {
+		String usercodeAuthCookie = response.getCookieValue(COOKIE_USERCODE_AUTH);
+		if (!StringUtils.isEmpty(usercodeAuthCookie)) {
 			DvachChanConfiguration configuration = DvachChanConfiguration.get(this);
-			configuration.storeCookie(COOKIE_USERCODE_AUTH, auth, "Usercode Auth");
+			configuration.storeCookie(COOKIE_USERCODE_AUTH, usercodeAuthCookie, "Usercode Auth");
 		}
-		String postNumber = CommonUtils.optJsonString(jsonObject, "Num");
+		String postNumber = CommonUtils.optJsonString(jsonObject, "num");
 		if (!StringUtils.isEmpty(postNumber)) {
 			return new SendPostResult(data.threadNumber, postNumber);
 		}
-		String threadNumber = CommonUtils.optJsonString(jsonObject, "Target");
+		String threadNumber = CommonUtils.optJsonString(jsonObject, "thread");
 		if (!StringUtils.isEmpty(threadNumber)) {
 			originalPosterCookieName = "op_" + data.boardName + "_" + threadNumber;
 			originalPosterCookie = response.getCookieValue(originalPosterCookieName);
@@ -1068,8 +1052,12 @@ public class DvachChanPerformer extends ChanPerformer {
 			return new SendPostResult(threadNumber, null);
 		}
 
-		int error = Math.abs(jsonObject.optInt("Error", Integer.MAX_VALUE));
-		String reason = CommonUtils.optJsonString(jsonObject, "Reason");
+		jsonObject = jsonObject.optJSONObject("error");
+		if (jsonObject == null) {
+			throw new InvalidResponseException();
+		}
+		int error = Math.abs(jsonObject.optInt("code", Integer.MAX_VALUE));
+		String reason = CommonUtils.optJsonString(jsonObject, "message");
 		int errorType = 0;
 		Object extra = null;
 		switch (error) {
@@ -1185,13 +1173,12 @@ public class DvachChanPerformer extends ChanPerformer {
 	public SendReportPostsResult onSendReportPosts(SendReportPostsData data) throws HttpException, ApiException,
 			InvalidResponseException {
 		DvachChanLocator locator = DvachChanLocator.get(this);
-		Uri uri = locator.createFcgiUri(DvachChanLocator.Fcgi.MAKABA);
-		StringBuilder postsBuilder = new StringBuilder();
+		Uri uri = locator.createUserApiUri("report");
+		MultipartEntity entity = new MultipartEntity("board", data.boardName,
+				"thread", data.threadNumber, "comment", data.comment);
 		for (String postNumber : data.postNumbers) {
-			postsBuilder.append(postNumber).append(", ");
+			entity.add("post", postNumber);
 		}
-		MultipartEntity entity = new MultipartEntity("task", "report", "board", data.boardName,
-				"thread", data.threadNumber, "posts", postsBuilder.toString(), "comment", data.comment, "json", "1");
 		String referer = locator.createThreadUri(data.boardName, data.threadNumber).toString();
 		JSONObject jsonObject;
 		try {
@@ -1201,11 +1188,11 @@ public class DvachChanPerformer extends ChanPerformer {
 		} catch (JSONException e) {
 			throw new InvalidResponseException(e);
 		}
+		if (jsonObject.optInt("result") == 1) {
+			return null;
+		}
 		try {
-			String message = CommonUtils.getJsonString(jsonObject, "message");
-			if (StringUtils.isEmpty(message)) {
-				return null;
-			}
+			String message = jsonObject.getJSONObject("error").getString("message");
 			int errorType = 0;
 			if (message.contains("Вы уже отправляли жалобу")) {
 				errorType = ApiException.REPORT_ERROR_TOO_OFTEN;

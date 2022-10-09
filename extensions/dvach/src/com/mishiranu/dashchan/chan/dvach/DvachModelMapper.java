@@ -1,6 +1,7 @@
 package com.mishiranu.dashchan.chan.dvach;
 
 import android.net.Uri;
+import android.webkit.MimeTypeMap;
 import chan.content.model.Attachment;
 import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
@@ -36,114 +37,136 @@ public class DvachModelMapper {
 	}
 
 	public static class BoardConfiguration {
-		public String title;
-		public String description;
-		public String defaultName;
-		public int bumpLimit;
-		public int maxCommentLength;
-		public int pagesCount;
-		public String icons;
+		public final String title;
+		public final String description;
+		public final String defaultName;
+		public final int bumpLimit;
+		public final int maxCommentLength;
+		public final String icons;
 
-		public Boolean imagesEnabled;
-		public Boolean namesEnabled;
-		public Boolean tripcodesEnabled;
-		public Boolean subjectsEnabled;
-		public Boolean sageEnabled;
-		public Boolean flagsEnabled;
+		public final boolean imagesEnabled;
+		public final boolean namesEnabled;
+		public final boolean tripcodesEnabled;
+		public final boolean subjectsEnabled;
+		public final boolean sageEnabled;
+		public final boolean flagsEnabled;
 
 		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-		public boolean handle(JsonSerial.Reader reader, String name) throws IOException, ParseException {
-			switch (name) {
-				case "BoardName": {
-					title = reader.nextString();
-					return true;
-				}
-				case "BoardInfoOuter": {
-					description = reader.nextString();
-					return true;
-				}
-				case "default_name": {
-					defaultName = reader.nextString();
-					return true;
-				}
-				case "bump_limit": {
-					bumpLimit = reader.nextInt();
-					return true;
-				}
-				case "max_comment": {
-					maxCommentLength = reader.nextInt();
-					return true;
-				}
-				case "pages": {
-					int count = 0;
-					reader.startArray();
-					while (!reader.endStruct()) {
-						count++;
-						reader.skip();
+		public BoardConfiguration(JsonSerial.Reader reader) throws IOException, ParseException {
+			String title = null;
+			String description = null;
+			String defaultName = null;
+			int bumpLimit = 0;
+			int maxCommentLength = 0;
+			String icons = null;
+			boolean imagesEnabled = false;
+			boolean namesEnabled = false;
+			boolean tripcodesEnabled = false;
+			boolean subjectsEnabled = false;
+			boolean sageEnabled = false;
+			boolean flagsEnabled = false;
+			reader.startObject();
+			while (!reader.endStruct()) {
+				switch (reader.nextName()) {
+					case "name": {
+						title = reader.nextString();
+						break;
 					}
-					pagesCount = count;
-					return true;
-				}
-				case "icons": {
-					try (JsonSerial.Writer writer = JsonSerial.writer()) {
-						writer.startArray();
-						reader.startArray();
-						while (!reader.endStruct()) {
-							reader.startObject();
-							writer.startObject();
+					case "info": {
+						description = reader.nextString();
+						break;
+					}
+					case "default_name": {
+						defaultName = reader.nextString();
+						break;
+					}
+					case "bump_limit": {
+						bumpLimit = reader.nextInt();
+						break;
+					}
+					case "max_comment": {
+						maxCommentLength = reader.nextInt();
+						break;
+					}
+					case "icons": {
+						try (JsonSerial.Writer writer = JsonSerial.writer()) {
+							writer.startArray();
+							reader.startArray();
 							while (!reader.endStruct()) {
-								switch (reader.nextName()) {
-									case "name": {
-										writer.name("name");
-										writer.value(reader.nextString());
-										break;
-									}
-									case "num": {
-										writer.name("num");
-										writer.value(reader.nextString());
-										break;
-									}
-									default: {
-										reader.skip();
-										break;
+								reader.startObject();
+								writer.startObject();
+								while (!reader.endStruct()) {
+									switch (reader.nextName()) {
+										case "name": {
+											writer.name("name");
+											writer.value(reader.nextString());
+											break;
+										}
+										case "num": {
+											writer.name("num");
+											writer.value(reader.nextString());
+											break;
+										}
+										default: {
+											reader.skip();
+											break;
+										}
 									}
 								}
+								writer.endObject();
 							}
-							writer.endObject();
+							writer.endArray();
+							icons = new String(writer.build());
 						}
-						writer.endArray();
-						icons = new String(writer.build());
+						break;
 					}
-					return true;
-				}
-				case "enable_images": {
-					imagesEnabled = reader.nextBoolean();
-					return true;
-				}
-				case "enable_names": {
-					namesEnabled = reader.nextBoolean();
-					return true;
-				}
-				case "enable_trips": {
-					tripcodesEnabled = reader.nextBoolean();
-					return true;
-				}
-				case "enable_subject": {
-					subjectsEnabled = reader.nextBoolean();
-					return true;
-				}
-				case "enable_sage": {
-					sageEnabled = reader.nextBoolean();
-					return true;
-				}
-				case "enable_flags": {
-					flagsEnabled = reader.nextBoolean();
-					return true;
-				}
-				default: {
-					return false;
+					case "file_types": {
+						reader.startArray();
+						while (!reader.endStruct()) {
+							String fileType = reader.nextString();
+							String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileType);
+							imagesEnabled |= mimeType != null;
+						}
+						break;
+					}
+					case "enable_names": {
+						namesEnabled = reader.nextBoolean();
+						break;
+					}
+					case "enable_trips": {
+						tripcodesEnabled = reader.nextBoolean();
+						break;
+					}
+					case "enable_subject": {
+						subjectsEnabled = reader.nextBoolean();
+						break;
+					}
+					case "enable_sage": {
+						sageEnabled = reader.nextBoolean();
+						break;
+					}
+					case "enable_flags": {
+						flagsEnabled = reader.nextBoolean();
+						break;
+					}
+					default: {
+						reader.skip();
+						break;
+					}
 				}
 			}
+			this.title = title;
+			this.description = description;
+			this.defaultName = defaultName;
+			this.bumpLimit = bumpLimit;
+			this.maxCommentLength = maxCommentLength;
+			this.icons = icons;
+			this.imagesEnabled = imagesEnabled;
+			this.namesEnabled = namesEnabled;
+			this.tripcodesEnabled = tripcodesEnabled;
+			this.subjectsEnabled = subjectsEnabled;
+			this.sageEnabled = sageEnabled;
+			this.flagsEnabled = flagsEnabled;
 		}
 	}
 

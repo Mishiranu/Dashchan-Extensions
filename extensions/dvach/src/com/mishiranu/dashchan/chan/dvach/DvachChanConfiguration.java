@@ -159,9 +159,6 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		editBoards(boardName, KEY_SUBJECTS_ENABLED, configuration.subjectsEnabled);
 		editBoards(boardName, KEY_SAGE_ENABLED, configuration.sageEnabled);
 		editBoards(boardName, KEY_FLAGS_ENABLED, configuration.flagsEnabled);
-		if (configuration.pagesCount > 0) {
-			storePagesCount(boardName, configuration.pagesCount);
-		}
 		set(boardName, KEY_ICONS, "[]".equals(configuration.icons) ? null : configuration.icons);
 	}
 

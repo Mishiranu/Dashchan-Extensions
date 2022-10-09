@@ -3,5 +3,7 @@ apply plugin: 'chan-extension'
 chan {
 	versionName '1.43'
 	apiVersion 1
-	hosts '2ch.hk', '2ch.pm', '2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so'
+	hosts '2ch.hk', '2ch.pm', '2ch.life',
+			'2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so',
+			'beta.2ch.hk'
 }

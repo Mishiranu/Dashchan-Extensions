@@ -1,12 +1,10 @@
 package com.mishiranu.dashchan.chan.dvach;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import android.util.Pair;
-
 import chan.content.ChanMarkup;
 import chan.text.CommentEditor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DvachChanMarkup extends ChanMarkup {
 	private static final int SUPPORTED_TAGS = TAG_BOLD | TAG_ITALIC | TAG_UNDERLINE | TAG_OVERLINE | TAG_STRIKE
