@@ -1,0 +1,4 @@
+<resources>
+	<string name="preference_kaptcha_replies">Show Kaptcha for replies</string>
+	<string name="preference_kaptcha_replies_summary">Enable Kaptcha for replies instead of just new threads</string>
+</resources>
