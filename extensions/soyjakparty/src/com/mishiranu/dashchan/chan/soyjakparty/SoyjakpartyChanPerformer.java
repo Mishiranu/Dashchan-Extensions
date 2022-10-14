@@ -1,13 +1,21 @@
 package com.mishiranu.dashchan.chan.soyjakparty;
 
+import static com.mishiranu.dashchan.chan.soyjakparty.SoyjakpartyChanConfiguration.CAPTCHA_TYPE_KAPTCHA;
+
+import static chan.content.ChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Base64;
 
 import chan.content.ApiException;
 import chan.content.ChanPerformer;
@@ -27,6 +35,7 @@ import chan.util.StringUtils;
 
 public class SoyjakpartyChanPerformer extends ChanPerformer {
 	private static final String RECAPTCHA_API_KEY = "6LdA3F4bAAAAAJ68Fh_IiaJQtxJx0Chgr3SjaAMD";
+	private static final String CAPTCHA_DATA_KEY_TYPE = "captchaType";
 
 	@Override
 	public ReadThreadsResult onReadThreads(ReadThreadsData data) throws HttpException, InvalidResponseException {
@@ -168,9 +177,14 @@ public class SoyjakpartyChanPerformer extends ChanPerformer {
 		entity.add("json_response", "1");
 
 		if (data.captchaData != null) {
-			entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
+			String captchaType = data.captchaData.get(CAPTCHA_DATA_KEY_TYPE);
+			if (captchaType.equals(CAPTCHA_TYPE_RECAPTCHA_2)) {
+				entity.add("g-recaptcha-response", data.captchaData.get(CaptchaData.INPUT));
+			} else if (captchaType.equals(CAPTCHA_TYPE_KAPTCHA)) {
+				entity.add("_KAPTCHA_KEY", data.captchaData.get(CaptchaData.CHALLENGE));
+				entity.add("_KAPTCHA", StringUtils.emptyIfNull(data.captchaData.get(CaptchaData.INPUT)));
+			}
 		}
-
 
 		SoyjakpartyChanLocator locator = SoyjakpartyChanLocator.get(this);
 		Uri contentUri = data.threadNumber != null ? locator.createThreadUri(data.boardName, data.threadNumber)
@@ -178,7 +192,7 @@ public class SoyjakpartyChanPerformer extends ChanPerformer {
 		String responseText = new HttpRequest(contentUri, data).perform().readString();
 		try {
 			AntispamFieldsParser.parseAndApply(responseText, entity, "board", "thread", "name", "email",
-					"subject", "body", "password", "file", "spoiler", "json_response");
+					"subject", "body", "password", "file", "spoiler", "json_response", "_KAPTCHA", "_KAPTCHA_NOJS", "_KAPTCHA_KEY");
 		} catch (ParseException e) {
 			throw new InvalidResponseException();
 		}
@@ -316,19 +330,46 @@ public class SoyjakpartyChanPerformer extends ChanPerformer {
 	}
 
 	@Override
-	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) {
+	public ReadCaptchaResult onReadCaptcha(ReadCaptchaData data) throws InvalidResponseException, HttpException {
 		String captchaType = data.captchaType;
 		SoyjakpartyChanLocator locator = SoyjakpartyChanLocator.get(this);
+		SoyjakpartyChanConfiguration configuration = SoyjakpartyChanConfiguration.get(this);
 		ReadCaptchaResult result;
 		if (SoyjakpartyChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
 			CaptchaData captchaData = new CaptchaData();
 			captchaData.put(CaptchaData.REFERER, locator.buildPath().toString());
 			captchaData.put(CaptchaData.API_KEY, RECAPTCHA_API_KEY);
+			captchaData.put(CAPTCHA_DATA_KEY_TYPE, CAPTCHA_TYPE_RECAPTCHA_2);
 			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData)
 					.setValidity(SoyjakpartyChanConfiguration.Captcha.Validity.IN_BOARD_SEPARATELY);
 		} else if (SoyjakpartyChanConfiguration.CAPTCHA_TYPE_NONE.equals(captchaType)) {
 			captchaType = null;
 			result = new ReadCaptchaResult(CaptchaState.SKIP, null);
+		} else if (CAPTCHA_TYPE_KAPTCHA.equals(captchaType)) {
+			if (data.threadNumber != null && !configuration.isKaptchaRepliesEnabled()) {
+				return new ReadCaptchaResult(CaptchaState.SKIP, null);
+			}
+			String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789=-";
+			SecureRandom rnd = new SecureRandom();
+			StringBuilder keyBuilder = new StringBuilder(64);
+			for(int i = 0; i < 64; i++) {
+				keyBuilder.append(chars.charAt(rnd.nextInt(chars.length())));
+			}
+			String key = keyBuilder.toString();
+
+			Uri uri = Uri.parse("https://sys.kolyma.net/kaptcha/kaptcha.php?key=" + key);
+			Bitmap image;
+			String response = new HttpRequest(uri, data).perform().readString();
+			byte[] imageBytes = Base64.decode(response.split(", ")[1], 0);
+			image = imageBytes.length == 0 ? null
+					: BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+			if (image == null) {
+				throw new InvalidResponseException(new Exception("Image is null"));
+			}
+			CaptchaData captchaData = new CaptchaData();
+			captchaData.put(CAPTCHA_DATA_KEY_TYPE, CAPTCHA_TYPE_KAPTCHA);
+			captchaData.put(CaptchaData.CHALLENGE, key);
+			result = new ReadCaptchaResult(CaptchaState.CAPTCHA, captchaData).setImage(image);
 		} else {
 			throw new IllegalStateException();
 		}

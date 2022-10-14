@@ -1,14 +1,21 @@
 package com.mishiranu.dashchan.chan.soyjakparty;
 
+import android.content.res.Resources;
+
 import chan.content.ChanConfiguration;
 
 public class SoyjakpartyChanConfiguration extends ChanConfiguration {
 	public static final String CAPTCHA_TYPE_NONE = "None";
+	public static final String CAPTCHA_TYPE_KAPTCHA = "Kaptcha";
+
+	public static final String KAPTCHA_REPLIES = "KaptchaReplies";
 
 	public SoyjakpartyChanConfiguration() {
 		request(OPTION_READ_POSTS_COUNT);
-		addCaptchaType(CAPTCHA_TYPE_NONE);
+		addCaptchaType(CAPTCHA_TYPE_KAPTCHA);
 		addCaptchaType(CAPTCHA_TYPE_RECAPTCHA_2);
+		addCaptchaType(CAPTCHA_TYPE_NONE);
+		addCustomPreference(KAPTCHA_REPLIES, false);
 		setDefaultName("Chud");
 	}
 
@@ -31,7 +38,7 @@ public class SoyjakpartyChanConfiguration extends ChanConfiguration {
 		posting.allowEmail = namesAndEmails;
 		posting.allowSubject = true;
 		posting.optionSage = namesAndEmails;
-		posting.attachmentCount = 3;
+		posting.attachmentCount = 4;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/webm");
 		posting.attachmentMimeTypes.add("video/mp4");
@@ -58,13 +65,49 @@ public class SoyjakpartyChanConfiguration extends ChanConfiguration {
 
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if (CAPTCHA_TYPE_NONE.equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "None";
-			captcha.input = Captcha.Input.ALL;
-			captcha.validity = Captcha.Validity.IN_BOARD;
-			return captcha;
+		Captcha captcha;
+
+		switch (captchaType) {
+			case CAPTCHA_TYPE_KAPTCHA:
+				captcha = new Captcha();
+				captcha.title = captchaType;
+				captcha.input = Captcha.Input.ALL;
+				captcha.validity = Captcha.Validity.SHORT_LIFETIME;
+				break;
+			case CAPTCHA_TYPE_NONE:
+				captcha = new Captcha();
+				captcha.title = CAPTCHA_TYPE_NONE;
+				captcha.input = Captcha.Input.ALL;
+				captcha.validity = Captcha.Validity.IN_BOARD;
+				break;
+			default:
+				captcha = null;
+				break;
 		}
-		return null;
+
+		return captcha;
+	}
+
+	@Override
+	public CustomPreference obtainCustomPreferenceConfiguration(String key) {
+		Resources resources = getResources();
+		CustomPreference customPreference;
+
+		switch (key) {
+			case KAPTCHA_REPLIES:
+				customPreference = new CustomPreference();
+				customPreference.title = resources.getString(R.string.preference_kaptcha_replies);
+				customPreference.summary = resources.getString(R.string.preference_kaptcha_replies_summary);
+				break;
+			default:
+				customPreference = null;
+				break;
+		}
+
+		return customPreference;
+	}
+
+	public boolean isKaptchaRepliesEnabled() {
+		return get(null, KAPTCHA_REPLIES, false);
 	}
 }

@@ -1,6 +1,4 @@
 <resources>
-
-	<string name="text_app_name">Dashchan for soyjak.party</string>
-	<string name="text_activity_name">Dashchan</string>
-
+	<string name="preference_kaptcha_replies">Show Kaptcha for replies</string>
+	<string name="preference_kaptcha_replies_summary">Enable Kaptcha for replies instead of just new threads</string>
 </resources>
