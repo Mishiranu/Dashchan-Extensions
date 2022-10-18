@@ -759,6 +759,7 @@ public class FourchanChanPerformer extends ChanPerformer {
 			request.addHeader("User-Agent", "curl/7.64.0");
 		} else {
 			// Less reliable fix: works in /b/, doesn't work in /bant/
+			request.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0");
 			request.addHeader("Accept", "text/html").addHeader("Accept-Language", "en")
 					.addHeader("Referer", uri.toString());
 		}
@@ -806,7 +807,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 					errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
 				} else if (errorMessage.contains("Duplicate file exists")) {
 					errorType = ApiException.SEND_ERROR_FILE_EXISTS;
-				} else if (errorMessage.contains("has been blocked due to abuse") || errorMessage.contains("banned")) {
+				} else if (errorMessage.contains("has been blocked due to abuse")) {
+					errorType = ApiException.SEND_ERROR_RANGE_BANNED;
+				} else if (errorMessage.contains("banned")) {
 					errorType = ApiException.SEND_ERROR_BANNED;
 					extra = readBanExtra(data, data.boardName);
 				} else if (errorMessage.contains("image replies has been reached")) {
