@@ -579,12 +579,20 @@ public class FourchanChanPerformer extends ChanPerformer {
 						wait += 1000;
 					} else {
 						challenge = jsonObject.getString("challenge");
-						byte[] imageBytes = Base64.decode(jsonObject.getString("img"), 0);
-						byte[] backgroundBytes = Base64.decode(jsonObject.optString("bg"), 0);
-						image = imageBytes.length == 0 ? null
-								: BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-						background = backgroundBytes.length == 0 ? null
-								: BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.length);
+						if ("noop".equals(challenge)) {
+							CaptchaData captchaData = new CaptchaData();
+							captchaData.put(CAPTCHA_DATA_KEY_TYPE, captchaType);
+							captchaData.put(CaptchaData.CHALLENGE, challenge);
+							captchaData.put(CaptchaData.INPUT, "");
+							return new ReadCaptchaResult(CaptchaState.SKIP, captchaData);
+						} else {
+							byte[] imageBytes = Base64.decode(jsonObject.getString("img"), 0);
+							byte[] backgroundBytes = Base64.decode(jsonObject.optString("bg"), 0);
+							image = imageBytes.length == 0 ? null
+									: BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+							background = backgroundBytes.length == 0 ? null
+									: BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.length);
+						}
 						break;
 					}
 				} catch (JSONException e) {
