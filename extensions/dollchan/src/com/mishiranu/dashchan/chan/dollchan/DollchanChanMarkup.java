@@ -14,7 +14,7 @@ public class DollchanChanMarkup extends ChanMarkup {
 		addTag("strong", TAG_BOLD);
 		addTag("em", TAG_ITALIC);
 		addTag("u", TAG_UNDERLINE);
-		addTag("s", TAG_STRIKE);
+		addTag("del", TAG_STRIKE);
 		addTag("pre", TAG_CODE);
 		addTag("span", "unkfunc", TAG_QUOTE);
 		addTag("span", "spoiler", TAG_SPOILER);

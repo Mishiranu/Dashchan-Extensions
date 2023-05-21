@@ -20,6 +20,7 @@ import chan.content.WakabaChanLocator;
 import chan.content.WakabaPostsParser;
 import chan.content.model.Attachment;
 import chan.content.model.FileAttachment;
+import chan.content.model.Icon;
 import chan.content.model.Post;
 import chan.content.model.Posts;
 import chan.text.ParseException;
@@ -177,6 +178,21 @@ public class DollchanPostsParser {
 		.equals("span", "class", "replytitle")
 		.content((instance, holder, text) -> holder.post
 				.setSubject(StringUtils.nullIfEmpty(StringUtils.clearHtml(text).trim())))
+		.equals("img", "class", "poster-country")
+		.open((instance, holder, tagName, attributes) -> {
+			String title = attributes.get("title");
+			String src = attributes.get("src");
+			if (title != null && src != null) {
+				Uri fullSrc = holder.locator.buildPath(src);
+				holder.post.setIcons(new Icon(holder.locator, fullSrc, title));
+			}
+			return false;
+		})
+		.equals("span", "class", "posteruid")
+		.content((instance, holder, text) -> {
+			String id = StringUtils.clearHtml(text);
+			holder.post.setIdentifier(id);
+		})
 		.equals("span", "class", "postername")
 		.equals("span", "class", "commentpostername")
 		.content((instance, holder, text) -> {
@@ -188,6 +204,10 @@ public class DollchanPostsParser {
 				email = StringUtils.clearHtml(matcher.group(1));
 			}
 			holder.setNameEmail(name, email);
+		})
+		.equals("span", "class", "postername postername-admin")
+		.content((instance, holder, text) -> {
+			holder.post.setCapcode(StringUtils.clearHtml(text));
 		})
 		.equals("span", "class", "postertrip")
 		.content((instance, holder, text) -> holder.post

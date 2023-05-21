@@ -51,7 +51,7 @@ public class DollchanChanConfiguration extends ChanConfiguration {
 		posting.allowEmail = true;
 		posting.allowSubject = true;
 		posting.optionSage = true;
-		posting.attachmentCount = 5;
+		posting.attachmentCount = 4;
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/*");
 		posting.attachmentMimeTypes.add("audio/*");
@@ -67,8 +67,7 @@ public class DollchanChanConfiguration extends ChanConfiguration {
 		posting.attachmentMimeTypes.add("application/x-gzip");
 		posting.attachmentMimeTypes.add("application/x-bzip2");
 		posting.attachmentMimeTypes.add("application/download");
-		posting.attachmentSpoiler = true;
-		posting.hasCountryFlags = get(boardName, KEY_FLAGS_ENABLED, false);
+		posting.hasCountryFlags = true;
 		return posting;
 	}
 
