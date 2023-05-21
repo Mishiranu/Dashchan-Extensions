@@ -1,0 +1,11 @@
+apply plugin: 'chan-extension'
+
+chan {
+	versionName '1.0'
+	apiVersion 1
+	hosts 'dollchan.net'
+}
+
+dependencies {
+	implementation project(':engines:wakaba')
+}
